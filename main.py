@@ -11,11 +11,6 @@ from kivy.lang import Builder
 Builder.load_file('main.kv')
 
 
-def get_local_ip():
-    return [(s.connect(('8.8.8.8', 53)), s.getsockname()[0], s.close()) for s in
-            [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
-
-
 class ClientOPCUA(Client):
 
     def __init__(self, url, **kwargs):
@@ -46,7 +41,7 @@ def update_it(self):
 
 
 class LaboratorClientApp(App):
-    Clienter = ClientOPCUA("opc.tcp://" + str(get_local_ip()) + ":4840/freeopcua/server/")
+    Clienter = ClientOPCUA("opc.tcp://" + "192.168.1.67" + ":4840/freeopcua/server/")
     Box = BoxIncoming()
 
     def build(self):
