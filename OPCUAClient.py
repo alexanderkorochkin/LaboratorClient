@@ -24,7 +24,7 @@ class OPCUAClient(Client):
     def isConnected(self):
             return self._isConnected
 
-    def close(self):
+    def Disconnect(self):
         self.disconnect()
         self._isConnected = False
 

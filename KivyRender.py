@@ -20,7 +20,6 @@ from urllib.parse import urlparse
 
 CurrentLayout = "IPEnterWindow"
 
-
 class WindowManager(ScreenManager):
     pass
 
@@ -41,12 +40,21 @@ class MainScreen(Screen):
     def Connect(self):
         try:
             client.Connect()
+            self.ids.label_text.text = "Connected!"
             handler = self.UpdateIt(self)
             sub = client.create_subscription(1000, handler)
             sub.subscribe_data_change(client.myVar)
         except Exception:
             self.ids.label_text.text = "Error while connecting..."
             self.ids.button_connect.disabled = False
+
+    def Disconnect(self):
+        try:
+            client.Disconnect()
+            self.ids.label_text.text = "Disconnected!"
+        except Exception:
+            self.ids.label_text.text = "Error while disconnecting..."
+            self.ids.button_disconnect.disabled = False
 
 
 class IPEnterScreen(Screen):
@@ -74,7 +82,7 @@ class KivyRenderApp(App):
 
     def on_stop(self):
         if client.isConnected():
-            client.close()
+            client.Disconnect()
 
     # Обновление всех данных
     def update_data(self):

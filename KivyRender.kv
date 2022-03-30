@@ -39,4 +39,14 @@ WindowManager:
             text: "Connect"
             on_press:
                 self.disabled = True
+                button_disconnect.disabled = False
                 root.Connect()
+        Button:
+            id: button_disconnect
+            size_hint: 1, 0.04
+            text: "Disconnect"
+            disabled: True
+            on_press:
+                self.disabled = True
+                button_connect.disabled = False
+                root.Disconnect()
