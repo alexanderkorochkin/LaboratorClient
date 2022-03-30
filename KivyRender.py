@@ -12,8 +12,6 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.lang import Builder
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty
-
-
 from OPCUAClient import client
 from urllib.parse import urlparse
 
@@ -47,6 +45,7 @@ class MainScreen(Screen):
         except Exception:
             self.ids.label_text.text = "Error while connecting..."
             self.ids.button_connect.disabled = False
+            self.ids.button_disconnect.disabled = True
 
     def Disconnect(self):
         try:
