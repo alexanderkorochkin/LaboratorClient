@@ -13,12 +13,12 @@ from kivy.event import EventDispatcher
 def ResizeGraphCallback(instance, value):
     if "KivyFrame.GraphContainer" in str(instance):
         if value[0] > value[1]:
-            KivyFrame.instance.GraphContainer.columns = 2
-            for element in KivyFrame.instance.GraphContainer.GraphArr:
+            KivyFrame.instance.graph_container_main.columns = 2
+            for element in KivyFrame.instance.graph_container_main.GraphArr:
                 element.height = 0.5 * KivyFrame.instance.ids.view_port.height
         if value[0] <= value[1]:
-            KivyFrame.instance.GraphContainer.columns = 1
-            for element in KivyFrame.instance.GraphContainer.GraphArr:
+            KivyFrame.instance.graph_container_main.columns = 1
+            for element in KivyFrame.instance.graph_container_main.GraphArr:
                 element.height = 0.3 * KivyFrame.instance.ids.view_port.height
 
 
@@ -30,7 +30,7 @@ class Graph(Button):
             self.height = 0.3 * KivyFrame.instance.ids.view_port.height
         else:
             if cols == 2:
-                if len(KivyFrame.instance.GraphContainer.GraphArr) == 0:
+                if len(KivyFrame.instance.graph_container_main.GraphArr) == 0:
                     self.height = KivyFrame.instance.ids.view_port.height
                 self.height = 0.5 * KivyFrame.instance.ids.view_port.height
 
@@ -128,19 +128,19 @@ class GraphContainer(BoxLayout):
 
 
 class LaboratorClientMain(BoxLayout):
+    graph_container_main = ObjectProperty(GraphContainer())
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.GraphContainer = GraphContainer()
 
     def Prepare(self, dt):
         self.ids.view_port.add_widget(self.GraphContainer)
 
     def AddGraph(self):
-        self.GraphContainer.AddGraph()
+        self.graph_container_main.AddGraph()
 
     def RemoveGraph(self):
-        self.GraphContainer.RemoveGraph()
+        self.graph_container_main.RemoveGraph()
 
     def Update(self, dt):
         pass
