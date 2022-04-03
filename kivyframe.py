@@ -8,6 +8,11 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty, StringProperty
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
+from kivy import Config
+from kivy.logger import Logger, LOG_LEVELS
+
+Logger.setLevel(LOG_LEVELS["debug"])
+Config.set('graphics', 'multisamples', '0')
 
 
 def ResizeGraphCallback(instance, value):
