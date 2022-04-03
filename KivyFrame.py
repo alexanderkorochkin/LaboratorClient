@@ -1,20 +1,13 @@
-from functools import partial
-
 from kivy.app import App
 from OPCUAClient import client
 
-from kivy.uix.widget import Widget
-from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
-from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
-from kivy.uix.carousel import Carousel
 from kivy.uix.gridlayout import GridLayout
 from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty, StringProperty
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
-from kivy.lang import Builder
 
 
 def ResizeGraphCallback(instance, value):
@@ -141,7 +134,7 @@ class LaboratorClientMain(BoxLayout):
         self.GraphContainer = GraphContainer()
 
     def Prepare(self, dt):
-        self.ids.view_port.add_widget(self.GraphContainer)
+        KivyFrame.root.ids.view_port.add_widget(self.GraphContainer)
 
     def AddGraph(self):
         self.GraphContainer.AddGraph()
@@ -189,7 +182,7 @@ class KivyFrameApp(App):
     def build(self):
         laborator = LaboratorClientMain()
         self.instance = laborator
-        Clock.schedule_once(laborator.Prepare, -1)
+        Clock.schedule_once(laborator.Prepare, 0)
         Clock.schedule_interval(laborator.Update, 1)
         return laborator
 
