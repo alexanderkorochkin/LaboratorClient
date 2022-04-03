@@ -11,7 +11,7 @@
         do_scroll_y: True
         GridLayout:
             size_hint_y: None
-            cols: 1
+            cols: root.columns
             id: graph_container
             height: self.minimum_height
 
@@ -20,6 +20,7 @@
         id: main_stack
         orientation: "vertical"
         BoxLayout:
+            id: top_menu
             orientation: "horizontal"
             size_hint: 1, 0.04
             TextInput:
@@ -54,6 +55,15 @@
             size_hint: 1, 0.02
             Label:
                 id: info_log
+                text: "Not connected"
+                color: 1,0,0,1
+                font_size: 12
+        BoxLayout:
+            id: view_port
+        BoxLayout:
+            id: bottom_menu
+            size_hint: 1, 0.1
+            Label:
                 text: "Not connected"
                 color: 1,0,0,1
                 font_size: 12

@@ -1,6 +1,7 @@
 from functools import partial
 
 from kivy.app import App
+from OPCUAClient import client
 
 from kivy.uix.widget import Widget
 from kivy.uix.textinput import TextInput
@@ -14,55 +15,89 @@ from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProper
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
-from OPCUAClient import client
 
 
-def ResizeCallback(instance, value):
+def ResizeGraphCallback(instance, value):
     if "KivyFrame.GraphContainer" in str(instance):
         if value[0] > value[1]:
-            instance.ids.graph_container.cols = 2
+            KivyFrame.instance.GraphContainer.columns = 2
+            for element in KivyFrame.instance.GraphContainer.GraphArr:
+                element.height = 0.5 * KivyFrame.instance.ids.view_port.height
         if value[0] <= value[1]:
-            instance.ids.graph_container.cols = 1
+            KivyFrame.instance.GraphContainer.columns = 1
+            for element in KivyFrame.instance.GraphContainer.GraphArr:
+                element.height = 0.3 * KivyFrame.instance.ids.view_port.height
 
 
 class Graph(Button):
-    def __init__(self, **kwargs):
+    def __init__(self, cols, **kwargs):
         super().__init__(**kwargs)
         self.size_hint = [1, None]
-        self.height = 250
+        if cols == 1:
+            self.height = 0.3 * KivyFrame.instance.ids.view_port.height
+        else:
+            if cols == 2:
+                if len(KivyFrame.instance.GraphContainer.GraphArr) == 0:
+                    self.height = KivyFrame.instance.ids.view_port.height
+                self.height = 0.5 * KivyFrame.instance.ids.view_port.height
+
+    def SetHeight(self, height):
+        self.height = height
 
 
 class GraphContainer(BoxLayout):
     container = ObjectProperty(None)
     scrollview = ObjectProperty(None)
+    columns = NumericProperty(None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.bind(size=ResizeCallback)
+        self.bind(size=ResizeGraphCallback)
         self.GraphArr = []
+        self.columns = 1
 
-    def adjust_scroll(self, bottom, dt):
-        vp_height = self.ids.scroll_view.viewport_size[1]
-        sv_height = self.ids.scroll_view.height
-        self.ids.scroll_view.scroll_y = bottom / (vp_height - sv_height)
+    # def adjust_scroll(self, bottom, dt):
+    #     vp_height = self.ids.scroll_view.viewport_size[1]
+    #     sv_height = self.ids.scroll_view.height
+    #     print(bottom, vp_height, sv_height)
+    #     self.ids.scroll_view.scroll_y = bottom / (vp_height - sv_height)
 
     def AddGraph(self):
         vp_height = self.ids.scroll_view.viewport_size[1]
         sv_height = self.ids.scroll_view.height
 
-        graph = Graph()
-        self.GraphArr.append(graph)
-        self.ids.graph_container.add_widget(graph)
+        if self.columns == 1:
+            graph = Graph(self.columns)
+            self.GraphArr.append(graph)
+            self.ids.graph_container.add_widget(graph)
 
-        if vp_height > sv_height:  # otherwise there is no scrolling
-            # calculate y value of bottom of scrollview in the viewport
-            scroll = self.ids.scroll_view.scroll_y
-            bottom = scroll * (vp_height - sv_height)
+        if self.columns == 2:
+            if len(self.GraphArr) == 0:
+                graph = Graph(self.columns)
+                self.GraphArr.append(graph)
+                self.ids.graph_container.add_widget(graph)
+                self.GraphArr[0].SetHeight(KivyFrame.instance.ids.view_port.height)
+            else:
+                if len(self.GraphArr) == 1:
+                    graph = Graph(self.columns)
+                    self.GraphArr.append(graph)
+                    self.ids.graph_container.add_widget(graph)
+                    self.GraphArr[0].SetHeight(0.5 * KivyFrame.instance.ids.view_port.height)
+                else:
+                    if len(self.GraphArr) > 1:
+                        graph = Graph(self.columns)
+                        self.GraphArr.append(graph)
+                        self.ids.graph_container.add_widget(graph)
 
-            # use Clock.schedule_once because we need updated viewport height
-            # this assumes that new widgets are added at the bottom
-            # so the current bottom must increase by the widget height to maintain position
-            Clock.schedule_once(partial(self.adjust_scroll, bottom + graph.height), -1)
+        # if vp_height > sv_height:  # otherwise there is no scrolling
+        #     # calculate y value of bottom of scrollview in the viewport
+        #     scroll = self.ids.scroll_view.scroll_y
+        #     bottom = scroll * (vp_height - sv_height)
+        #
+        #     # use Clock.schedule_once because we need updated viewport height
+        #     # this assumes that new widgets are added at the bottom
+        #     # so the current bottom must increase by the widget height to maintain position
+        #     Clock.schedule_once(partial(self.adjust_scroll, bottom + graph.height), 0)
 
     def RemoveGraph(self):
         if len(self.GraphArr) > 0:
@@ -70,18 +105,33 @@ class GraphContainer(BoxLayout):
             sv_height = self.ids.scroll_view.height
 
             temp = self.GraphArr[len(self.GraphArr) - 1]
-            self.ids.graph_container.remove_widget(temp)
-            self.GraphArr.remove(temp)
+            if self.columns == 1:
+                self.ids.graph_container.remove_widget(temp)
+                self.GraphArr.remove(temp)
 
-            if vp_height > sv_height:  # otherwise there is no scrolling
-                # calculate y value of bottom of scrollview in the viewport
-                scroll = self.ids.scroll_view.scroll_y
-                bottom = scroll * (vp_height - sv_height)
+            if self.columns == 2:
+                if len(self.GraphArr) == 1:
+                    self.ids.graph_container.remove_widget(temp)
+                    self.GraphArr.remove(temp)
+                else:
+                    if len(self.GraphArr) == 2:
+                        self.ids.graph_container.remove_widget(temp)
+                        self.GraphArr.remove(temp)
+                        self.GraphArr[0].SetHeight(KivyFrame.instance.ids.view_port.height)
+                    else:
+                        if len(self.GraphArr) > 2:
+                            self.ids.graph_container.remove_widget(temp)
+                            self.GraphArr.remove(temp)
 
-                # use Clock.schedule_once because we need updated viewport height
-                # this assumes that new widgets are added at the bottom
-                # so the current bottom must increase by the widget height to maintain position
-                Clock.schedule_once(partial(self.adjust_scroll, bottom - temp.height), -1)
+            # if vp_height > sv_height:  # otherwise there is no scrolling
+            #     # calculate y value of bottom of scrollview in the viewport
+            #     scroll = self.ids.scroll_view.scroll_y
+            #     bottom = scroll / (vp_height - sv_height)
+            #
+            #     # use Clock.schedule_once because we need updated viewport height
+            #     # this assumes that new widgets are added at the bottom
+            #     # so the current bottom must decrease by the widget height to maintain position
+            #     Clock.schedule_once(partial(self.adjust_scroll, bottom - temp.height), 0)
 
 
 class LaboratorClientMain(BoxLayout):
@@ -91,7 +141,7 @@ class LaboratorClientMain(BoxLayout):
         self.GraphContainer = GraphContainer()
 
     def Prepare(self, dt):
-        self.ids.main_stack.add_widget(self.GraphContainer)
+        self.ids.view_port.add_widget(self.GraphContainer)
 
     def AddGraph(self):
         self.GraphContainer.AddGraph()
@@ -130,6 +180,7 @@ class KivyFrameApp(App):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.instance = None
 
     def on_stop(self):
         if client.isConnected():
@@ -137,6 +188,7 @@ class KivyFrameApp(App):
 
     def build(self):
         laborator = LaboratorClientMain()
+        self.instance = laborator
         Clock.schedule_once(laborator.Prepare, -1)
         Clock.schedule_interval(laborator.Update, 1)
         return laborator
