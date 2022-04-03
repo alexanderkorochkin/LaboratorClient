@@ -1,4 +1,22 @@
+<Graph>:
+    text: "FUCK"
+
+<GraphContainer>:
+    container: graph_container
+    scrollview: scroll_view
+
+    ScrollView:
+        id: scroll_view
+        do_scroll_x: False
+        do_scroll_y: True
+        GridLayout:
+            size_hint_y: None
+            cols: root.columns
+            id: graph_container
+            height: self.minimum_height
+
 <LaboratorClientMain>:
+    graph_container_main: graph_container_main
 
     BoxLayout:
         id: main_stack
@@ -28,11 +46,13 @@
                 Button:
                     id: btn_menu
                     text: "+"
-
+                    on_press:
+                        root.AddGraph()
                 Button:
                     id: btn_menu
                     text: "-"
-
+                    on_press:
+                        root.RemoveGraph()
         BoxLayout:
             size_hint: 1, 0.02
             Label:
@@ -43,6 +63,8 @@
         BoxLayout:
             id: view_port
             size_hint: 1, 1
+            GraphContainer:
+                id: graph_container_main
         BoxLayout:
             id: bottom_menu
             size_hint: 1, 0.1
