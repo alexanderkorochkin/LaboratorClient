@@ -1,5 +1,9 @@
 #:import Factory kivy.factory.Factory
 
+<TouchableLabel@ButtonBehavior+Label>:
+    valign: 'middle'
+    halign: "center"
+
 <EnterEndpointPopup>:
     title: "Enter the endpoint URL"
     size_hint: None, None
@@ -36,6 +40,12 @@
             height: self.minimum_height
 
 <LaboratorClientMain>:
+    canvas.before:
+        Color:
+            rgba: 0.5, 0.5, 0.5, 0.3
+        Rectangle:
+            pos: self.pos
+            size: self.size
     BoxLayout:
         id: main_stack
         orientation: "vertical"
@@ -44,20 +54,32 @@
             orientation: "horizontal"
             size_hint: 1, None
             size: self.size[0], sp(30)
-            Label:
+            TouchableLabel:
                 id: endpoint_label
                 text: "opc.tcp://192.168.1.22:4840"
                 font_size: sp(10)
-                on_touch_down: Factory.EnterEndpointPopup().open()
+                on_press: Factory.EnterEndpointPopup().open()
             BoxLayout:
                 size_hint: None, 1
                 size: sp(150), self.size[1]
                 Button:
+                    canvas:
+                        Color:
+                            rgba: 0.5, 1, 0.5, 0.3
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
                     id: btn_connect
                     text: "C"
                     on_press:
                         root.Connect()
                 Button:
+                    canvas:
+                        Color:
+                            rgba: 1, 0.5, 0.5, 0.3
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
                     id: btn_disconnect
                     text: "D"
                     disabled: True
