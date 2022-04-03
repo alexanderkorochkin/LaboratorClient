@@ -180,7 +180,7 @@ class KivyFrameApp(App):
             client.Disconnect()
 
     def on_start(self):
-        Clock.schedule_once(self.instance.Prepare, 5)
+        # Clock.schedule_once(self.instance.Prepare, 1)
         Clock.schedule_interval(self.instance.Update, 1)
 
     def build(self):
