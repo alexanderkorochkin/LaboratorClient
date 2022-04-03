@@ -48,6 +48,7 @@ class GraphContainer(BoxLayout):
         self.bind(size=ResizeGraphCallback)
         self.GraphArr = []
         self.columns = 1
+        print("FUCK5")
 
     # def adjust_scroll(self, bottom, dt):
     #     vp_height = self.ids.scroll_view.viewport_size[1]
@@ -128,13 +129,11 @@ class GraphContainer(BoxLayout):
 
 
 class LaboratorClientMain(BoxLayout):
-    graph_container_main = ObjectProperty(GraphContainer())
+    graph_container_main = ObjectProperty()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-    def Prepare(self, dt):
-        self.ids.view_port.add_widget(self.GraphContainer)
+        print("FUCK4")
 
     def AddGraph(self):
         self.graph_container_main.AddGraph()
@@ -174,16 +173,18 @@ class KivyFrameApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.instance = None
+        print("FUCK3")
 
     def on_stop(self):
         if client.isConnected():
             client.Disconnect()
 
     def on_start(self):
-        # Clock.schedule_once(self.instance.Prepare, 1)
+        print("FUCK2")
         Clock.schedule_interval(self.instance.Update, 1)
 
     def build(self):
+        print("FUCK1")
         laborator = LaboratorClientMain()
         self.instance = laborator
         return laborator
