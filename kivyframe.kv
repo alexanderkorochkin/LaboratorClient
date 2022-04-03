@@ -1,5 +1,25 @@
+#:import Factory kivy.factory.Factory
+
+<EnterEndpointPopup>:
+    title: "Enter the endpoint URL"
+    size_hint: None, None
+    size: sp(250), sp(120)
+    BoxLayout:
+        orientation: "vertical"
+        TextInput:
+            id: endpoint_input
+            text: root.endpoint
+            font_size: sp(12)
+        Button:
+            size_hint: 1, None
+            size: self.size[0], sp(30)
+            text: 'Enter'
+            on_release: root.SaveEndpoint()
+
 <Graph>:
-    text: "FUCK"
+    BoxLayout:
+        Label:
+            text: "FUCK"
 
 <GraphContainer>:
     container: graph_container
@@ -22,14 +42,16 @@
         BoxLayout:
             id: top_menu
             orientation: "horizontal"
-            size_hint: 1, 0.04
-            TextInput:
-                id: text_input
+            size_hint: 1, None
+            size: self.size[0], sp(30)
+            Label:
+                id: endpoint_label
                 text: "opc.tcp://192.168.1.22:4840"
-                font_size: 16
+                font_size: sp(10)
+                on_touch_down: Factory.EnterEndpointPopup().open()
             BoxLayout:
                 size_hint: None, 1
-                size: 200, self.size[1]
+                size: sp(150), self.size[1]
                 Button:
                     id: btn_connect
                     text: "C"
@@ -52,17 +74,19 @@
                     on_press:
                         root.RemoveGraph()
         BoxLayout:
-            size_hint: 1, 0.02
+            size_hint: 1, None
+            size: self.size[0], sp(10)
             Label:
                 id: info_log
                 text: "Not connected"
                 color: 1,0,0,1
-                font_size: 12
+                font_size: sp(8)
         BoxLayout:
             id: view_port
         BoxLayout:
             id: bottom_menu
-            size_hint: 1, 0.1
+            size_hint: 1, None
+            size: self.size[0], sp(50)
             Label:
                 text: "Not connected"
                 color: 1,0,0,1

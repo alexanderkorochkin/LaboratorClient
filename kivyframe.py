@@ -10,6 +10,8 @@ from kivy.clock import Clock
 from kivy.event import EventDispatcher
 from kivy import Config
 from kivy.logger import Logger, LOG_LEVELS
+from kivy.factory import Factory
+from kivy.uix.popup import Popup
 
 Logger.setLevel(LOG_LEVELS["debug"])
 Config.set('graphics', 'multisamples', '0')
@@ -18,15 +20,27 @@ Config.set('graphics', 'multisamples', '0')
 def ResizeGraphCallback(instance, value):
     if value[0] > value[1]:
         KivyFrame.instance.GraphContainer.columns = 2
-        for element in KivyFrame.instance.GraphContainer.GraphArr:
-            element.height = 0.5 * KivyFrame.instance.ids.view_port.height
+        if len(KivyFrame.instance.GraphContainer.GraphArr) > 1:
+            for element in KivyFrame.instance.GraphContainer.GraphArr:
+                element.height = 0.5 * KivyFrame.instance.ids.view_port.height
+        else:
+            for element in KivyFrame.instance.GraphContainer.GraphArr:
+                element.height = KivyFrame.instance.ids.view_port.height
     if value[0] <= value[1]:
         KivyFrame.instance.GraphContainer.columns = 1
         for element in KivyFrame.instance.GraphContainer.GraphArr:
             element.height = 0.3 * KivyFrame.instance.ids.view_port.height
 
 
-class Graph(Button):
+class EnterEndpointPopup(Popup):
+    endpoint = StringProperty("opc.tcp://")
+
+    def SaveEndpoint(self):
+        KivyFrame.instance.ids.endpoint_label.text = str(self.ids.endpoint_input.text)
+        self.dismiss()
+
+
+class Graph(BoxLayout):
     def __init__(self, cols, **kwargs):
         super().__init__(**kwargs)
         self.size_hint = [1, None]
@@ -152,7 +166,7 @@ class LaboratorClientMain(BoxLayout):
 
     def Connect(self):
         try:
-            client.Connect(self.ids.text_input.text)
+            client.Connect(self.ids.endpoint_label.text)
             self.ids.btn_connect.disabled = True
             self.ids.btn_disconnect.disabled = False
             self.ids.info_log.color = [0, 1, 0, 1]
