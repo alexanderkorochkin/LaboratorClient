@@ -134,7 +134,7 @@ class LaboratorClientMain(BoxLayout):
         self.GraphContainer = GraphContainer()
 
     def Prepare(self, dt):
-        KivyFrame.root.ids.view_port.add_widget(self.GraphContainer)
+        self.ids.view_port.add_widget(self.GraphContainer)
 
     def AddGraph(self):
         self.GraphContainer.AddGraph()
@@ -179,11 +179,13 @@ class KivyFrameApp(App):
         if client.isConnected():
             client.Disconnect()
 
+    def on_start(self):
+        Clock.schedule_once(self.instance.Prepare, 5)
+        Clock.schedule_interval(self.instance.Update, 1)
+
     def build(self):
         laborator = LaboratorClientMain()
         self.instance = laborator
-        Clock.schedule_once(laborator.Prepare, 0)
-        Clock.schedule_interval(laborator.Update, 1)
         return laborator
 
 
