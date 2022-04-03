@@ -16,8 +16,6 @@
             height: self.minimum_height
 
 <LaboratorClientMain>:
-    graph_container_main: graph_container_main
-
     BoxLayout:
         id: main_stack
         orientation: "vertical"
@@ -62,9 +60,6 @@
                 font_size: 12
         BoxLayout:
             id: view_port
-            size_hint: 1, 1
-            GraphContainer:
-                id: graph_container_main
         BoxLayout:
             id: bottom_menu
             size_hint: 1, 0.1
