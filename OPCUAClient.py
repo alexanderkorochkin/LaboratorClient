@@ -1,23 +1,24 @@
 import opcua
 from opcua import Client
+from urllib.parse import urlparse
 
 
 class OPCUAClient(Client):
 
-    def __init__(self, url="opc.tcp://" + "127.0.0.1" + ":4840", **kwargs):
+    def __init__(self, url="opc.tcp://127.0.0.1", **kwargs):
         super().__init__(url)
         self._isConnected = False
         self._isErr = False
-        self.url = ""
+        self.url = url
         self.root = opcua.Node
-        self.myVar = opcua.Node
+        self.objects = opcua.Node
 
-    def Connect(self):
+    def Connect(self, url):
         try:
+            self.server_url = urlparse(url)
             self.connect()
             self._isConnected = True
-            self.root = client.get_root_node()
-            self.myVar = self.root.get_child(["0:Objects", "2:lab1", "2:MyVariable"])
+            self.root = self.get_root_node()
         except Exception:
             raise
 
@@ -28,5 +29,5 @@ class OPCUAClient(Client):
         self.disconnect()
         self._isConnected = False
 
-
 client = OPCUAClient()
+

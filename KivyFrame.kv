@@ -1,0 +1,59 @@
+<Graph>:
+    text: "FUCK"
+
+<GraphContainer>:
+    container: graph_container
+    scrollview: scroll_view
+
+    ScrollView:
+        id: scroll_view
+        do_scroll_x: False
+        do_scroll_y: True
+        GridLayout:
+            size_hint_y: None
+            cols: 1
+            id: graph_container
+            height: self.minimum_height
+
+<LaboratorClientMain>:
+    BoxLayout:
+        id: main_stack
+        orientation: "vertical"
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint: 1, 0.04
+            TextInput:
+                id: text_input
+                text: "opc.tcp://192.168.1.22:4840"
+                font_size: 16
+            BoxLayout:
+                size_hint: None, 1
+                size: 200, self.size[1]
+                Button:
+                    id: btn_connect
+                    text: "C"
+                    on_press:
+                        root.Connect()
+                Button:
+                    id: btn_disconnect
+                    text: "D"
+                    disabled: True
+                    on_press:
+                        root.Disconnect()
+                Button:
+                    id: btn_menu
+                    text: "+"
+                    on_press:
+                        root.AddGraph()
+                Button:
+                    id: btn_menu
+                    text: "-"
+                    on_press:
+                        root.RemoveGraph()
+        BoxLayout:
+            size_hint: 1, 0.02
+            Label:
+                id: info_log
+                text: "Not connected"
+                color: 1,0,0,1
+                font_size: 12

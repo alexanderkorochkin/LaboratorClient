@@ -1,4 +1,4 @@
-from KivyRender import KivyRenderApp
+from KivyFrame import KivyFrame
 
 if __name__ == "__main__":
-    KivyRenderApp().run()
+    KivyFrame.run()
