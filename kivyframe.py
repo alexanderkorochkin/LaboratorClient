@@ -35,7 +35,6 @@ def ResizeGraphCallback(instance, value):
 
 
 class TouchableLabel(ButtonBehavior, Label):
-    text = StringProperty("TouchableLabel")
     background_color = ListProperty((0.5, 0.5, 0.5, 0.5))
     background_color_rel = ListProperty((0.5, 0.5, 0.5, 0.5))
     background_color_press = ListProperty((0.5, 0.5, 0.5, 0.8))
