@@ -1,29 +1,132 @@
 #:import Factory kivy.factory.Factory
 
-<TouchableLabel@ButtonBehavior+Label>:
-    valign: 'middle'
-    halign: "center"
+#<-TextInput>:
+#    border_color: 0, 0, 0, 1
+#    canvas.before:
+#        # Draw background (covers most of the above border)
+#        Color:
+#            rgba: self.background_color
+#        Rectangle:
+#            size: self.size
+#            pos: self.pos
+#        # Draw border
+#        Color:
+#            rgba: self.border_color
+#        Line:
+#            width: 1
+#            rectangle: self.x, self.y, self.width, self.height
+#        # set the color for the text
+#        Color:
+#            rgba: self.foreground_color
+
+
+<TouchableLabel>:
+    text: root.text
+    canvas:
+        Color:
+            rgba: root.background_color
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        Color:
+            rgba: root.border_color
+        Line:
+            width: 1
+            rectangle: self.x, self.y, self.width, self.height
+    on_press: root.Pressed()
+    on_release: root.Released()
 
 <EnterEndpointPopup>:
     title: "Enter the endpoint URL"
+    title_align: "center"
+    separator_color: 1, 1, 1, 1
     size_hint: None, None
     size: sp(250), sp(120)
     BoxLayout:
         orientation: "vertical"
-        TextInput:
-            id: endpoint_input
-            text: root.endpoint
-            font_size: sp(12)
-        Button:
-            size_hint: 1, None
-            size: self.size[0], sp(30)
-            text: 'Enter'
-            on_release: root.SaveEndpoint()
+        BoxLayout:
+            padding: 2, 2, 2, 2
+            TextInput:
+                id: endpoint_input
+                text: root.endpoint
+                font_size: sp(12)
+                font_hinting:
+                foreground_color: 0, 0, 0, 1
+        BoxLayout:
+            AnchorLayout:
+                anchor_x: "center"
+                BoxLayout:
+                    orientation: "horizontal"
+                    size_hint: 1, 1
+                    TouchableLabel:
+                        size_hint: 1, None
+                        size: self.size[0], sp(30)
+                        text: 'Save'
+                        on_release: root.SaveEndpoint()
+                    TouchableLabel:
+                        size_hint: 1, None
+                        size: self.size[0], sp(30)
+                        text: 'Cancel'
+                        on_release: root.dismiss()
 
-<Graph>:
+<GraphBox>:
     BoxLayout:
-        Label:
-            text: "FUCK"
+        id: simple_graph
+        canvas:
+            Color:
+                rgba: 0.5, 0.5, 0.5, 0.5
+            Rectangle:
+                pos: self.pos
+                size: self.size
+            Color:
+                rgba: 0, 0, 0, 1
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height
+        BoxLayout:
+            id: plot_placer
+            canvas:
+                Color:
+                    rgba: 0.5, 0.5, 0.5, 0.1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Label:
+                text: str("var" + str(root.id))
+        AnchorLayout:
+            orientation: "vertical"
+            size_hint: None, 1
+            anchor_x: "right"
+            AnchorLayout:
+                id: remove_button_box
+                anchor_y: "top"
+                anchor_x: "right"
+                TouchableLabel:
+                    size_hint: None, None
+                    size: sp(25), sp(25)
+                    font_name: "DejaVuSans.ttf"
+                    font_size: sp(10)
+                    text: "⨯"
+                    border_color: 1, 0, 0, 0.4
+                    on_release:
+                        root.RemoveMe()
+            AnchorLayout:
+                id: var_selection_box
+                anchor_y: "bottom"
+                anchor_x: "right"
+                BoxLayout:
+                    orientation: "horizontal"
+                    AnchorLayout:
+                        anchor_y: "bottom"
+                        anchor_x: "right"
+                        TouchableLabel:
+                            id: label_selection
+                            size_hint: None, None
+                            size: self.size[0], sp(25)
+                            font_name: "DejaVuSans.ttf"
+                            font_size: sp(10)
+                            text: str("var" + str(root.id))
+                            border_color: 1, 0, 0, 0.4
 
 <GraphContainer>:
     container: graph_container
@@ -34,9 +137,9 @@
         do_scroll_x: False
         do_scroll_y: True
         GridLayout:
+            id: graph_container
             size_hint_y: None
             cols: root.columns
-            id: graph_container
             height: self.minimum_height
 
 <LaboratorClientMain>:
@@ -53,49 +156,56 @@
             id: top_menu
             orientation: "horizontal"
             size_hint: 1, None
-            size: self.size[0], sp(30)
+            size: self.size[0], sp(28)
             TouchableLabel:
+                canvas:
+                    Color:
+                        rgba: 0, 0, 0, 1
+                    Line:
+                        width: 1
+                        rectangle: self.x, self.y, self.width, self.height
                 id: endpoint_label
                 text: "opc.tcp://192.168.1.22:4840"
                 font_size: sp(10)
                 on_press: Factory.EnterEndpointPopup().open()
             BoxLayout:
                 size_hint: None, 1
-                size: sp(150), self.size[1]
-                Button:
-                    canvas:
-                        Color:
-                            rgba: 0.5, 1, 0.5, 0.3
-                        Rectangle:
-                            pos: self.pos
-                            size: self.size
+                size: sp(112), self.size[1]
+                TouchableLabel:
                     id: btn_connect
-                    text: "C"
+                    font_name: "DejaVuSans.ttf"
+                    text: "»"
                     on_press:
                         root.Connect()
-                Button:
-                    canvas:
-                        Color:
-                            rgba: 1, 0.5, 0.5, 0.3
-                        Rectangle:
-                            pos: self.pos
-                            size: self.size
+                TouchableLabel:
                     id: btn_disconnect
-                    text: "D"
+                    font_name: "DejaVuSans.ttf"
+                    text: '⨯'
                     disabled: True
                     on_press:
                         root.Disconnect()
-                Button:
-                    id: btn_menu
+                TouchableLabel:
+                    id: btn_add_graph
+                    font_name: "DejaVuSans.ttf"
                     text: "+"
                     on_press:
                         root.AddGraph()
-                Button:
+                TouchableLabel:
                     id: btn_menu
-                    text: "-"
-                    on_press:
-                        root.RemoveGraph()
+                    font_name: "DejaVuSans.ttf"
+                    text: "⋮"
         BoxLayout:
+            canvas:
+                Color:
+                    rgba: 0.5, 0.5, 0.5, 0.1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    width: 1
+                    rectangle: self.x, self.y, self.width, self.height
             size_hint: 1, None
             size: self.size[0], sp(10)
             Label:
@@ -107,6 +217,17 @@
             id: view_port
         BoxLayout:
             id: bottom_menu
+            canvas:
+                Color:
+                    rgba: 0.5, 0.5, 0.5, 0.1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                Color:
+                    rgba: 0, 0, 0, 1
+                Line:
+                    width: 1
+                    rectangle: self.x, self.y, self.width, self.height
             size_hint: 1, None
             size: self.size[0], sp(50)
             Label:
