@@ -14,6 +14,7 @@ from kivy.factory import Factory
 from kivy.uix.popup import Popup
 from kivy.uix.behaviors.button import ButtonBehavior
 from kivy.graphics import Color, Rectangle
+from kivy.lang import Builder
 
 Logger.setLevel(LOG_LEVELS["debug"])
 Config.set('graphics', 'multisamples', '0')
@@ -229,6 +230,7 @@ class KivyFrameApp(App):
         Clock.schedule_interval(self.instance.Update, 1)
 
     def build(self):
+        Builder.load_file()
         laborator = LaboratorClientMain()
         self.instance = laborator
         return laborator
