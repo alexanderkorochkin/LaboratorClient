@@ -1,0 +1,72 @@
+<GraphBox>:
+    BoxLayout:
+        id: simple_graph
+        canvas:
+            Color:
+                rgba: 0.5, 0.5, 0.5, 0.5
+            Rectangle:
+                pos: self.pos
+                size: self.size
+            Color:
+                rgba: 0, 0, 0, 1
+            Line:
+                width: 1
+                rectangle: self.x, self.y, self.width, self.height
+        BoxLayout:
+            id: plot_placer
+            canvas:
+                Color:
+                    rgba: 0.5, 0.5, 0.5, 0.1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Label:
+                text: str("var" + str(root.id))
+        AnchorLayout:
+            orientation: "vertical"
+            size_hint: None, 1
+            anchor_x: "right"
+            AnchorLayout:
+                id: remove_button_box
+                anchor_y: "top"
+                anchor_x: "right"
+                TouchableLabel:
+                    size_hint: None, None
+                    size: sp(25), sp(25)
+                    font_name: "DejaVuSans.ttf"
+                    font_size: sp(10)
+                    text: "⨯"
+                    border_color: 1, 0, 0, 0.4
+                    on_release:
+                        root.RemoveMe()
+            AnchorLayout:
+                id: var_selection_box
+                anchor_y: "bottom"
+                anchor_x: "right"
+                BoxLayout:
+                    orientation: "horizontal"
+                    AnchorLayout:
+                        anchor_y: "bottom"
+                        anchor_x: "right"
+                        TouchableLabel:
+                            id: label_selection
+                            size_hint: None, None
+                            size: self.size[0], sp(25)
+                            font_name: "DejaVuSans.ttf"
+                            font_size: sp(10)
+                            text: str("var" + str(root.id))
+                            border_color: 1, 0, 0, 0.4
+
+<GraphContainer>:
+    container: graph_container
+    scrollview: scroll_view
+
+    ScrollView:
+        id: scroll_view
+        do_scroll_x: False
+        do_scroll_y: True
+        GridLayout:
+            id: graph_container
+            size_hint_y: None
+            cols: root.columns
+            height: self.minimum_height

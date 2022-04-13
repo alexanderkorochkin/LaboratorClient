@@ -1,0 +1,34 @@
+#:import EnterEndpointPopup libs.enterendpointpopup
+
+<EnterEndpointPopup>:
+    title: "Enter the endpoint URL"
+    title_align: "center"
+    separator_color: 1, 1, 1, 1
+    size_hint: None, None
+    size: sp(250), sp(120)
+    BoxLayout:
+        orientation: "vertical"
+        BoxLayout:
+            padding: 2, 2, 2, 2
+            TextInput:
+                id: endpoint_input
+                text: root.endpoint
+                font_size: sp(12)
+                font_hinting:
+                foreground_color: 0, 0, 0, 1
+        BoxLayout:
+            AnchorLayout:
+                anchor_x: "center"
+                BoxLayout:
+                    orientation: "horizontal"
+                    size_hint: 1, 1
+                    TouchableLabel:
+                        size_hint: 1, None
+                        size: self.size[0], sp(30)
+                        text: 'Save'
+                        on_release: root.SaveEndpoint()
+                    TouchableLabel:
+                        size_hint: 1, None
+                        size: self.size[0], sp(30)
+                        text: 'Cancel'
+                        on_release: root.dismiss()
