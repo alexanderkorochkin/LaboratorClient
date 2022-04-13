@@ -21,7 +21,7 @@
                     pos: self.pos
                     size: self.size
             Label:
-                text: str("var" + str(root.id))
+                text: str(root.lab_value)
         AnchorLayout:
             orientation: "vertical"
             size_hint: None, 1
@@ -54,7 +54,7 @@
                             size: self.size[0], sp(25)
                             font_name: "DejaVuSans.ttf"
                             font_size: sp(10)
-                            text: str("var" + str(root.id))
+                            text: str(root.lab_name)
                             border_color: 1, 0, 0, 0.4
 
 <GraphContainer>:

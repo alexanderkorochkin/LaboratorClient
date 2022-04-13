@@ -1,7 +1,9 @@
 import os
 
+import opcua
 from kivy.app import App
 from libs.opcua.opcuaclient import client
+from libs.toolConfigurator import LabVar
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty
@@ -31,11 +33,14 @@ def ResizeGraphCallback(instance, value):
 
 class GraphBox(BoxLayout):
     id = NumericProperty(None)
+    lab_value = NumericProperty(None)
+    lab_name = StringProperty("G1вхМ1-5Х")
 
     def __init__(self, _cols, _id, **kwargs):
         super().__init__(**kwargs)
         self.size_hint = [1, None]
         self.id = _id
+        self.lab_value = 0
         if _cols == 1:
             self.height = (1/3) * KivyApp.instance.ids.view_port.height
         else:
@@ -50,6 +55,12 @@ class GraphBox(BoxLayout):
 
     def SetHeight(self, height):
         self.height = height
+
+    def SetLabValue(self, lab_value):
+        self.lab_value = lab_value
+
+    def SetLabName(self, lab_name):
+        self.lab_name = lab_name
 
 
 class GraphContainer(BoxLayout):
@@ -148,6 +159,7 @@ class LaboratorClient(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.GraphContainer = GraphContainer()
+        self.LabVarArr = []
 
     def Prepare(self, dt):
         self.ids.view_port.add_widget(self.GraphContainer)
@@ -159,7 +171,24 @@ class LaboratorClient(BoxLayout):
         self.GraphContainer.RemoveGraph()
 
     def Update(self, dt):
-        pass
+        if client.isConnected():
+            for lab_var in self.LabVarArr:
+                lab_var.value = client.get_node(lab_var.node_id).get_value()
+
+            for graph in self.GraphContainer.GraphArr:
+                for lab_var in self.LabVarArr:
+                    if lab_var.browse_name.find(str(graph.lab_name)) != -1:
+                        graph.SetLabValue(round(lab_var.value, 2))
+
+    @staticmethod
+    def LabVarArrConfigure(path):
+        arr = []
+        file = open(path, "r")
+        for line in file:
+            index, port, name, *multiplier = line.split("\t", 4)
+            arr.append(LabVar(0, index, name, port, multiplier))
+        file.close()
+        return arr
 
     def Connect(self):
         try:
@@ -172,6 +201,16 @@ class LaboratorClient(BoxLayout):
             self.ids.btn_connect.disabled = False
             self.ids.btn_disconnect.disabled = True
             self.ids.info_log.text = "Error while connecting..."
+
+        self.LabVarArr = self.LabVarArrConfigure(os.path.join("settings", "databaseconfig.ic"))
+        for var in self.LabVarArr:
+            for child in client.lab_node.get_children():
+                if str(child.get_browse_name()).find(str(var.name)) != -1:
+                    var.browse_name = str(child.get_browse_name())
+                    var.node_id = str(child)
+                    print("[" + var.name + "], the browse_name is: [" + str(var.browse_name) + "], NodeId: [" + var.node_id + "]")
+
+        self.ids.info_log.text = "Connected and parsed!"
 
     def Disconnect(self):
         try:
