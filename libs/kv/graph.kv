@@ -1,3 +1,22 @@
+#:import Factory kivy.factory.Factory
+
+<ListLabValPopup>:
+    title: "Select variable"
+    title_align: "center"
+    separator_color: 1, 1, 1, 1
+    size_hint: None, None
+    size: sp(250), sp(500)
+    ScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        BoxLayout:
+            orientation: "vertical"
+            size_hint_y: None
+            font_size: sp(30)
+            id: list_box
+            height: self.minimum_height
+
+
 <GraphBox>:
     BoxLayout:
         id: simple_graph
@@ -56,6 +75,9 @@
                             font_size: sp(10)
                             text: str(root.lab_name)
                             border_color: 1, 0, 0, 0.4
+                            on_release:
+                                Factory.ListLabValPopup().open(root.id)
+
 
 <GraphContainer>:
     container: graph_container

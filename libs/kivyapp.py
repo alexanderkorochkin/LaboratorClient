@@ -4,9 +4,12 @@ import opcua
 from kivy.app import App
 from libs.opcua.opcuaclient import client
 from libs.toolConfigurator import LabVar
+from libs.touchablelabel import TouchableLabel
 
+from kivy.uix.popup import Popup
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty, ObjectProperty, NumericProperty
+from kivy.properties import StringProperty, ObjectProperty, NumericProperty, partial
+from kivy.uix.dropdown import DropDown
 from kivy.clock import Clock
 from kivy import Config
 from kivy.logger import Logger, LOG_LEVELS
@@ -31,16 +34,40 @@ def ResizeGraphCallback(instance, value):
             element.height = 0.3 * KivyApp.instance.ids.view_port.height
 
 
+class ListLabValPopup(Popup):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.isOpenedOnce = False
+
+    def open(self, _id,  *largs, **kwargs):
+        if not self.isOpenedOnce:
+            for element in KivyApp.instance.LabVarArr:
+                temp = TouchableLabel()
+                temp.text = element.name
+                temp.size_hint_y = None
+                temp.size = [temp.size[0], '50sp']
+                temp.id = _id
+                temp.bind(on_release=self.SelectedVarCallback)
+                self.ids.list_box.add_widget(temp)
+            self.isOpenedOnce = True
+        super(ListLabValPopup, self).open()
+
+    def SelectedVarCallback(self, instance):
+        KivyApp.instance.GraphContainer.GraphArr[instance.id].SetLabName(instance.text)
+        self.dismiss()
+
+
 class GraphBox(BoxLayout):
     id = NumericProperty(None)
     lab_value = NumericProperty(None)
-    lab_name = StringProperty("G1вхМ1-5Х")
+    lab_name = StringProperty("None")
 
     def __init__(self, _cols, _id, **kwargs):
         super().__init__(**kwargs)
         self.size_hint = [1, None]
         self.id = _id
         self.lab_value = 0
+
         if _cols == 1:
             self.height = (1/3) * KivyApp.instance.ids.view_port.height
         else:
