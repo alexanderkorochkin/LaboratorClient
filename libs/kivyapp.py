@@ -202,8 +202,8 @@ class LaboratorClient(BoxLayout):
         if client.isConnected():
             for lab_var in self.LabVarArr:
                 _value = client.get_node(lab_var.node_id).get_value()
-                lab_var.WriteHistory(_value)
                 lab_var.value = _value
+                lab_var.WriteHistory(_value)
 
             for graph in self.GraphContainer.GraphArr:
                 for lab_var in self.LabVarArr:
@@ -213,7 +213,7 @@ class LaboratorClient(BoxLayout):
     @staticmethod
     def LabVarArrConfigure(path):
         arr = []
-        file = open(path, "r")
+        file = open(path, "r", encoding='utf-8')
         for line in file:
             index, port, name, *multiplier = line.split("\t", 4)
             arr.append(LabVar(0, index, name, port, multiplier))
