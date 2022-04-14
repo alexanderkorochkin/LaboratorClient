@@ -1,4 +1,5 @@
 import os
+from settings.config import *
 
 import opcua
 from kivy.app import App
@@ -200,7 +201,9 @@ class LaboratorClient(BoxLayout):
     def Update(self, dt):
         if client.isConnected():
             for lab_var in self.LabVarArr:
-                lab_var.value = client.get_node(lab_var.node_id).get_value()
+                _value = client.get_node(lab_var.node_id).get_value()
+                lab_var.WriteHistory(_value)
+                lab_var.value = _value
 
             for graph in self.GraphContainer.GraphArr:
                 for lab_var in self.LabVarArr:
@@ -229,7 +232,7 @@ class LaboratorClient(BoxLayout):
             self.ids.btn_disconnect.disabled = True
             self.ids.info_log.text = "Error while connecting..."
 
-        self.LabVarArr = self.LabVarArrConfigure(os.path.join("settings", "databaseconfig.ic"))
+        self.LabVarArr = self.LabVarArrConfigure(os.path.join("settings", "databaseconfig.txt"))
         for var in self.LabVarArr:
             for child in client.lab_node.get_children():
                 if str(child.get_browse_name()).find(str(var.name)) != -1:

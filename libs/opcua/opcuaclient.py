@@ -1,6 +1,7 @@
 import opcua
 from opcua import Client
 from urllib.parse import urlparse
+from settings.config import *
 
 
 class OPCUAClient(Client):
@@ -26,7 +27,7 @@ class OPCUAClient(Client):
             print(objects_arr)
             for element in objects_arr:
                 print(element.get_browse_name())
-                if str(element.get_browse_name()).find("laboratory1") != -1:
+                if str(element.get_browse_name()).find(NAMESPACE) != -1:
                     self.lab_node = element
                     print(str(self.lab_node))
         except Exception:

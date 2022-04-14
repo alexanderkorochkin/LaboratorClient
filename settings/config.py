@@ -1,0 +1,2 @@
+MAX_HISTORY_VALUES = 120
+NAMESPACE = "laboratory1"
