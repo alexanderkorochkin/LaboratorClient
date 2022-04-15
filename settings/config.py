@@ -1,3 +1,5 @@
+# pip freeze | Out-File -Encoding UTF8 requirements.txt
+
 MAX_HISTORY_VALUES = 120
 NAMESPACE = "laboratory1"
 DEFAULT_ENDPOINT = "opc.tcp://192.168.1.22:4840"

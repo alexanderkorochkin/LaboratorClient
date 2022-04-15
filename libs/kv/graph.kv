@@ -1,7 +1,7 @@
 #:import Factory kivy.factory.Factory
 #:import Window kivy.core.window.Window
 
-<GraphBox>:
+<Graph>:
     BoxLayout:
         canvas:
             Color:
@@ -23,7 +23,7 @@
                         pos: self.pos
                         size: self.size
                 Label:
-                    text: str(root.labvar_value)
+                    text: "%.2f" % root.labvar_value
                     font_size: sp(50)
                     opacity: 0.1
                 BoxLayout:

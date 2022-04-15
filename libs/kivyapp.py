@@ -31,8 +31,7 @@ def ResizeGraphCallback(instance, value):
             element.height = 0.3 * KivyApp.instance.ids.view_port.height
 
 
-class GraphBox(BoxLayout):
-    id = NumericProperty(None)
+class Graph(BoxLayout):
     labvar_value = NumericProperty(0.0)
     labvar_name = StringProperty("None")
 
@@ -76,29 +75,32 @@ class GraphContainer(BoxLayout):
         self.columns = 1
 
     def AddGraph(self):
+        graph = None
 
         if self.columns == 1:
-            graph = GraphBox(self.columns, len(self.GraphArr))
+            graph = Graph(self.columns, len(self.GraphArr))
             self.GraphArr.append(graph)
             self.ids.graph_container.add_widget(graph)
 
         if self.columns == 2:
             if len(self.GraphArr) == 0:
-                graph = GraphBox(self.columns, len(self.GraphArr))
+                graph = Graph(self.columns, len(self.GraphArr))
                 self.GraphArr.append(graph)
                 self.ids.graph_container.add_widget(graph)
                 self.GraphArr[0].SetHeight(KivyApp.instance.ids.view_port.height)
             else:
                 if len(self.GraphArr) == 1:
-                    graph = GraphBox(self.columns, len(self.GraphArr))
+                    graph = Graph(self.columns, len(self.GraphArr))
                     self.GraphArr.append(graph)
                     self.ids.graph_container.add_widget(graph)
                     self.GraphArr[0].SetHeight(0.5 * KivyApp.instance.ids.view_port.height)
                 else:
                     if len(self.GraphArr) > 1:
-                        graph = GraphBox(self.columns, len(self.GraphArr))
+                        graph = Graph(self.columns, len(self.GraphArr))
                         self.GraphArr.append(graph)
                         self.ids.graph_container.add_widget(graph)
+
+        Logger.debug("GRAPH: Graph [" + graph.labvar_name + "] is added, id: " + str(len(self.GraphArr) - 1) + "!")
 
     def ShiftNumbering(self, _id):
         for element in self.GraphArr:
@@ -130,6 +132,7 @@ class GraphContainer(BoxLayout):
                             self.GraphArr.remove(temp)
 
             self.ShiftNumbering(_id)
+            Logger.debug("GRAPH: Graph [" + temp.labvar_name + "] with id: " + str(_id) + " is removed!")
 
     def RemoveGraph(self):
         if len(self.GraphArr) > 0:
@@ -154,6 +157,8 @@ class GraphContainer(BoxLayout):
                             self.ids.graph_container.remove_widget(temp)
                             self.GraphArr.remove(temp)
 
+            Logger.debug("GRAPH: Graph [" + temp.labvar_name + "] is removed!")
+
 
 class LaboratorClient(BoxLayout):
     endpoint = StringProperty(DEFAULT_ENDPOINT)
@@ -175,25 +180,23 @@ class LaboratorClient(BoxLayout):
     def Update(self, dt):
         if client.isConnected():
             try:
-                # Получаем все использующиеся значения из сервера
-                for labvar in self.LabVarArr:
-                    _value = client.get_node(labvar.node_id).get_value()
-                    labvar.value = _value
-                    labvar.WriteHistory(_value)
-
-                # Заносим эти значения соответствующим графикам
+                # Заносим все использующиеся значения в соответствующие графики
                 for graph in self.GraphContainer.GraphArr:
-                    for labvar in self.LabVarArr:
-                        if not labvar.browse_name.find(str(graph.labvar_name)) == -1:
-                            graph.SetLabVarValue(round(labvar.value, 2))
+                    if graph.labvar_name != "None":
+                        for labvar in self.LabVarArr:
+                            if labvar.name == graph.labvar_name:
+                                _value = client.get_node(labvar.node_id).get_value()
+                                labvar.value = _value
+                                labvar.WriteHistory(_value)
+                                graph.SetLabVarValue(round(labvar.value, 2))
             except Exception:
                 client._isConnected = False
                 client._isReconnecting = True
                 self.ids.btn_disconnect.disabled = False
                 self.ids.btn_connect.disabled = True
                 self.ids.info_log.color = 1, 0, 0, 1
-                self.ids.info_log.text = "Connection lost!"
-                Logger.info("INFO: [" + str(self) + "] Connection lost! Trying to reconnect...")
+                self.ids.info_log.text = "Connection lost! Trying to reconnect..."
+                Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
                 self.Reconnection(RECONNECTION_TIME)
 
     @staticmethod
@@ -212,7 +215,7 @@ class LaboratorClient(BoxLayout):
                 if str(child.get_browse_name()).find(str(var.name)) != -1:
                     var.browse_name = str(child.get_browse_name())
                     var.node_id = str(child)
-                    Logger.info("CONNECT: [" + var.name + "], the browse_name is: [" + str(
+                    Logger.debug("PARSEVARS: [" + var.name + "], the browse_name is: [" + str(
                         var.browse_name) + "], NodeId: [" + var.node_id + "]")
 
     def Reconnection(self, dt):
@@ -243,19 +246,20 @@ class LaboratorClient(BoxLayout):
             self.ids.endpoint_label.disabled = True
             self.ids.info_log.color = [0, 1, 0, 1]
             self.ids.info_log.text = "Connected!"
-            Logger.info("CONNECT: Connected!")
+            Logger.debug("CONNECT: Connected!")
             self.ParseVars()
             self.ids.info_log.text = "Connected and parsed!"
-            Logger.info("CONNECT: Connected and parsed!")
+            Logger.debug("CONNECT: Connected and parsed!")
         except Exception:
             if not client.isReconnecting():
                 self.ids.btn_connect.disabled = False
                 self.ids.btn_disconnect.disabled = True
                 self.ids.endpoint_label.disabled = False
-                self.ids.info_log.text = "Error while connecting... Stop"
+                self.ids.info_log.text = "Error while connecting... Disconnected!"
+                Logger.error("CONNECT: Error while connecting... Disconnected!")
             else:
                 self.ids.info_log.text = "Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')'
-            Logger.warning("CONNECT: Error while connecting...")
+                Logger.error("CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
 
     def Disconnect(self):
         client._isReconnecting = False
@@ -266,11 +270,13 @@ class LaboratorClient(BoxLayout):
             self.ids.endpoint_label.disabled = False
             self.ids.info_log.color = 1, 0, 0, 1
             self.ids.info_log.text = "Disconnected!"
+            Logger.debug("CONNECT: Disconnected!")
         except Exception:
             self.ids.btn_disconnect.disabled = False
             self.ids.btn_connect.disabled = True
             self.ids.endpoint_label.disabled = True
             self.ids.info_log.text = "Error while disconnecting..."
+            Logger.info("CONNECT: Error while disconnecting...")
 
 
 class KivyApp(App):
