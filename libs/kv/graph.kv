@@ -1,6 +1,6 @@
 #:import Factory kivy.factory.Factory
 
-<ListLabValPopup>:
+<ListLabVarPopup>:
     title: "Select variable"
     title_align: "center"
     separator_color: 1, 1, 1, 1
@@ -19,7 +19,6 @@
 
 <GraphBox>:
     BoxLayout:
-        id: simple_graph
         canvas:
             Color:
                 rgba: 0.5, 0.5, 0.5, 0.5
@@ -31,52 +30,50 @@
             Line:
                 width: 1
                 rectangle: self.x, self.y, self.width, self.height
-        BoxLayout:
-            id: plot_placer
-            canvas:
-                Color:
-                    rgba: 0.5, 0.5, 0.5, 0.1
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-            Label:
-                text: str(root.lab_value)
-        AnchorLayout:
-            orientation: "vertical"
-            size_hint: None, 1
-            anchor_x: "right"
-            AnchorLayout:
-                id: remove_button_box
-                anchor_y: "top"
-                anchor_x: "right"
-                TouchableLabel:
-                    size_hint: None, None
-                    size: sp(25), sp(25)
-                    font_name: "DejaVuSans.ttf"
-                    font_size: sp(10)
-                    text: "⨯"
-                    border_color: 1, 0, 0, 0.4
-                    on_release:
-                        root.RemoveMe()
-            AnchorLayout:
-                id: var_selection_box
-                anchor_y: "bottom"
-                anchor_x: "right"
+        RelativeLayout:
+            RelativeLayout:
+                canvas:
+                    Color:
+                        rgba: 0.5, 0.5, 0.5, 0.1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                Label:
+                    text: str(root.labvar_value)
+                    font_size: sp(50)
+                    opacity: 0.1
                 BoxLayout:
-                    orientation: "horizontal"
-                    AnchorLayout:
-                        anchor_y: "bottom"
-                        anchor_x: "right"
-                        TouchableLabel:
-                            id: label_selection
-                            size_hint: None, None
-                            size: self.size[0], sp(25)
-                            font_name: "DejaVuSans.ttf"
-                            font_size: sp(10)
-                            text: str(root.lab_name)
-                            border_color: 1, 0, 0, 0.4
-                            on_release:
-                                Factory.ListLabValPopup().open(root.id)
+                    id: plot_box
+            RelativeLayout:
+                AnchorLayout:
+                    anchor_x: "left"
+                    anchor_y: "top"
+                    padding: sp(10), sp(10), sp(10), sp(10)
+                    TouchableLabel:
+                        id: btn_close_box
+                        size_hint: None, None
+                        size: sp(25), sp(25)
+                        font_name: "DejaVuSans.ttf"
+                        font_size: sp(10)
+                        text: "⨯"
+                        border_color: 1, 0, 0, 0.4
+                        on_release:
+                            root.RemoveMe()
+                AnchorLayout:
+                    id: var_selection_box
+                    anchor_x: "right"
+                    anchor_y: "top"
+                    padding: sp(10), sp(10), sp(10), sp(10)
+                    TouchableLabel:
+                        id: label_selection
+                        size_hint: None, None
+                        size: self.size[0], sp(25)
+                        font_name: "DejaVuSans.ttf"
+                        font_size: sp(10)
+                        text: str(root.labvar_name)
+                        border_color: 1, 0, 0, 0.4
+                        on_release:
+                            Factory.ListLabVarPopup().open(root.id)
 
 
 <GraphContainer>:

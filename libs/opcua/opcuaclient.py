@@ -24,21 +24,21 @@ class OPCUAClient(Client):
             self.root = self.get_root_node()
             self.objects = self.get_objects_node()
             objects_arr = self.objects.get_children()
-            print(objects_arr)
             for element in objects_arr:
-                print(element.get_browse_name())
                 if str(element.get_browse_name()).find(NAMESPACE) != -1:
                     self.lab_node = element
-                    print(str(self.lab_node))
         except Exception:
             raise
 
     def isConnected(self):
-            return self._isConnected
+        return self._isConnected
 
     def Disconnect(self):
-        self.disconnect()
-        self._isConnected = False
+        try:
+            self.disconnect()
+            self._isConnected = False
+        except Exception:
+            self._isConnected = False
 
 
 client = OPCUAClient()

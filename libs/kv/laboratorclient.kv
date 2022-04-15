@@ -25,7 +25,7 @@
                 id: endpoint_label
                 text: "opc.tcp://192.168.1.22:4840"
                 font_size: sp(10)
-                on_press: Factory.EnterEndpointPopup().open()
+                on_release: Factory.EnterEndpointPopup().open()
             BoxLayout:
                 size_hint: None, 1
                 size: sp(112), self.size[1]
@@ -33,20 +33,20 @@
                     id: btn_connect
                     font_name: "DejaVuSans.ttf"
                     text: "»"
-                    on_press:
+                    on_release:
                         root.Connect()
                 TouchableLabel:
                     id: btn_disconnect
                     font_name: "DejaVuSans.ttf"
                     text: '⨯'
                     disabled: True
-                    on_press:
+                    on_release:
                         root.Disconnect()
                 TouchableLabel:
                     id: btn_add_graph
                     font_name: "DejaVuSans.ttf"
                     text: "+"
-                    on_press:
+                    on_release:
                         root.AddGraph()
                 TouchableLabel:
                     id: btn_menu

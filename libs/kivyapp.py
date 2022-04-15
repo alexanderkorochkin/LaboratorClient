@@ -35,13 +35,13 @@ def ResizeGraphCallback(instance, value):
             element.height = 0.3 * KivyApp.instance.ids.view_port.height
 
 
-class ListLabValPopup(Popup):
+class ListLabVarPopup(Popup):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.isOpenedOnce = False
+        self.isNotOpened = True
 
-    def open(self, _id,  *largs, **kwargs):
-        if not self.isOpenedOnce:
+    def open(self, _id, *largs, **kwargs):
+        if self.isNotOpened:
             for element in KivyApp.instance.LabVarArr:
                 temp = TouchableLabel()
                 temp.text = element.name
@@ -50,27 +50,28 @@ class ListLabValPopup(Popup):
                 temp.id = _id
                 temp.bind(on_release=self.SelectedVarCallback)
                 self.ids.list_box.add_widget(temp)
-            self.isOpenedOnce = True
-        super(ListLabValPopup, self).open()
+            self.isNotOpened = False
+        super(ListLabVarPopup, self).open()
 
     def SelectedVarCallback(self, instance):
-        KivyApp.instance.GraphContainer.GraphArr[instance.id].SetLabName(instance.text)
+        KivyApp.instance.GraphContainer.GraphArr[instance.id].SetLabVarName(instance.text)
+        KivyApp.instance.GraphContainer.GraphArr[instance.id].SetLabVarValue(str("0"))
         self.dismiss()
 
 
 class GraphBox(BoxLayout):
     id = NumericProperty(None)
-    lab_value = NumericProperty(None)
-    lab_name = StringProperty("None")
+    labvar_value = NumericProperty(0.0)
+    labvar_name = StringProperty("None")
 
     def __init__(self, _cols, _id, **kwargs):
         super().__init__(**kwargs)
         self.size_hint = [1, None]
         self.id = _id
-        self.lab_value = 0
+        self.labvar_value = 0
 
         if _cols == 1:
-            self.height = (1/3) * KivyApp.instance.ids.view_port.height
+            self.height = (1 / 3) * KivyApp.instance.ids.view_port.height
         else:
             if _cols == 2:
                 if len(KivyApp.instance.GraphContainer.GraphArr) == 0:
@@ -84,11 +85,11 @@ class GraphBox(BoxLayout):
     def SetHeight(self, height):
         self.height = height
 
-    def SetLabValue(self, lab_value):
-        self.lab_value = lab_value
+    def SetLabVarValue(self, labvar_value):
+        self.labvar_value = labvar_value
 
-    def SetLabName(self, lab_name):
-        self.lab_name = lab_name
+    def SetLabVarName(self, labvar_name):
+        self.labvar_name = labvar_name
 
 
 class GraphContainer(BoxLayout):
@@ -187,7 +188,7 @@ class LaboratorClient(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.GraphContainer = GraphContainer()
-        self.LabVarArr = []
+        self.LabVarArr = self.LabVarArrConfigure(os.path.join("settings", "databaseconfig.txt"))
 
     def Prepare(self, dt):
         self.ids.view_port.add_widget(self.GraphContainer)
@@ -198,17 +199,34 @@ class LaboratorClient(BoxLayout):
     def RemoveGraph(self):
         self.GraphContainer.RemoveGraph()
 
+    def Reconnection(self, dt):
+        if not client.isConnected():
+            client.Disconnect()
+            self.Connect()
+            Clock.schedule_once(self.Reconnection, dt)
+
     def Update(self, dt):
         if client.isConnected():
-            for lab_var in self.LabVarArr:
-                _value = client.get_node(lab_var.node_id).get_value()
-                lab_var.value = _value
-                lab_var.WriteHistory(_value)
+            try:
+                # Получаем все использующиеся значения из сервера
+                for labvar in self.LabVarArr:
+                    _value = client.get_node(labvar.node_id).get_value()
+                    labvar.value = _value
+                    labvar.WriteHistory(_value)
 
-            for graph in self.GraphContainer.GraphArr:
-                for lab_var in self.LabVarArr:
-                    if lab_var.browse_name.find(str(graph.lab_name)) != -1:
-                        graph.SetLabValue(round(lab_var.value, 2))
+                # Заносим эти значения соответствующим графикам
+                for graph in self.GraphContainer.GraphArr:
+                    for labvar in self.LabVarArr:
+                        if not labvar.browse_name.find(str(graph.labvar_name)) == -1:
+                            graph.SetLabVarValue(round(labvar.value, 2))
+            except Exception:
+                client._isConnected = False
+                self.ids.btn_disconnect.disabled = True
+                self.ids.btn_connect.disabled = False
+                self.ids.info_log.color = 1, 0, 0, 1
+                self.ids.info_log.text = "Connection lost!"
+                Logger.info("INFO: [" + str(self) + "] Connection lost! Trying Reconnect...")
+                self.Reconnection(5)
 
     @staticmethod
     def LabVarArrConfigure(path):
@@ -220,6 +238,15 @@ class LaboratorClient(BoxLayout):
         file.close()
         return arr
 
+    def ParseVars(self):
+        for var in self.LabVarArr:
+            for child in client.lab_node.get_children():
+                if str(child.get_browse_name()).find(str(var.name)) != -1:
+                    var.browse_name = str(child.get_browse_name())
+                    var.node_id = str(child)
+                    Logger.info("CONNECT: [" + var.name + "], the browse_name is: [" + str(
+                        var.browse_name) + "], NodeId: [" + var.node_id + "]")
+
     def Connect(self):
         try:
             client.Connect(self.ids.endpoint_label.text)
@@ -227,20 +254,15 @@ class LaboratorClient(BoxLayout):
             self.ids.btn_disconnect.disabled = False
             self.ids.info_log.color = [0, 1, 0, 1]
             self.ids.info_log.text = "Connected!"
+            Logger.info("CONNECT: Connected!")
+            self.ParseVars()
+            self.ids.info_log.text = "Connected and parsed!"
+            Logger.info("CONNECT: Connected and parsed!")
         except Exception:
             self.ids.btn_connect.disabled = False
             self.ids.btn_disconnect.disabled = True
             self.ids.info_log.text = "Error while connecting..."
-
-        self.LabVarArr = self.LabVarArrConfigure(os.path.join("settings", "databaseconfig.txt"))
-        for var in self.LabVarArr:
-            for child in client.lab_node.get_children():
-                if str(child.get_browse_name()).find(str(var.name)) != -1:
-                    var.browse_name = str(child.get_browse_name())
-                    var.node_id = str(child)
-                    print("[" + var.name + "], the browse_name is: [" + str(var.browse_name) + "], NodeId: [" + var.node_id + "]")
-
-        self.ids.info_log.text = "Connected and parsed!"
+            Logger.warning("CONNECT: Error while connecting...")
 
     def Disconnect(self):
         try:
@@ -261,8 +283,10 @@ class KivyApp(App):
         self.instance = None
 
     def on_stop(self):
-        if client.isConnected():
+        try:
             client.Disconnect()
+        except Exception:
+            Logger.error("KivyApp: Error while disconnecting on app stop!")
 
     def on_start(self):
         Clock.schedule_once(self.instance.Prepare, 1)
