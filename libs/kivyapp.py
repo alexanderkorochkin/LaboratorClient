@@ -1,5 +1,9 @@
 import os
+
+import numpy as np
+
 from settings.config import *
+from math import sin
 
 from kivy.app import App
 from libs.opcua.opcuaclient import client
@@ -8,6 +12,7 @@ from libs.toolConfigurator import LabVar
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
+from kivy_garden.graph import Graph, MeshLinePlot, LinePlot, SmoothLinePlot, BarPlot, MeshStemPlot
 
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.lang import Builder
@@ -31,15 +36,46 @@ def ResizeGraphCallback(instance, value):
             element.height = 0.3 * KivyApp.instance.ids.view_port.height
 
 
-class Graph(BoxLayout):
-    labvar_value = NumericProperty(0.0)
+class GardenGraph(Graph):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.samples = MAX_HISTORY_VALUES
+        self.plot = MeshLinePlot(color=[0, 1, 0, 1])
+        self.plot.points = []
+        self.add_plot(self.plot)
+        self.padding = [0, 0]
+
+    def UpdatePlot(self, _arr):
+        self.plot.points = _arr
+
+        if len(_arr) == MAX_HISTORY_VALUES:
+            self.xmin += 1
+            self.xmax += 1
+
+        _yarr = [_arr[i][1] for i in range(len(_arr))]
+        self.ymax = max(_yarr) + max(0.05 * max(_yarr), 5)
+        self.ymin = min(_yarr) - max(0.05 * min(_yarr), 5)
+        self.y_ticks_major = (self.ymax - self.ymin)/4
+
+
+class GraphBox(BoxLayout):
+    labvar_value = NumericProperty(0.00)
     labvar_name = StringProperty("None")
 
     def __init__(self, _cols, _id, **kwargs):
         super().__init__(**kwargs)
         self.size_hint = [1, None]
         self.id = _id
+        self.current_touch = "None"
         self.labvar_value = 0
+        self.gardenGraph = GardenGraph(
+                                        border_color=[0, 0, 0, 1],
+                                        x_ticks_major=MAX_HISTORY_VALUES/4,
+                                        y_ticks_major=3,
+                                        y_grid_label=False, x_grid_label=False,
+                                        x_grid=True, y_grid=True, xmin=0, xmax=MAX_HISTORY_VALUES, ymin=-1, ymax=1
+        )
+        self.ids.garden_graph_placer.add_widget(self.gardenGraph)
 
         if _cols == 1:
             self.height = (1 / 3) * KivyApp.instance.ids.view_port.height
@@ -49,6 +85,15 @@ class Graph(BoxLayout):
                     self.height = KivyApp.instance.ids.view_port.height
                 else:
                     self.height = 0.5 * KivyApp.instance.ids.view_port.height
+
+    def DoubleSingleTap(self):
+        if self.current_touch is not "None":
+            Clock.unschedule(self.ClearGraph)
+            self.RemoveMe()
+            self.current_touch = "None"
+        else:
+            self.current_touch = "touch"
+            Clock.schedule_once(self.ClearGraph, KIVY_DOBLETAP_TIME)
 
     def RemoveMe(self):
         KivyApp.instance.GraphContainer.RemoveGraphById(self.id)
@@ -61,6 +106,17 @@ class Graph(BoxLayout):
 
     def SetLabVarName(self, labvar_name):
         self.labvar_name = labvar_name
+
+    def UpdateGardenGraph(self, _arr):
+        self.gardenGraph.UpdatePlot(_arr)
+
+    def ClearGraph(self, value):
+        # Очищаем буфер прошлой переменной
+        for labvar in KivyApp.instance.LabVarArr:
+            if labvar.name == self.labvar_name:
+                labvar.ClearHistory()
+
+        self.current_touch = "None"
 
 
 class GraphContainer(BoxLayout):
@@ -75,32 +131,32 @@ class GraphContainer(BoxLayout):
         self.columns = 1
 
     def AddGraph(self):
-        graph = None
+        graphbox = None
 
         if self.columns == 1:
-            graph = Graph(self.columns, len(self.GraphArr))
-            self.GraphArr.append(graph)
-            self.ids.graph_container.add_widget(graph)
+            graphbox = GraphBox(self.columns, len(self.GraphArr))
+            self.GraphArr.append(graphbox)
+            self.ids.graph_container.add_widget(graphbox)
 
         if self.columns == 2:
             if len(self.GraphArr) == 0:
-                graph = Graph(self.columns, len(self.GraphArr))
-                self.GraphArr.append(graph)
-                self.ids.graph_container.add_widget(graph)
+                graphbox = GraphBox(self.columns, len(self.GraphArr))
+                self.GraphArr.append(graphbox)
+                self.ids.graph_container.add_widget(graphbox)
                 self.GraphArr[0].SetHeight(KivyApp.instance.ids.view_port.height)
             else:
                 if len(self.GraphArr) == 1:
-                    graph = Graph(self.columns, len(self.GraphArr))
-                    self.GraphArr.append(graph)
-                    self.ids.graph_container.add_widget(graph)
+                    graphbox = GraphBox(self.columns, len(self.GraphArr))
+                    self.GraphArr.append(graphbox)
+                    self.ids.graph_container.add_widget(graphbox)
                     self.GraphArr[0].SetHeight(0.5 * KivyApp.instance.ids.view_port.height)
                 else:
                     if len(self.GraphArr) > 1:
-                        graph = Graph(self.columns, len(self.GraphArr))
-                        self.GraphArr.append(graph)
-                        self.ids.graph_container.add_widget(graph)
+                        graphbox = GraphBox(self.columns, len(self.GraphArr))
+                        self.GraphArr.append(graphbox)
+                        self.ids.graph_container.add_widget(graphbox)
 
-        Logger.debug("GRAPH: Graph [" + graph.labvar_name + "] is added, id: " + str(len(self.GraphArr) - 1) + "!")
+        Logger.debug("GRAPH: Graph [" + graphbox.labvar_name + "] is added, id: " + str(len(self.GraphArr) - 1) + "!")
 
     def ShiftNumbering(self, _id):
         for element in self.GraphArr:
@@ -177,32 +233,11 @@ class LaboratorClient(BoxLayout):
     def RemoveGraph(self):
         self.GraphContainer.RemoveGraph()
 
-    def Update(self, dt):
-        if client.isConnected():
-            try:
-                # Заносим все использующиеся значения в соответствующие графики
-                for graph in self.GraphContainer.GraphArr:
-                    if graph.labvar_name != "None":
-                        for labvar in self.LabVarArr:
-                            if labvar.name == graph.labvar_name:
-                                _value = client.get_node(labvar.node_id).get_value()
-                                labvar.value = _value
-                                labvar.WriteHistory(_value)
-                                graph.SetLabVarValue(round(labvar.value, 2))
-            except Exception:
-                client._isConnected = False
-                client._isReconnecting = True
-                self.ids.btn_disconnect.disabled = False
-                self.ids.btn_connect.disabled = True
-                self.ids.info_log.color = 1, 0, 0, 1
-                self.ids.info_log.text = "Connection lost! Trying to reconnect..."
-                Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
-                self.Reconnection(RECONNECTION_TIME)
-
     @staticmethod
     def LabVarArrConfigure(path):
         arr = []
         file = open(path, "r", encoding='utf-8')
+        Logger.debug("LabVarConf: Opened file to configuration: " + str(path))
         for line in file:
             index, port, name, *multiplier = line.split("\t", 4)
             arr.append(LabVar(0, index, name, port, multiplier))
@@ -248,7 +283,7 @@ class LaboratorClient(BoxLayout):
             self.ids.info_log.text = "Connected!"
             Logger.debug("CONNECT: Connected!")
             self.ParseVars()
-            self.ids.info_log.text = "Connected and parsed!"
+            self.ids.info_log.text = "Connected!"
             Logger.debug("CONNECT: Connected and parsed!")
         except Exception:
             if not client.isReconnecting():
@@ -278,6 +313,29 @@ class LaboratorClient(BoxLayout):
             self.ids.info_log.text = "Error while disconnecting..."
             Logger.info("CONNECT: Error while disconnecting...")
 
+    def Update(self, dt):
+        if client.isConnected():
+            try:
+                # Заносим все использующиеся значения в соответствующие графики
+                for graph in self.GraphContainer.GraphArr:
+                    if graph.labvar_name != "None":
+                        for labvar in self.LabVarArr:
+                            if labvar.name == graph.labvar_name:
+                                _value = client.get_node(labvar.node_id).get_value()
+                                labvar.value = _value
+                                labvar.WriteHistory(_value)
+                                graph.UpdateGardenGraph(labvar.GetHistory())
+                                graph.SetLabVarValue(round(labvar.value, 2))
+            except Exception:
+                client._isConnected = False
+                client._isReconnecting = True
+                self.ids.btn_disconnect.disabled = False
+                self.ids.btn_connect.disabled = True
+                self.ids.info_log.color = 1, 0, 0, 1
+                self.ids.info_log.text = "Connection lost! Trying to reconnect..."
+                Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
+                self.Reconnection(RECONNECTION_TIME)
+
 
 class KivyApp(App):
 
@@ -293,7 +351,7 @@ class KivyApp(App):
 
     def on_start(self):
         Clock.schedule_once(self.instance.Prepare, 1)
-        Clock.schedule_interval(self.instance.Update, 1)
+        Clock.schedule_interval(self.instance.Update, KIVY_UPDATE_FUNCTION_TIME)
 
     @staticmethod
     def LoadKV():

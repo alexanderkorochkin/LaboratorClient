@@ -1,33 +1,35 @@
 #:import Factory kivy.factory.Factory
 #:import Window kivy.core.window.Window
 
-<Graph>:
+<GraphBox>:
     BoxLayout:
-        canvas:
+        canvas.before:
             Color:
                 rgba: 0.5, 0.5, 0.5, 0.5
             Rectangle:
                 pos: self.pos
                 size: self.size
+        canvas.after:
             Color:
-                rgba: 0, 0, 0, 1
+                rgba: 0.2, 0.2, 0.2, 1
             Line:
                 width: 1
-                rectangle: self.x, self.y, self.width, self.height
+                rectangle: self.x + 0.5, self.y + 0.5, self.width - 1, self.height - 1
         RelativeLayout:
             RelativeLayout:
                 canvas:
                     Color:
-                        rgba: 0.5, 0.5, 0.5, 0.1
+                        rgba: 0.0, 0.0, 0.0, 0.1
                     Rectangle:
                         pos: self.pos
                         size: self.size
                 Label:
                     text: "%.2f" % root.labvar_value
-                    font_size: sp(50)
-                    opacity: 0.1
+                    font_size: Window.width / sp(7)
+                    opacity: 0.3
                 BoxLayout:
-                    id: plot_box
+                    id: garden_graph_placer
+                    size_hint: 1, 1
             RelativeLayout:
                 AnchorLayout:
                     anchor_x: "left"
@@ -41,8 +43,7 @@
                         font_size: sp(10)
                         text: "⨯"
                         border_color: 1, 0, 0, 0.4
-                        on_release:
-                            root.RemoveMe()
+                        on_release: root.DoubleSingleTap()
                 AnchorLayout:
                     id: var_selection_box
                     anchor_x: "right"
