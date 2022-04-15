@@ -1,22 +1,17 @@
 import os
 from settings.config import *
 
-import opcua
 from kivy.app import App
 from libs.opcua.opcuaclient import client
 from libs.toolConfigurator import LabVar
-from libs.touchablelabel import TouchableLabel
-from kivy.core.window import Window
 
-from kivy.uix.popup import Popup
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty, ObjectProperty, NumericProperty, partial, dpi2px
-from kivy.uix.dropdown import DropDown
+from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from kivy.clock import Clock
-from kivy import Config
+from kivy.uix.boxlayout import BoxLayout
+
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.lang import Builder
-
+from kivy import Config
 Logger.setLevel(LOG_LEVELS["debug"])
 Config.set('graphics', 'multisamples', '0')
 
@@ -177,19 +172,6 @@ class LaboratorClient(BoxLayout):
     def RemoveGraph(self):
         self.GraphContainer.RemoveGraph()
 
-    def Reconnection(self, dt):
-        if client.isReconnecting():
-            if not client.isConnected():
-                client._isReconnecting = True
-                client.Disconnect()
-                self.Connect()
-                Clock.schedule_once(self.Reconnection, dt)
-                client.ReconnectNumberInc()
-            else:
-                client._isReconnecting = False
-        else:
-            client.ReconnectNumberZero()
-
     def Update(self, dt):
         if client.isConnected():
             try:
@@ -206,13 +188,13 @@ class LaboratorClient(BoxLayout):
                             graph.SetLabVarValue(round(labvar.value, 2))
             except Exception:
                 client._isConnected = False
+                client._isReconnecting = True
                 self.ids.btn_disconnect.disabled = False
-                self.ids.btn_connect.disabled = False
+                self.ids.btn_connect.disabled = True
                 self.ids.info_log.color = 1, 0, 0, 1
                 self.ids.info_log.text = "Connection lost!"
                 Logger.info("INFO: [" + str(self) + "] Connection lost! Trying to reconnect...")
-                client._isReconnecting = True
-                self.Reconnection(5)
+                self.Reconnection(RECONNECTION_TIME)
 
     @staticmethod
     def LabVarArrConfigure(path):
@@ -233,11 +215,32 @@ class LaboratorClient(BoxLayout):
                     Logger.info("CONNECT: [" + var.name + "], the browse_name is: [" + str(
                         var.browse_name) + "], NodeId: [" + var.node_id + "]")
 
+    def Reconnection(self, dt):
+        if client.GetReconnectNumber() <= MAX_RECONNECTIONS_NUMBER:
+            if client.isReconnecting():
+                if not client.isConnected():
+                    client._isReconnecting = True
+                    client.Disconnect()
+                    self.Connect()
+                    if not client.isConnected():
+                        Clock.schedule_once(self.Reconnection, dt)
+                        client.ReconnectNumberInc()
+                    else:
+                        client.ReconnectNumberZero()
+                else:
+                    client._isReconnecting = False
+                    client.ReconnectNumberZero()
+            else:
+                client.ReconnectNumberZero()
+        else:
+            self.Disconnect()
+
     def Connect(self):
         try:
             client.Connect(self.endpoint)
             self.ids.btn_connect.disabled = True
             self.ids.btn_disconnect.disabled = False
+            self.ids.endpoint_label.disabled = True
             self.ids.info_log.color = [0, 1, 0, 1]
             self.ids.info_log.text = "Connected!"
             Logger.info("CONNECT: Connected!")
@@ -245,23 +248,28 @@ class LaboratorClient(BoxLayout):
             self.ids.info_log.text = "Connected and parsed!"
             Logger.info("CONNECT: Connected and parsed!")
         except Exception:
-            self.ids.btn_connect.disabled = False
-            self.ids.btn_disconnect.disabled = True
             if not client.isReconnecting():
-                self.ids.info_log.text = "Error while connecting..."
+                self.ids.btn_connect.disabled = False
+                self.ids.btn_disconnect.disabled = True
+                self.ids.endpoint_label.disabled = False
+                self.ids.info_log.text = "Error while connecting... Stop"
             else:
                 self.ids.info_log.text = "Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')'
             Logger.warning("CONNECT: Error while connecting...")
 
     def Disconnect(self):
+        client._isReconnecting = False
         try:
             client.Disconnect()
             self.ids.btn_disconnect.disabled = True
             self.ids.btn_connect.disabled = False
+            self.ids.endpoint_label.disabled = False
             self.ids.info_log.color = 1, 0, 0, 1
             self.ids.info_log.text = "Disconnected!"
         except Exception:
             self.ids.btn_disconnect.disabled = False
+            self.ids.btn_connect.disabled = True
+            self.ids.endpoint_label.disabled = True
             self.ids.info_log.text = "Error while disconnecting..."
 
 
