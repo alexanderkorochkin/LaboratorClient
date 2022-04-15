@@ -11,6 +11,7 @@ kivy-deps.angle==0.3.0
 kivy-deps.glew==0.3.0
 kivy-deps.sdl2==0.3.1
 Kivy-Garden==0.1.4
+kivy-garden.graph==0.4.0
 kiwisolver==1.4.2
 lxml==4.6.3
 numpy==1.22.3
