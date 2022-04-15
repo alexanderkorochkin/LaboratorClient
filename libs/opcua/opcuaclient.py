@@ -9,6 +9,8 @@ class OPCUAClient(Client):
     def __init__(self, url="opc.tcp://127.0.0.1", **kwargs):
         super().__init__(url)
         self._isConnected = False
+        self._isReconnecting = False
+        self._reconnect_number = 0
         self._isErr = False
         self.url = url
         self.root = opcua.Node
@@ -32,6 +34,18 @@ class OPCUAClient(Client):
 
     def isConnected(self):
         return self._isConnected
+
+    def isReconnecting(self):
+        return self._isReconnecting
+
+    def GetReconnectNumber(self):
+        return self._reconnect_number
+
+    def ReconnectNumberInc(self):
+        self._reconnect_number += 1
+
+    def ReconnectNumberZero(self):
+        self._reconnect_number = 0
 
     def Disconnect(self):
         try:

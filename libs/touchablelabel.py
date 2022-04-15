@@ -9,7 +9,7 @@ class TouchableLabel(ButtonBehavior, Label):
     background_color_rel = ListProperty((0.5, 0.5, 0.5, 0.5))
     background_color_press = ListProperty((0.5, 0.5, 0.5, 0.8))
     border_color = ListProperty((0, 0, 0, 1))
-    text = StringProperty("btn_label")
+    text = StringProperty(None)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

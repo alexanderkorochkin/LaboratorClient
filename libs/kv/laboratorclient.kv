@@ -14,7 +14,7 @@
             id: top_menu
             orientation: "horizontal"
             size_hint: 1, None
-            size: self.size[0], sp(28)
+            size: self.size[0], sp(50)
             TouchableLabel:
                 canvas:
                     Color:
@@ -23,35 +23,47 @@
                         width: 1
                         rectangle: self.x, self.y, self.width, self.height
                 id: endpoint_label
-                text: "opc.tcp://192.168.1.22:4840"
+                text: root.endpoint
                 font_size: sp(10)
-                on_release: Factory.EnterEndpointPopup().open()
-            BoxLayout:
-                size_hint: None, 1
-                size: sp(112), self.size[1]
-                TouchableLabel:
-                    id: btn_connect
-                    font_name: "DejaVuSans.ttf"
-                    text: "»"
-                    on_release:
-                        root.Connect()
-                TouchableLabel:
-                    id: btn_disconnect
-                    font_name: "DejaVuSans.ttf"
-                    text: '⨯'
-                    disabled: True
-                    on_release:
-                        root.Disconnect()
-                TouchableLabel:
-                    id: btn_add_graph
-                    font_name: "DejaVuSans.ttf"
-                    text: "+"
-                    on_release:
-                        root.AddGraph()
-                TouchableLabel:
-                    id: btn_menu
-                    font_name: "DejaVuSans.ttf"
-                    text: "⋮"
+                text_size: self.size
+                padding_x: sp(10)
+                halign: 'left'
+                valign: 'middle'
+                on_release: Factory.EnterEndpointPopup().open(root.endpoint)
+            TouchableLabel:
+                id: btn_connect
+                size_hint_x: None
+                size: self.size[1], self.size[1]
+                font_name: "DejaVuSans.ttf"
+                text: "»"
+                on_release:
+                    root.Connect()
+            TouchableLabel:
+                id: btn_disconnect
+                size_hint_x: None
+                size: self.size[1], self.size[1]
+                font_name: "DejaVuSans.ttf"
+                text: '⨯'
+                disabled: True
+                on_release:
+                    root.Disconnect()
+            Label:
+                size_hint_x: None
+                size: self.size[1]/4, self.size[1]
+            TouchableLabel:
+                id: btn_add_graph
+                size_hint_x: None
+                size: self.size[1], self.size[1]
+                font_name: "DejaVuSans.ttf"
+                text: "+"
+                on_release:
+                    root.AddGraph()
+            TouchableLabel:
+                id: btn_menu
+                size_hint_x: None
+                size: self.size[1], self.size[1]
+                font_name: "DejaVuSans.ttf"
+                text: "⋮"
         BoxLayout:
             canvas:
                 Color:
@@ -73,22 +85,3 @@
                 font_size: sp(8)
         BoxLayout:
             id: view_port
-        BoxLayout:
-            id: bottom_menu
-            canvas:
-                Color:
-                    rgba: 0.5, 0.5, 0.5, 0.1
-                Rectangle:
-                    pos: self.pos
-                    size: self.size
-                Color:
-                    rgba: 0, 0, 0, 1
-                Line:
-                    width: 1
-                    rectangle: self.x, self.y, self.width, self.height
-            size_hint: 1, None
-            size: self.size[0], sp(50)
-            Label:
-                text: "Not connected"
-                color: 1,0,0,1
-                font_size: 12

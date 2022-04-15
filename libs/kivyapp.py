@@ -6,10 +6,11 @@ from kivy.app import App
 from libs.opcua.opcuaclient import client
 from libs.toolConfigurator import LabVar
 from libs.touchablelabel import TouchableLabel
+from kivy.core.window import Window
 
 from kivy.uix.popup import Popup
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty, ObjectProperty, NumericProperty, partial
+from kivy.properties import StringProperty, ObjectProperty, NumericProperty, partial, dpi2px
 from kivy.uix.dropdown import DropDown
 from kivy.clock import Clock
 from kivy import Config
@@ -46,7 +47,7 @@ class ListLabVarPopup(Popup):
                 temp = TouchableLabel()
                 temp.text = element.name
                 temp.size_hint_y = None
-                temp.size = [temp.size[0], '50sp']
+                temp.size[1] = '50sp'
                 temp.id = _id
                 temp.bind(on_release=self.SelectedVarCallback)
                 self.ids.list_box.add_widget(temp)
@@ -184,6 +185,7 @@ class GraphContainer(BoxLayout):
 
 
 class LaboratorClient(BoxLayout):
+    endpoint = StringProperty(DEFAULT_ENDPOINT)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -200,10 +202,17 @@ class LaboratorClient(BoxLayout):
         self.GraphContainer.RemoveGraph()
 
     def Reconnection(self, dt):
-        if not client.isConnected():
-            client.Disconnect()
-            self.Connect()
-            Clock.schedule_once(self.Reconnection, dt)
+        if client.isReconnecting():
+            if not client.isConnected():
+                client._isReconnecting = True
+                client.Disconnect()
+                self.Connect()
+                Clock.schedule_once(self.Reconnection, dt)
+                client.ReconnectNumberInc()
+            else:
+                client._isReconnecting = False
+        else:
+            client.ReconnectNumberZero()
 
     def Update(self, dt):
         if client.isConnected():
@@ -221,11 +230,12 @@ class LaboratorClient(BoxLayout):
                             graph.SetLabVarValue(round(labvar.value, 2))
             except Exception:
                 client._isConnected = False
-                self.ids.btn_disconnect.disabled = True
+                self.ids.btn_disconnect.disabled = False
                 self.ids.btn_connect.disabled = False
                 self.ids.info_log.color = 1, 0, 0, 1
                 self.ids.info_log.text = "Connection lost!"
-                Logger.info("INFO: [" + str(self) + "] Connection lost! Trying Reconnect...")
+                Logger.info("INFO: [" + str(self) + "] Connection lost! Trying to reconnect...")
+                client._isReconnecting = True
                 self.Reconnection(5)
 
     @staticmethod
@@ -249,7 +259,7 @@ class LaboratorClient(BoxLayout):
 
     def Connect(self):
         try:
-            client.Connect(self.ids.endpoint_label.text)
+            client.Connect(self.endpoint)
             self.ids.btn_connect.disabled = True
             self.ids.btn_disconnect.disabled = False
             self.ids.info_log.color = [0, 1, 0, 1]
@@ -261,7 +271,10 @@ class LaboratorClient(BoxLayout):
         except Exception:
             self.ids.btn_connect.disabled = False
             self.ids.btn_disconnect.disabled = True
-            self.ids.info_log.text = "Error while connecting..."
+            if not client.isReconnecting():
+                self.ids.info_log.text = "Error while connecting..."
+            else:
+                self.ids.info_log.text = "Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')'
             Logger.warning("CONNECT: Error while connecting...")
 
     def Disconnect(self):
