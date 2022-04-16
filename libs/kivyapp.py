@@ -59,7 +59,7 @@ class GardenGraph(Graph):
 
 
 class GraphBox(BoxLayout):
-    labvar_value = NumericProperty(0.00)
+    labvar_value = NumericProperty(0)
     labvar_name = StringProperty("None")
 
     def __init__(self, _cols, _id, **kwargs):
