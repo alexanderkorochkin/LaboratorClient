@@ -1,6 +1,6 @@
 # pip freeze | Out-File -Encoding UTF8 requirements.txt
 
-MAX_HISTORY_VALUES = 120
+MAX_HISTORY_VALUES = 10
 NAMESPACE = "laboratory1"
 DEFAULT_ENDPOINT = "opc.tcp://192.168.1.22:4840"
 MAX_RECONNECTIONS_NUMBER = 10

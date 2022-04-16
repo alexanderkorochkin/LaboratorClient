@@ -23,6 +23,7 @@ class ListLabVarPopup(Popup):
         super(ListLabVarPopup, self).open()
 
     def SelectedVarCallback(self, instance):
+        KivyApp.instance.GraphContainer.GraphArr[instance.id].ClearPlot()
         KivyApp.instance.GraphContainer.GraphArr[instance.id].SetLabVarName(instance.text)
         KivyApp.instance.GraphContainer.GraphArr[instance.id].SetLabVarValue(str("0"))
         self.dismiss()

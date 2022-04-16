@@ -9,7 +9,7 @@ from libs.toolConfigurator import LabVar
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty, ListProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
-from libs.garden.graph import Graph, MeshLinePlot
+from libs.garden.graph import Graph, MeshLinePlot, SmoothLinePlot
 
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.lang import Builder
@@ -36,22 +36,32 @@ def ResizeGraphCallback(instance, value):
 class GardenGraph(Graph):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.plot = MeshLinePlot(mode='line_strip', color=[0, 1, 0, 1])
+        self.plot = SmoothLinePlot(color=[0, 1, 0, 1])
         self.plot.points = [(0, 0)]
         self.add_plot(self.plot)
-        # self.padding = [0, 0]
+        self.padding = [0, 0]
 
     def UpdatePlot(self, _arr):
-        self.plot.points = _arr
+        temp = []
+        for i in range(len(_arr)):
+            temp.append([i, _arr[i][1]])
+        self.plot.points = temp
 
-        if len(_arr) == MAX_HISTORY_VALUES:
-            self.xmin += 1
-            self.xmax += 1
+        # if len(_arr) == MAX_HISTORY_VALUES:
+        #     self.xmin += 1
+        #     self.xmax += 1
 
         _yarr = [_arr[i][1] for i in range(len(_arr))]
         self.ymax = max(_yarr) + max(0.05 * max(_yarr), 5)
         self.ymin = min(_yarr) - max(0.05 * min(_yarr), 5)
         self.y_ticks_major = (self.ymax - self.ymin)/4
+
+    def ClearPlot(self):
+        self.plot.points = [(0, 0)]
+        self.ymin = -1
+        self.ymax = 1
+        self.xmin = 0
+        self.xmax = MAX_HISTORY_VALUES
 
 
 class GraphBox(BoxLayout):
@@ -71,7 +81,7 @@ class GraphBox(BoxLayout):
                                        x_grid=True,
                                        y_grid=True,
                                        xmin=0,
-                                       xmax=MAX_HISTORY_VALUES,
+                                       xmax=MAX_HISTORY_VALUES + 1,
                                        ymin=-1,
                                        ymax=1)
         self.ids.garden_graph_placer.add_widget(self.gardenGraph)
@@ -109,11 +119,16 @@ class GraphBox(BoxLayout):
     def UpdateGardenGraph(self, _arr):
         self.gardenGraph.UpdatePlot(_arr)
 
+    def ClearPlot(self):
+        self.gardenGraph.ClearPlot()
+
     def ClearGraph(self, value):
         # Очищаем буфер прошлой переменной
         for labvar in KivyApp.instance.LabVarArr:
             if labvar.name == self.labvar_name:
                 labvar.ClearHistory()
+
+        self.gardenGraph.ClearPlot()
 
         self.current_touch = "None"
 
@@ -128,6 +143,12 @@ class GraphContainer(BoxLayout):
         self.bind(size=ResizeGraphCallback)
         self.GraphArr = []
         self.columns = 1
+
+    def isContainsGraphWithName(self, _labvar_name):
+        for graph in self.GraphArr:
+            if graph.labvar_name == _labvar_name:
+                return True
+        return False
 
     def AddGraph(self):
         if self.columns == 1:
@@ -313,16 +334,19 @@ class LaboratorClient(BoxLayout):
     def Update(self, dt):
         if client.isConnected():
             try:
-                # Заносим все использующиеся значения в соответствующие графики
+                # Обновляем только те переменные, что есть в графиках
+                for labvar in self.LabVarArr:
+                    if self.GraphContainer.isContainsGraphWithName(labvar.name):
+                        _value = client.get_node(labvar.node_id).get_value()
+                        labvar.value = _value
+                        labvar.WriteHistory(_value)
+                # Заносим эти переменные в соответствующие графики
                 for graph in self.GraphContainer.GraphArr:
                     if graph.labvar_name != "None":
                         for labvar in self.LabVarArr:
                             if labvar.name == graph.labvar_name:
-                                _value = client.get_node(labvar.node_id).get_value()
-                                labvar.value = _value
-                                labvar.WriteHistory(_value)
                                 graph.UpdateGardenGraph(labvar.GetHistory())
-                                graph.SetLabVarValue(round(labvar.value, 2))
+                                graph.SetLabVarValue(round(labvar.value, 3))
             except Exception:
                 client._isConnected = False
                 client._isReconnecting = True

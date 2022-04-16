@@ -20,7 +20,7 @@ class LabVar:
         if len(self.values_history) < MAX_HISTORY_VALUES:
             self.values_history.append([len(self.values_history), _value])
         else:
-            for i in range(0, len(self.values_history)):
+            for i in range(len(self.values_history)):
                 if i < (len(self.values_history) - 1):
                     self.values_history[i][1] = self.values_history[i + 1][1]
                     self.values_history[i][0] += 1

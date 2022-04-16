@@ -26,10 +26,9 @@
                 Label:
                     text: str(root.labvar_value)
                     font_size: Window.width / sp(7)
-                    opacity: 0.3
+                    opacity: 0.4
                 BoxLayout:
                     id: garden_graph_placer
-                    padding: -8, 0, 0, -8
             RelativeLayout:
                 AnchorLayout:
                     anchor_x: "left"
@@ -55,7 +54,7 @@
                         font_name: "DejaVuSans.ttf"
                         font_size: sp(10)
                         text: str(root.labvar_name)
-                        border_color: 1, 0, 0, 0.4
+                        border_color: 0, 0, 0, 0.4
                         on_release:
                             Factory.ListLabVarPopup().open(root.id)
 
