@@ -87,7 +87,7 @@ class GraphBox(BoxLayout):
                     self.height = 0.5 * KivyApp.instance.ids.view_port.height
 
     def DoubleSingleTap(self):
-        if self.current_touch is not "None":
+        if self.current_touch != "None":
             Clock.unschedule(self.ClearGraph)
             self.RemoveMe()
             self.current_touch = "None"

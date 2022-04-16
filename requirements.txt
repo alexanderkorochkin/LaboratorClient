@@ -6,7 +6,6 @@ cycler==0.11.0
 docutils==0.18
 fonttools==4.31.2
 idna==3.3
-Kivy==2.0.0
 Kivy-Garden==0.1.4
 kivy-garden.graph==0.4.0
 kiwisolver==1.4.2
