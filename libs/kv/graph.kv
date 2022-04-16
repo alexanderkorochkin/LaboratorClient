@@ -27,7 +27,9 @@
                     text: str(root.labvar_value)
                     font_size: Window.width / sp(7)
                     opacity: 0.4
-                BoxLayout:
+                AnchorLayout:
+                    anchor_x: "left"
+                    anchor_y: "center"
                     id: garden_graph_placer
             RelativeLayout:
                 AnchorLayout:

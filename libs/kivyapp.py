@@ -9,13 +9,13 @@ from libs.toolConfigurator import LabVar
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty, ListProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
-from libs.garden.graph import Graph, MeshLinePlot, SmoothLinePlot
+from libs.garden.graph import Graph, LinePlot
 
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.lang import Builder
 from kivy import Config
 Logger.setLevel(LOG_LEVELS["debug"])
-Config.set('graphics', 'multisamples', '0')
+# Config.set('graphics', 'multisamples', '0')
 
 
 def ResizeGraphCallback(instance, value):
@@ -36,10 +36,12 @@ def ResizeGraphCallback(instance, value):
 class GardenGraph(Graph):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.plot = SmoothLinePlot(color=[0, 1, 0, 1])
+        self.plot = LinePlot(color=[0, 0.8, 0, 0.9], line_width=1.5)
         self.plot.points = [(0, 0)]
         self.add_plot(self.plot)
-        self.padding = [0, 0]
+        self.size_hint = 1, 1
+        self.padding = 0, 0
+        self.pos_hint = None, None
 
     def UpdatePlot(self, _arr):
         temp = []
@@ -58,10 +60,10 @@ class GardenGraph(Graph):
 
     def ClearPlot(self):
         self.plot.points = [(0, 0)]
-        self.ymin = -1
+        self.ymin = 0
         self.ymax = 1
         self.xmin = 0
-        self.xmax = MAX_HISTORY_VALUES
+        self.xmax = MAX_HISTORY_VALUES + 1
 
 
 class GraphBox(BoxLayout):
@@ -74,15 +76,19 @@ class GraphBox(BoxLayout):
         self.id = _id
         self.current_touch = "None"
         self.gardenGraph = GardenGraph(border_color=[0, 0, 0, 1],
-                                       x_ticks_major=MAX_HISTORY_VALUES/4,
-                                       y_ticks_major=3,
+                                       x_ticks_major=MAX_HISTORY_VALUES/8,
+                                       x_ticks_minor=5,
+                                       y_ticks_major=6,
+                                       y_ticks_minor=5,
+                                       tick_color=[0, 0, 0, 0.15],
+                                       background_color=[1, 1, 1, 0],
                                        y_grid_label=False,
                                        x_grid_label=False,
                                        x_grid=True,
                                        y_grid=True,
                                        xmin=0,
                                        xmax=MAX_HISTORY_VALUES + 1,
-                                       ymin=-1,
+                                       ymin=-0,
                                        ymax=1)
         self.ids.garden_graph_placer.add_widget(self.gardenGraph)
 
