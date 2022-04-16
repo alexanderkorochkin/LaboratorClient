@@ -39,8 +39,8 @@ class GardenGraph(Graph):
         self.plot = LinePlot(color=[0, 0.8, 0, 0.9], line_width=1.5)
         self.plot.points = [(0, 0)]
         self.add_plot(self.plot)
-        self.size_hint = 1, 1
-        self.padding = 0, 0
+        self.size_hint = [1, 1]
+        self.padding = 0
         self.pos_hint = None, None
 
     def UpdatePlot(self, _arr):
