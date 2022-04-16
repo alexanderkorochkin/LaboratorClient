@@ -1,18 +1,15 @@
 import os
 
-import numpy as np
-
 from settings.config import *
-from math import sin
 
 from kivy.app import App
 from libs.opcua.opcuaclient import client
 from libs.toolConfigurator import LabVar
 
-from kivy.properties import StringProperty, ObjectProperty, NumericProperty
+from kivy.properties import StringProperty, ObjectProperty, NumericProperty, ListProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
-from kivy_garden.graph import Graph, MeshLinePlot, LinePlot, SmoothLinePlot, BarPlot, MeshStemPlot
+from kivy_garden.graph import Graph, MeshLinePlot
 
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.lang import Builder
@@ -33,17 +30,16 @@ def ResizeGraphCallback(instance, value):
     if value[0] <= value[1]:
         KivyApp.instance.GraphContainer.columns = 1
         for element in KivyApp.instance.GraphContainer.GraphArr:
-            element.height = 0.3 * KivyApp.instance.ids.view_port.height
+            element.height = (1 / 3) * KivyApp.instance.ids.view_port.height
 
 
 class GardenGraph(Graph):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.samples = MAX_HISTORY_VALUES
-        self.plot = MeshLinePlot(color=[0, 1, 0, 1])
-        self.plot.points = []
+        self.plot = MeshLinePlot(mode='line_strip', color=[0, 1, 0, 1])
+        self.plot.points = [(0, 0)]
         self.add_plot(self.plot)
-        self.padding = [0, 0]
+        # self.padding = [0, 0]
 
     def UpdatePlot(self, _arr):
         self.plot.points = _arr
@@ -59,22 +55,25 @@ class GardenGraph(Graph):
 
 
 class GraphBox(BoxLayout):
-    labvar_value = NumericProperty(0)
     labvar_name = StringProperty("None")
+    labvar_value = NumericProperty(0)
 
     def __init__(self, _cols, _id, **kwargs):
         super().__init__(**kwargs)
         self.size_hint = [1, None]
         self.id = _id
         self.current_touch = "None"
-        self.labvar_value = 0
-        self.gardenGraph = GardenGraph(
-                                        border_color=[0, 0, 0, 1],
-                                        x_ticks_major=MAX_HISTORY_VALUES/4,
-                                        y_ticks_major=3,
-                                        y_grid_label=False, x_grid_label=False,
-                                        x_grid=True, y_grid=True, xmin=0, xmax=MAX_HISTORY_VALUES, ymin=-1, ymax=1
-        )
+        self.gardenGraph = GardenGraph(border_color=[0, 0, 0, 1],
+                                       x_ticks_major=MAX_HISTORY_VALUES/4,
+                                       y_ticks_major=3,
+                                       y_grid_label=False,
+                                       x_grid_label=False,
+                                       x_grid=True,
+                                       y_grid=True,
+                                       xmin=0,
+                                       xmax=MAX_HISTORY_VALUES,
+                                       ymin=-1,
+                                       ymax=1)
         self.ids.garden_graph_placer.add_widget(self.gardenGraph)
 
         if _cols == 1:
@@ -131,8 +130,6 @@ class GraphContainer(BoxLayout):
         self.columns = 1
 
     def AddGraph(self):
-        graphbox = None
-
         if self.columns == 1:
             graphbox = GraphBox(self.columns, len(self.GraphArr))
             self.GraphArr.append(graphbox)
@@ -156,7 +153,7 @@ class GraphContainer(BoxLayout):
                         self.GraphArr.append(graphbox)
                         self.ids.graph_container.add_widget(graphbox)
 
-        Logger.debug("GRAPH: Graph [" + graphbox.labvar_name + "] is added, id: " + str(len(self.GraphArr) - 1) + "!")
+        # Logger.debug("GRAPH: Graph [" + graphbox.labvar_name + "] is added, id: " + str(len(self.GraphArr) - 1) + "!")
 
     def ShiftNumbering(self, _id):
         for element in self.GraphArr:
