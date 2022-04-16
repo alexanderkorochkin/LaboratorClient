@@ -9,7 +9,7 @@ from libs.toolConfigurator import LabVar
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty, ListProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
-from kivy_garden.graph import Graph, MeshLinePlot
+from libs.garden.graph import Graph, MeshLinePlot
 
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.lang import Builder
