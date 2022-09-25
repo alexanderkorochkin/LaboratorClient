@@ -1,6 +1,7 @@
 import opcua
 from opcua import Client
 from urllib.parse import urlparse
+from libs.toolConfigurator import LabVar
 from settings.config import *
 
 
@@ -18,6 +19,17 @@ class OPCUAClient(Client):
         self.lab_node = opcua.Node
         self.lab_id = ''
 
+    @staticmethod
+    def GetVarsFromNode(node):
+        arr = []
+        arr_index = 1
+        for childId in node.get_children():
+            ch = client.get_node(childId)
+            if ch.get_node_class() == 2:
+                arr.append(LabVar(0, arr_index, str(ch.get_browse_name())[str(ch.get_browse_name()).find(":") + 1:len(str(ch.get_browse_name())) - 1], "NONE_PORT", "NONE_MULTIPLIER"))
+                arr_index += 1
+        return arr
+
     def Connect(self, url):
         try:
             self.server_url = urlparse(url)
@@ -29,6 +41,8 @@ class OPCUAClient(Client):
             for element in objects_arr:
                 if str(element.get_browse_name()).find(NAMESPACE) != -1:
                     self.lab_node = element
+
+
         except Exception:
             raise
 

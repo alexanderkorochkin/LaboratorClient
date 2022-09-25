@@ -1,4 +1,5 @@
 import os
+import socket
 
 from settings.config import *
 
@@ -54,8 +55,8 @@ class GardenGraph(Graph):
         #     self.xmax += 1
 
         _yarr = [_arr[i][1] for i in range(len(_arr))]
-        self.ymax = max(_yarr) + max(0.05 * max(_yarr), 5)
-        self.ymin = min(_yarr) - max(0.05 * min(_yarr), 5)
+        self.ymax = max(_yarr) + max(GRAPH_ADDITIONAL_SPACE_Y * max(_yarr), 1)
+        self.ymin = min(_yarr) - max(GRAPH_ADDITIONAL_SPACE_Y * min(_yarr), 1)
         self.y_ticks_major = (self.ymax - self.ymin)/4
 
     def ClearPlot(self):
@@ -66,12 +67,36 @@ class GardenGraph(Graph):
         self.xmax = MAX_HISTORY_VALUES + 1
 
 
+class CBuffer:
+    def __init__(self, buffer_size):
+        self.isExecuted = True
+        self.buffer_size = buffer_size
+        self.buffer = []
+        self.lastavg = 0
+
+    def AddValue(self, value):
+        if len(self.buffer) == self.buffer_size:
+            self.buffer = self.buffer[self.buffer_size - len(self.buffer) + 1:]
+        self.buffer.append(float(value))
+
+    def GetAVG(self):
+        if len(self.buffer) != 0:
+            return round(sum(self.buffer)/len(self.buffer), GRAPH_ROUND_DIGITS)
+        else:
+            return 0
+
+    def Clear(self):
+        self.buffer.clear()
+
+
 class GraphBox(BoxLayout):
     labvar_name = StringProperty("None")
     labvar_value = NumericProperty(0)
+    avg_value = NumericProperty(0)
 
     def __init__(self, _cols, _id, **kwargs):
         super().__init__(**kwargs)
+        self.avgBuffer = CBuffer(GRAPH_BUFFER_AVG_SIZE)
         self.size_hint = [1, None]
         self.id = _id
         self.current_touch = "None"
@@ -118,6 +143,8 @@ class GraphBox(BoxLayout):
 
     def SetLabVarValue(self, labvar_value):
         self.labvar_value = labvar_value
+        self.avgBuffer.AddValue(labvar_value)
+        self.avg_value = self.avgBuffer.GetAVG()
 
     def SetLabVarName(self, labvar_name):
         self.labvar_name = labvar_name
@@ -127,12 +154,14 @@ class GraphBox(BoxLayout):
 
     def ClearPlot(self):
         self.gardenGraph.ClearPlot()
+        self.avgBuffer.Clear()
 
     def ClearGraph(self, value):
         # Очищаем буфер прошлой переменной
         for labvar in KivyApp.instance.LabVarArr:
             if labvar.name == self.labvar_name:
                 labvar.ClearHistory()
+        self.avgBuffer.Clear()
 
         self.gardenGraph.ClearPlot()
 
@@ -240,13 +269,27 @@ class GraphContainer(BoxLayout):
             Logger.debug("GRAPH: Graph [" + temp.labvar_name + "] is removed!")
 
 
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.254.254.254', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+    return IP
+
+
 class LaboratorClient(BoxLayout):
-    endpoint = StringProperty(DEFAULT_ENDPOINT)
+    endpoint = StringProperty("opc.tcp://" + get_ip() + ":4840")
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.GraphContainer = GraphContainer()
-        self.LabVarArr = self.LabVarArrConfigure(os.path.join("settings", "databaseconfig.txt"))
+        self.LabVarArr = []
 
     def Prepare(self, dt):
         self.ids.view_port.add_widget(self.GraphContainer)
@@ -259,14 +302,18 @@ class LaboratorClient(BoxLayout):
 
     @staticmethod
     def LabVarArrConfigure(path):
-        arr = []
-        file = open(path, "r", encoding='utf-8')
-        Logger.debug("LabVarConf: Opened file to configuration: " + str(path))
-        for line in file:
-            index, port, name, *multiplier = line.split("\t", 4)
-            arr.append(LabVar(0, index, name, port, multiplier))
-        file.close()
-        return arr
+        if GET_FROM_SERVER == 0:
+            arr = []
+            file = open(path, "r", encoding='utf-8')
+            Logger.debug("LabVarConf: Opened file to configuration: " + str(path))
+            for line in file:
+                index, port, name, *multiplier = line.split("\t", 4)
+                arr.append(LabVar(0, index, name, port, multiplier))
+            file.close()
+            return arr
+        else:
+            Logger.debug("LabVarConf: Getting configuration from server...")
+            return client.GetVarsFromNode(client.lab_node)
 
     def ParseVars(self):
         for var in self.LabVarArr:
@@ -300,6 +347,7 @@ class LaboratorClient(BoxLayout):
     def Connect(self):
         try:
             client.Connect(self.endpoint)
+            self.LabVarArr = self.LabVarArrConfigure(os.path.join("settings", "databaseconfig.txt"))
             self.ids.btn_connect.disabled = True
             self.ids.btn_disconnect.disabled = False
             self.ids.endpoint_label.disabled = True
@@ -352,7 +400,7 @@ class LaboratorClient(BoxLayout):
                         for labvar in self.LabVarArr:
                             if labvar.name == graph.labvar_name:
                                 graph.UpdateGardenGraph(labvar.GetHistory())
-                                graph.SetLabVarValue(round(labvar.value, 3))
+                                graph.SetLabVarValue(round(labvar.value, GRAPH_ROUND_DIGITS))
             except Exception:
                 client._isConnected = False
                 client._isReconnecting = True
@@ -393,3 +441,10 @@ class KivyApp(App):
 
 
 KivyApp = KivyApp()
+
+# TODO Реализовать выбор файла конфигурации внутри программы
+# TODO Реализовать окно настроек, подгружающихся из файла
+# TODO Реализовать сохранение настроек в файл
+# TODO Реализовать индивидуальные настройки для графиков
+# TODO Реализовать сохранение и подгрузку лэйаута
+# TODO Научиться подключаться к LabView
