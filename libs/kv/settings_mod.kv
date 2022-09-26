@@ -1,3 +1,5 @@
+#:import re re
+
 <-MenuSidebar>:
     size_hint_x: None
     width: '200dp'
@@ -78,7 +80,7 @@
 
 <SettingPath>:
     Label:
-        text: ("..." + str(root.value).split('\\')[-1]) or ''
+        text: ("..." + re.split('\\\|\\/', str(root.value))[-1]) or ''
         text_size: self.size
         padding_x: 20
         pos: root.pos

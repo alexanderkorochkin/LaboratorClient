@@ -8,7 +8,7 @@ settings_defaults = {
             'MAX_HISTORY_VALUES': 120,
             'MAX_RECONNECTIONS_NUMBER': 10,
             'RECONNECTION_TIME': 5,
-            'GET_FROM_SERVER': 1,
+            'GET_FROM_SERVER': True,
             'CONFIGURATION_PATH': os.path.join("settings", "databaseconfig.txt"),
             'KIVY_DOUBLETAP_TIME': 0.3,
             'KIVY_UPDATE_FUNCTION_TIME': 1,
@@ -70,7 +70,7 @@ settings_json = json.dumps([
      'key': 'KIVY_DOUBLETAP_TIME'},
 
     {'type': 'numeric',
-     'title': 'Количество точек по оси X на графиках',
+     'title': 'Количество точек по оси X на графиках (зависит от частоты обновления)',
      'desc': 'MAX_HISTORY_VALUES',
      'section': 'allSettings',
      'key': 'MAX_HISTORY_VALUES'},

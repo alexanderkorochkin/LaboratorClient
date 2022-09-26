@@ -443,18 +443,12 @@ class KivyApp(App):
         self.use_kivy_settings = True
         return laborator
 
-    def recursive_get_child(self, idx, child):
-        for i in child.children:
-            print(idx, child)
-            self.recursive_get_child(idx + " ", i)
-
     def build_config(self, config):
         config.setdefaults('allSettings', settings_defaults)
 
     def build_settings(self, settings):
         self.settings_widget = settings
         settings.add_json_panel('Основные настройки', self.config, data=settings_json)
-        self.recursive_get_child(" ", self.settings_widget)
 
     def on_config_change(self, config, section, key, value):
         print(config, section, key, value)
