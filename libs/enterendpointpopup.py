@@ -2,8 +2,6 @@ from libs.kivyapp import KivyApp
 from kivy.uix.popup import Popup
 from kivy.properties import StringProperty
 
-from settings.config import *
-
 
 class EnterEndpointPopup(Popup):
     endpoint = StringProperty('None')

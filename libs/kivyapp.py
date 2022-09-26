@@ -1,22 +1,20 @@
 import os
 import socket
 
-from settings.config import *
+from settings.settingsJSON import settings_defaults, settings_json, msettings
 
 from kivy.app import App
 from libs.opcua.opcuaclient import client
 from libs.toolConfigurator import LabVar
 
-from kivy.properties import StringProperty, ObjectProperty, NumericProperty, ListProperty
+from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
 from libs.garden.graph import Graph, LinePlot
 
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.lang import Builder
-from kivy import Config
 Logger.setLevel(LOG_LEVELS["debug"])
-# Config.set('graphics', 'multisamples', '0')
 
 
 def ResizeGraphCallback(instance, value):
@@ -37,7 +35,7 @@ def ResizeGraphCallback(instance, value):
 class GardenGraph(Graph):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.plot = LinePlot(color=[0, 0.8, 0, 0.9], line_width=1.5)
+        self.plot = LinePlot(color=[0, 0.8, 0, 0.9], line_width=msettings.get('GRAPH_LINE_THICKNESS'))
         self.plot.points = [(0, 0)]
         self.add_plot(self.plot)
         self.size_hint = [1, 1]
@@ -50,21 +48,21 @@ class GardenGraph(Graph):
             temp.append([i, _arr[i][1]])
         self.plot.points = temp
 
-        # if len(_arr) == MAX_HISTORY_VALUES:
-        #     self.xmin += 1
-        #     self.xmax += 1
-
         _yarr = [_arr[i][1] for i in range(len(_arr))]
-        self.ymax = max(_yarr) + max(GRAPH_ADDITIONAL_SPACE_Y * max(_yarr), 1)
-        self.ymin = min(_yarr) - max(GRAPH_ADDITIONAL_SPACE_Y * min(_yarr), 1)
+        self.ymax = round(((max(_yarr) + min(_yarr)) / 2) + abs(msettings.get('GRAPH_ADDITIONAL_SPACE_Y') * (max(_yarr) - ((max(_yarr) + min(_yarr)) / 2))))
+        self.ymin = round(((max(_yarr) + min(_yarr)) / 2) - abs(msettings.get('GRAPH_ADDITIONAL_SPACE_Y') * (-min(_yarr) + ((max(_yarr) + min(_yarr)) / 2))))
         self.y_ticks_major = (self.ymax - self.ymin)/4
+        if self.y_ticks_major == 0:
+            self.ymax = 1
+            self.ymin = -1
+            self.y_ticks_major = (self.ymax - self.ymin) / 4
 
     def ClearPlot(self):
         self.plot.points = [(0, 0)]
         self.ymin = 0
         self.ymax = 1
         self.xmin = 0
-        self.xmax = MAX_HISTORY_VALUES + 1
+        self.xmax = msettings.get('MAX_HISTORY_VALUES') + 1
 
 
 class CBuffer:
@@ -81,7 +79,7 @@ class CBuffer:
 
     def GetAVG(self):
         if len(self.buffer) != 0:
-            return round(sum(self.buffer)/len(self.buffer), GRAPH_ROUND_DIGITS)
+            return round(sum(self.buffer)/len(self.buffer), msettings.get('GRAPH_ROUND_DIGITS'))
         else:
             return 0
 
@@ -96,12 +94,12 @@ class GraphBox(BoxLayout):
 
     def __init__(self, _cols, _id, **kwargs):
         super().__init__(**kwargs)
-        self.avgBuffer = CBuffer(GRAPH_BUFFER_AVG_SIZE)
+        self.avgBuffer = CBuffer(msettings.get('GRAPH_BUFFER_AVG_SIZE'))
         self.size_hint = [1, None]
         self.id = _id
         self.current_touch = "None"
         self.gardenGraph = GardenGraph(border_color=[0, 0, 0, 1],
-                                       x_ticks_major=MAX_HISTORY_VALUES/8,
+                                       x_ticks_major=int(msettings.get('MAX_HISTORY_VALUES'))/8,
                                        x_ticks_minor=5,
                                        y_ticks_major=6,
                                        y_ticks_minor=5,
@@ -112,8 +110,8 @@ class GraphBox(BoxLayout):
                                        x_grid=True,
                                        y_grid=True,
                                        xmin=0,
-                                       xmax=MAX_HISTORY_VALUES + 1,
-                                       ymin=-0,
+                                       xmax=msettings.get('MAX_HISTORY_VALUES') + 1,
+                                       ymin=-1,
                                        ymax=1)
         self.ids.garden_graph_placer.add_widget(self.gardenGraph)
 
@@ -133,7 +131,7 @@ class GraphBox(BoxLayout):
             self.current_touch = "None"
         else:
             self.current_touch = "touch"
-            Clock.schedule_once(self.ClearGraph, KIVY_DOBLETAP_TIME)
+            Clock.schedule_once(self.ClearGraph, msettings.get('KIVY_DOUBLETAP_TIME'))
 
     def RemoveMe(self):
         KivyApp.instance.GraphContainer.RemoveGraphById(self.id)
@@ -186,6 +184,7 @@ class GraphContainer(BoxLayout):
         return False
 
     def AddGraph(self):
+        graphbox = None
         if self.columns == 1:
             graphbox = GraphBox(self.columns, len(self.GraphArr))
             self.GraphArr.append(graphbox)
@@ -209,7 +208,7 @@ class GraphContainer(BoxLayout):
                         self.GraphArr.append(graphbox)
                         self.ids.graph_container.add_widget(graphbox)
 
-        # Logger.debug("GRAPH: Graph [" + graphbox.labvar_name + "] is added, id: " + str(len(self.GraphArr) - 1) + "!")
+        Logger.debug("GRAPH: Graph [" + graphbox.labvar_name + "] is added, id: " + str(len(self.GraphArr) - 1) + "!")
 
     def ShiftNumbering(self, _id):
         for element in self.GraphArr:
@@ -284,7 +283,7 @@ def get_ip():
 
 
 class LaboratorClient(BoxLayout):
-    endpoint = StringProperty("opc.tcp://" + get_ip() + ":4840")
+    endpoint = StringProperty()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -293,6 +292,7 @@ class LaboratorClient(BoxLayout):
 
     def Prepare(self, dt):
         self.ids.view_port.add_widget(self.GraphContainer)
+        self.endpoint = msettings.get('LAST_IP')
 
     def AddGraph(self):
         self.GraphContainer.AddGraph()
@@ -302,7 +302,7 @@ class LaboratorClient(BoxLayout):
 
     @staticmethod
     def LabVarArrConfigure(path):
-        if GET_FROM_SERVER == 0:
+        if msettings.get('GET_FROM_SERVER') == 0:
             arr = []
             file = open(path, "r", encoding='utf-8')
             Logger.debug("LabVarConf: Opened file to configuration: " + str(path))
@@ -325,7 +325,7 @@ class LaboratorClient(BoxLayout):
                         var.browse_name) + "], NodeId: [" + var.node_id + "]")
 
     def Reconnection(self, dt):
-        if client.GetReconnectNumber() <= MAX_RECONNECTIONS_NUMBER:
+        if client.GetReconnectNumber() <= msettings.get('MAX_RECONNECTIONS_NUMBER'):
             if client.isReconnecting():
                 if not client.isConnected():
                     client._isReconnecting = True
@@ -347,7 +347,7 @@ class LaboratorClient(BoxLayout):
     def Connect(self):
         try:
             client.Connect(self.endpoint)
-            self.LabVarArr = self.LabVarArrConfigure(os.path.join("settings", "databaseconfig.txt"))
+            self.LabVarArr = self.LabVarArrConfigure(msettings.get('CONFIGURATION_PATH'))
             self.ids.btn_connect.disabled = True
             self.ids.btn_disconnect.disabled = False
             self.ids.endpoint_label.disabled = True
@@ -357,6 +357,7 @@ class LaboratorClient(BoxLayout):
             self.ParseVars()
             self.ids.info_log.text = "Connected!"
             Logger.debug("CONNECT: Connected and parsed!")
+            msettings.set('allSettings', 'LAST_IP', self.endpoint)
         except Exception:
             if not client.isReconnecting():
                 self.ids.btn_connect.disabled = False
@@ -400,7 +401,7 @@ class LaboratorClient(BoxLayout):
                         for labvar in self.LabVarArr:
                             if labvar.name == graph.labvar_name:
                                 graph.UpdateGardenGraph(labvar.GetHistory())
-                                graph.SetLabVarValue(round(labvar.value, GRAPH_ROUND_DIGITS))
+                                graph.SetLabVarValue(round(labvar.value, msettings.get('GRAPH_ROUND_DIGITS')))
             except Exception:
                 client._isConnected = False
                 client._isReconnecting = True
@@ -409,7 +410,7 @@ class LaboratorClient(BoxLayout):
                 self.ids.info_log.color = 1, 0, 0, 1
                 self.ids.info_log.text = "Connection lost! Trying to reconnect..."
                 Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
-                self.Reconnection(RECONNECTION_TIME)
+                self.Reconnection(msettings.get('RECONNECTION_TIME'))
 
 
 class KivyApp(App):
@@ -417,6 +418,7 @@ class KivyApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.instance = None
+        self.settings_widget = None
 
     def on_stop(self):
         try:
@@ -425,8 +427,9 @@ class KivyApp(App):
             Logger.error("KivyApp: Error while disconnecting on app stop!")
 
     def on_start(self):
+        msettings.instance = self.config
         Clock.schedule_once(self.instance.Prepare, 1)
-        Clock.schedule_interval(self.instance.Update, KIVY_UPDATE_FUNCTION_TIME)
+        Clock.schedule_interval(self.instance.Update, int(msettings.get('KIVY_UPDATE_FUNCTION_TIME')))
 
     @staticmethod
     def LoadKV():
@@ -437,14 +440,28 @@ class KivyApp(App):
         self.LoadKV()
         laborator = LaboratorClient()
         self.instance = laborator
+        self.use_kivy_settings = True
         return laborator
+
+    def recursive_get_child(self, idx, child):
+        for i in child.children:
+            print(idx, child)
+            self.recursive_get_child(idx + " ", i)
+
+    def build_config(self, config):
+        config.setdefaults('allSettings', settings_defaults)
+
+    def build_settings(self, settings):
+        self.settings_widget = settings
+        settings.add_json_panel('Основные настройки', self.config, data=settings_json)
+        self.recursive_get_child(" ", self.settings_widget)
+
+    def on_config_change(self, config, section, key, value):
+        print(config, section, key, value)
 
 
 KivyApp = KivyApp()
 
-# TODO Реализовать выбор файла конфигурации внутри программы
-# TODO Реализовать окно настроек, подгружающихся из файла
-# TODO Реализовать сохранение настроек в файл
 # TODO Реализовать индивидуальные настройки для графиков
 # TODO Реализовать сохранение и подгрузку лэйаута
 # TODO Научиться подключаться к LabView

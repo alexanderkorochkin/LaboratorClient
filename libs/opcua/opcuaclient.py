@@ -2,7 +2,7 @@ import opcua
 from opcua import Client
 from urllib.parse import urlparse
 from libs.toolConfigurator import LabVar
-from settings.config import *
+from settings.settingsJSON import msettings
 
 
 class OPCUAClient(Client):
@@ -39,10 +39,8 @@ class OPCUAClient(Client):
             self.objects = self.get_objects_node()
             objects_arr = self.objects.get_children()
             for element in objects_arr:
-                if str(element.get_browse_name()).find(NAMESPACE) != -1:
+                if str(element.get_browse_name()).find(msettings.get('NAMESPACE')) != -1:
                     self.lab_node = element
-
-
         except Exception:
             raise
 

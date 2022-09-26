@@ -59,9 +59,10 @@
                     anchor_x: "center"
                     anchor_y: "center"
                     Label:
-                        text: str(root.labvar_value) + " (AVG: " + str(root.avg_value) + ")"
+                        markup: True
+                        text: str(root.labvar_value) + " [color=#ffc66d](AVG: " + str(root.avg_value) + ")[/color]"
                         font_size: Window.width / sp(15)
-                        opacity: 0.8
+                        opacity: 1
 
 
 <GraphContainer>:

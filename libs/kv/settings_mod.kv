@@ -1,0 +1,117 @@
+<-MenuSidebar>:
+    size_hint_x: None
+    width: '200dp'
+    buttons_layout: menu
+    close_button: button
+    GridLayout:
+        pos: root.pos
+        cols: 1
+        id: menu
+        padding: 5
+
+        canvas.after:
+            Color:
+                rgb: .2, .2, .2
+            Rectangle:
+                pos: self.right - 1, self.y
+                size: 1, self.height
+
+    Button:
+        text: 'Close'
+        id: button
+        size_hint: None, None
+        width: root.width - dp(20)
+        height: max(50, self.texture_size[1] + dp(20))
+        pos: root.x + dp(10), root.y + dp(10)
+        font_size: '10sp'
+        color: [1, 1 , 1, 1]
+
+<-SettingItem>:
+    size_hint: .25, None
+    height: labellayout.texture_size[1] + dp(10)
+    content: content
+    canvas:
+        Color:
+            rgba: 47 / 255., 167 / 255., 212 / 255., self.selected_alpha
+        Rectangle:
+            pos: self.x, self.y + 1
+            size: self.size
+        Color:
+            rgb: .2, .2, .2
+        Rectangle:
+            pos: self.x, self.y - 2
+            size: self.width, 1
+
+    BoxLayout:
+        pos: root.pos
+
+        Label:
+            size_hint_x: .66
+            id: labellayout
+            markup: True
+            text: u'{0}\n[size=10sp][color=999999]{1}[/color][/size]'.format(root.title or '', root.desc or '')
+            font_size: '12sp'
+            color: [1, 1 , 1 , 1]
+            text_size: self.width - 32, None
+
+        BoxLayout:
+            id: content
+            size_hint_x: .33
+
+<SettingBoolean>:
+    Switch:
+        text: 'Boolean'
+        pos: root.pos
+        active: bool(root.values.index(root.value)) if root.value in root.values else False
+        on_active: root.value = root.values[int(args[1])]
+
+<SettingString>:
+    Label:
+        text: root.value or ''
+        text_size: self.size
+        padding_x: 20
+        pos: root.pos
+        halign: 'right'
+        valign: 'middle'
+        font_size: '12sp'
+        color: [1, 1, 1, 1]
+
+<SettingPath>:
+    Label:
+        text: ("..." + str(root.value).split('\\')[-1]) or ''
+        text_size: self.size
+        padding_x: 20
+        pos: root.pos
+        halign: 'right'
+        valign: 'middle'
+        font_size: '12sp'
+        color: [1, 1, 1, 1]
+
+<SettingOptions>:
+    Label:
+        text: root.value or ''
+        text_size: self.size
+        padding_x: 20
+        pos: root.pos
+        halign: 'right'
+        valign: 'middle'
+        font_size: '12sp'
+        color: [1, 1, 1, 1]
+
+<SettingTitle>:
+    text_size: self.width - 32, None
+    size_hint_y: None
+    height: max(dp(20), self.texture_size[1] + dp(20))
+    color: (.9, .9, .9, 1)
+    font_size: '15sp'
+    canvas:
+        Color:
+            rgba: .15, .15, .15, .5
+        Rectangle:
+            pos: self.x, self.y + 2
+            size: self.width, self.height - 2
+        Color:
+            rgb: .2, .2, .2
+        Rectangle:
+            pos: self.x, self.y - 2
+            size: self.width, 1

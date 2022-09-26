@@ -1,4 +1,4 @@
-from settings.config import *
+from settings.settingsJSON import msettings
 
 
 class LabVar:
@@ -17,7 +17,7 @@ class LabVar:
         return self.isExecuted
 
     def WriteHistory(self, _value):
-        if len(self.values_history) < MAX_HISTORY_VALUES:
+        if len(self.values_history) < msettings.get('MAX_HISTORY_VALUES'):
             self.values_history.append([len(self.values_history), _value])
         else:
             for i in range(len(self.values_history)):

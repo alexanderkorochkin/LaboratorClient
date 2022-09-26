@@ -19,7 +19,7 @@ class TouchableLabel(ButtonBehavior, Label):
 
     def Released(self):
         self.background_color = self.background_color_rel
-        # Logger.debug("BTN_RELEASED: " + str(self) + ", pos: " + str(self.pos) + ", label_text: " + self.text)
+        Logger.debug("BTN_RELEASED: " + str(self) + ", pos: " + str(self.pos) + ", label_text: " + self.text)
 
     def GetText(self):
         return self.text
