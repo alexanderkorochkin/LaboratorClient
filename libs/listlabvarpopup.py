@@ -12,7 +12,7 @@ class ListLabVarPopup(Popup):
     def open(self, _id, *largs, **kwargs):
         if self.isNotOpened:
             for element in KivyApp.instance.LabVarArr:
-                temp = TouchableLabel()
+                temp = RectangleFlatButton()
                 temp.text = element.name
                 temp.size_hint_y = None
                 temp.size[1] = '50sp'

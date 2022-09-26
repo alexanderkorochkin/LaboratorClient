@@ -1,23 +1,37 @@
 #:import re re
 #:import get_color_from_hex kivy.utils.get_color_from_hex
-#:import msettings settings.settingsJSON
+#:import msettings settings.settingsJSON.msettings
 #:import get_color_from_hex kivy.utils
 #:import Factory kivy.factory.Factory
 
-<-Button>:
-    state_image: '' if self.state == 'normal' else ''
+<-Label>:
+    canvas:
+        Color:
+            rgba: 1, 1, 1, 0.9
+        Rectangle:
+            texture: self.texture
+            size: self.texture_size
+            pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
+    valign: "center"
+
+<-Button,-ToggleButton>:
+    state_image: self.background_normal if self.state == 'normal' else self.background_down
     disabled_image: self.background_disabled_normal if self.state == 'normal' else self.background_disabled_down
     canvas:
         Color:
             rgba: 1, 1, 1, 0
+        BorderImage:
+            border: self.border
+            pos: self.pos
+            size: self.size
+            source: self.disabled_image if self.disabled else self.state_image
         Color:
             rgba: 1, 1, 1, 1
         Rectangle:
             texture: self.texture
             size: self.texture_size
             pos: int(self.center_x - self.texture_size[0] / 2.), int(self.center_y - self.texture_size[1] / 2.)
-    on_touch_down: Factory.Button().on_touch_down
-    on_touch_up: Factory.Button().on_touch_up
+    color: msettings.get('THEME_SECOND_COLOR')
 
 <-FileChooserListLayout>:
     on_entry_added: treeview.add_node(args[1])
@@ -72,11 +86,18 @@
                     on_node_expand: root.controller.entry_subselect(args[1])
                     on_node_collapse: root.controller.close_subselection(args[1])
 
+<-SettingSpacer>:
+
+
 <-TextInput>:
     halign: "center"
+    padding_y: [self.height / 2.0 - (self.line_height / 2.0) * len(self._lines), 0]
     canvas.before:
         Color:
-            rgba: 1, 1, 1, 0.5
+            rgba: 1, 1, 1, 0.01
+        Rectangle:
+            pos: self.pos
+            size: self.width, self.height
         Color:
             rgba:
                 (self.cursor_color
@@ -90,7 +111,14 @@
 
 <-Popup>:
     _container: container
-    GridLayout:
+    canvas.before:
+        Color:
+            rgba: 38 / 255, 38 / 255, 38 / 255, 0.8
+        Rectangle:
+            pos: 0, 0
+            size: Window.width, Window.height
+    BoxLayout:
+        orientation: "vertical"
         canvas.before:
             Color:
                 rgb: 38 / 255, 38 / 255, 38 / 255
@@ -99,20 +127,16 @@
                 size: self.size
         canvas.after:
             Color:
-                rgba: 0.2, 0.2, 0.2, 1
+                rgba: 235 / 255, 137 / 255, 51 / 255, 0.5
             Line:
                 width: 1
                 rectangle: self.x, self.y, self.width, self.height
-        cols: 1
-        size_hint: None, None
         pos: root.pos
-        size: root.size
 
         RectangleFlatButton:
             text: root.title
             color: root.title_color
             size_hint: 1, None
-            pos: root.pos
             font_size: sp(12)
             height: self.texture_size[1] + dp(16)
             text_size: self.width - dp(16), None

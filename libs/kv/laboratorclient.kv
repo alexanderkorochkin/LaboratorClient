@@ -11,6 +11,14 @@
         id: main_stack
         orientation: "vertical"
         BoxLayout:
+            size_hint: 1, None
+            size: self.size[0], sp(10)
+            RectangleFlatButton:
+                id: info_log
+                text: "Not connected"
+                color: 1,0,0,1
+                font_size: sp(8)
+        BoxLayout:
             id: top_menu
             orientation: "horizontal"
             size_hint: 1, None
@@ -57,11 +65,3 @@
                 on_press: app.open_settings()
         BoxLayout:
             id: view_port
-        BoxLayout:
-            size_hint: 1, None
-            size: self.size[0], sp(10)
-            RectangleFlatButton:
-                id: info_log
-                text: "Not connected"
-                color: 1,0,0,1
-                font_size: sp(8)

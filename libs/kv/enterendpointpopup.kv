@@ -8,13 +8,10 @@
     size: min(0.95 * Window.width, dp(500)), sp(150)
     BoxLayout:
         orientation: "vertical"
-        BoxLayout:
-            TextInput:
-                id: endpoint_input
-                text: root.endpoint
-                multiline: False
-                font_size: sp(12)
-                foreground_color: 0, 0, 0, 1
+        TextInput:
+            id: endpoint_input
+            text: root.endpoint
+            font_size: sp(12)
         BoxLayout:
             AnchorLayout:
                 anchor_x: "center"
