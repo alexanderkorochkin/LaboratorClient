@@ -15,7 +15,9 @@ settings_defaults = {
             'GRAPH_ADDITIONAL_SPACE_Y': 1.5,
             'GRAPH_BUFFER_AVG_SIZE': 20,
             'GRAPH_ROUND_DIGITS': '1',
-            'GRAPH_LINE_THICKNESS': 1.3
+            'GRAPH_LINE_THICKNESS': 1.3,
+            'THEME_MAIN_COLOR': '#EB8933',
+            'THEME_SECOND_COLOR': '#F8AA51'
             }
 
 settings_json = json.dumps([
@@ -104,7 +106,19 @@ settings_json = json.dumps([
      'title': 'Толщина линии графика',
      'desc': 'GRAPH_LINE_THICKNESS',
      'section': 'allSettings',
-     'key': 'GRAPH_LINE_THICKNESS'}
+     'key': 'GRAPH_LINE_THICKNESS'},
+
+    {'type': 'string',
+     'title': 'Основной цвет приложения',
+     'desc': 'THEME_MAIN_COLOR',
+     'section': 'allSettings',
+     'key': 'THEME_MAIN_COLOR'},
+
+    {'type': 'string',
+     'title': 'Дополнительный цвет приложения',
+     'desc': 'THEME_SECOND_COLOR',
+     'section': 'allSettings',
+     'key': 'THEME_SECOND_COLOR'}
 
 ])
 

@@ -1,7 +1,7 @@
 from libs.kivyapp import KivyApp
 from kivy.uix.popup import Popup
 from kivy.properties import StringProperty
-from libs.touchablelabel import TouchableLabel
+from libs.customWidgets import *
 
 
 class ListLabVarPopup(Popup):

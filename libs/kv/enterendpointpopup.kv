@@ -5,11 +5,10 @@
     title_align: "center"
     separator_color: 1, 1, 1, 1
     size_hint: None, None
-    size: sp(250), sp(120)
+    size: min(0.95 * Window.width, dp(500)), sp(150)
     BoxLayout:
         orientation: "vertical"
         BoxLayout:
-            padding: 2, 2, 2, 2
             TextInput:
                 id: endpoint_input
                 text: root.endpoint
@@ -22,13 +21,11 @@
                 BoxLayout:
                     orientation: "horizontal"
                     size_hint: 1, 1
-                    TouchableLabel:
-                        size_hint: 1, None
-                        size: self.size[0], sp(30)
+                    RectangleFlatButton:
+                        size_hint: 1, 1
                         text: 'Save'
-                        on_release: root.SaveEndpoint()
-                    TouchableLabel:
-                        size_hint: 1, None
-                        size: self.size[0], sp(30)
+                        on_press: root.SaveEndpoint()
+                    RectangleFlatButton:
+                        size_hint: 1, 1
                         text: 'Cancel'
-                        on_release: root.dismiss()
+                        on_press: root.dismiss()

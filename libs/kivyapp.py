@@ -427,7 +427,6 @@ class KivyApp(App):
             Logger.error("KivyApp: Error while disconnecting on app stop!")
 
     def on_start(self):
-        msettings.instance = self.config
         Clock.schedule_once(self.instance.Prepare, 1)
         Clock.schedule_interval(self.instance.Update, int(msettings.get('KIVY_UPDATE_FUNCTION_TIME')))
 
@@ -443,8 +442,13 @@ class KivyApp(App):
         self.use_kivy_settings = True
         return laborator
 
+    @staticmethod
+    def openSettings(self):
+        self.open_settings()
+
     def build_config(self, config):
         config.setdefaults('allSettings', settings_defaults)
+        msettings.instance = self.config
 
     def build_settings(self, settings):
         self.settings_widget = settings
