@@ -9,10 +9,24 @@ from kivy.utils import get_color_from_hex
 from kivy.logger import Logger
 
 
-class RectangleFlatButton(Button):
+class RectangleFlatButton(TouchRippleBehavior, Button):
     primary_color = get_color_from_hex(msettings.get('THEME_MAIN_COLOR'))
     ripple_color_base = get_color_from_hex(msettings.get('THEME_SECOND_COLOR'))
     disabled = BooleanProperty(False)
+
+    def on_touch_down(self, touch):
+        if not self.disabled:
+            collide_point = self.collide_point(touch.x, touch.y)
+            if collide_point:
+                touch.grab(self)
+                self.ripple_show(touch)
+            return super(RectangleFlatButton, self).on_touch_down(touch)
+
+    def on_touch_up(self, touch):
+        if touch.grab_current is self:
+            touch.ungrab(self)
+            self.ripple_fade()
+        return super(RectangleFlatButton, self).on_touch_up(touch)
 
 
 class TouchableLabel(ButtonBehavior, Label):
