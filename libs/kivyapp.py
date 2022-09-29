@@ -10,7 +10,7 @@ from libs.toolConfigurator import LabVar
 from kivy.properties import StringProperty, ObjectProperty, NumericProperty
 from kivy.clock import Clock
 from kivy.uix.boxlayout import BoxLayout
-from libs.garden.graph import Graph, LinePlot
+from kivy_garden.graph import Graph, LinePlot
 
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.lang import Builder
@@ -65,7 +65,7 @@ class GardenGraph(Graph):
         self.xmax = msettings.get('MAX_HISTORY_VALUES') + 1
 
 
-class CBuffer:
+class AVGBuffer:
     def __init__(self, buffer_size):
         self.isExecuted = True
         self.buffer_size = buffer_size
@@ -94,7 +94,7 @@ class GraphBox(BoxLayout):
 
     def __init__(self, _cols, _id, **kwargs):
         super().__init__(**kwargs)
-        self.avgBuffer = CBuffer(msettings.get('GRAPH_BUFFER_AVG_SIZE'))
+        self.avgBuffer = AVGBuffer(msettings.get('GRAPH_BUFFER_AVG_SIZE'))
         self.size_hint = [1, None]
         self.id = _id
         self.current_touch = "None"
@@ -439,7 +439,7 @@ class KivyApp(App):
         self.LoadKV()
         laborator = LaboratorClient()
         self.instance = laborator
-        self.use_kivy_settings = True
+        self.use_kivy_settings = False
         return laborator
 
     @staticmethod
