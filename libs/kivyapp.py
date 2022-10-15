@@ -1,5 +1,4 @@
 import os
-import socket
 
 from settings.settingsJSON import settings_defaults, settings_json, msettings
 
@@ -268,20 +267,6 @@ class GraphContainer(BoxLayout):
             Logger.debug("GRAPH: Graph [" + temp.labvar_name + "] is removed!")
 
 
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.settimeout(0)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.254.254.254', 1))
-        IP = s.getsockname()[0]
-    except Exception:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
-
-
 class LaboratorClient(BoxLayout):
     endpoint = StringProperty()
 
@@ -442,10 +427,6 @@ class KivyApp(App):
         self.use_kivy_settings = False
         return laborator
 
-    @staticmethod
-    def openSettings(self):
-        self.open_settings()
-
     def build_config(self, config):
         config.setdefaults('allSettings', settings_defaults)
         msettings.instance = self.config
@@ -460,6 +441,13 @@ class KivyApp(App):
 
 KivyApp = KivyApp()
 
-# TODO Реализовать индивидуальные настройки для графиков
+# Программа получает на вход готовые приведенные параметры, выводит их графики,
+# считает косвенные параметры, считает спектральные параметры, среднее значение...
+
+# TODO Установить kivy в редактируем режиме
+# TODO Реализовать свой стиль для кнопок, лэйблов, и т.д. для унификации интерфейса
 # TODO Реализовать сохранение и подгрузку лэйаута
+# TODO Реализовать индивидуальные настройки для графиков
+# TODO Научиться считать косвенные параметры по измеряемым и выводить на график
+# TODO Научиться делать статистический анализ
 # TODO Научиться подключаться к LabView
