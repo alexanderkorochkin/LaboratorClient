@@ -177,26 +177,47 @@
     color: 148. / 255, 208 / 255., 230 / 255., 1
     allow_stretch: True
 
-<TextInput>:
+<-TextInput>:
+    halign: "center"
+    padding_y: [self.height / 2.0 - (self.line_height / 2.0) * len(self._lines), 0]
     canvas.before:
         Color:
-            rgba: self.background_color
-        BorderImage:
-            border: self.border
+            rgba: 1, 1, 0, 0.1
+        Rectangle:
             pos: self.pos
-            size: self.size
-            source: self.background_active if self.focus else (self.background_disabled_normal if self.disabled else self.background_normal)
+            size: self.width, self.height
         Color:
             rgba:
                 (self.cursor_color
                 if self.focus and not self._cursor_blink
-                and int(self.x + self.padding[0]) <= self._cursor_visual_pos[0] <= int(self.x + self.width - self.padding[2])
                 else (0, 0, 0, 0))
         Rectangle:
             pos: self._cursor_visual_pos
             size: root.cursor_width, -self._cursor_visual_height
         Color:
-            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else self.foreground_color)
+            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else [1, 1, 1, 1])
+
+
+#<TextInput>:
+#    canvas.before:
+#        Color:
+#            rgba: self.background_color
+#        BorderImage:
+#            border: self.border
+#            pos: self.pos
+#            size: self.size
+#            source: self.background_active if self.focus else (self.background_disabled_normal if self.disabled else self.background_normal)
+#        Color:
+#            rgba:
+#                (self.cursor_color
+#                if self.focus and not self._cursor_blink
+#                and int(self.x + self.padding[0]) <= self._cursor_visual_pos[0] <= int(self.x + self.width - self.padding[2])
+#                else (0, 0, 0, 0))
+#        Rectangle:
+#            pos: self._cursor_visual_pos
+#            size: root.cursor_width, -self._cursor_visual_height
+#        Color:
+#            rgba: self.disabled_foreground_color if self.disabled else (self.hint_text_color if not self.text else self.foreground_color)
 
 <TextInputCutCopyPaste>:
     content: content.__self__

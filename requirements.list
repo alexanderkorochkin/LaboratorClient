@@ -6,7 +6,7 @@ cycler==0.11.0
 docutils==0.18
 fonttools==4.31.2
 idna==3.3
-Kivy==2.0.0
+-e ./libs/kivy-xoo
 kivy-deps.angle==0.3.0
 kivy-deps.glew==0.3.0
 kivy-deps.sdl2==0.3.1
