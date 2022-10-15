@@ -1,18 +1,18 @@
 import os
 
-from settings.settingsJSON import settings_defaults, settings_json, msettings
+from libs.settings.settingsJSON import settings_defaults, settings_json, msettings
 
 from kivy.app import *
 from libs.opcua.opcuaclient import client
 from libs.toolConfigurator import LabVar
 
-from kivy.properties import *
+from kivy.properties import NumericProperty, StringProperty, ObjectProperty
 from kivy.clock import *
 from kivy.uix.boxlayout import *
 from kivy_garden.graph import Graph, LinePlot
-
 from kivy.logger import *
 from kivy.lang import *
+
 Logger.setLevel(LOG_LEVELS["debug"])
 
 

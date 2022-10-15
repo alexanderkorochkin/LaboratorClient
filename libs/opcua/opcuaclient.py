@@ -2,7 +2,7 @@ import opcua
 from opcua import Client
 from urllib.parse import urlparse
 from libs.toolConfigurator import LabVar
-from settings.settingsJSON import msettings
+from libs.settings.settingsJSON import msettings
 
 
 class OPCUAClient(Client):

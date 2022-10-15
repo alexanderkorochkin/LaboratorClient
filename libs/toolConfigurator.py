@@ -1,4 +1,4 @@
-from settings.settingsJSON import msettings
+from libs.settings.settingsJSON import msettings
 
 
 class LabVar:

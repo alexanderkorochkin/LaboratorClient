@@ -1,12 +1,10 @@
-from settings.settingsJSON import msettings
+from libs.settings.settingsJSON import msettings
 from kivy.uix.label import Label
-from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty, StringProperty, ListProperty, BooleanProperty
+from kivy.properties import StringProperty, ListProperty, BooleanProperty
 from kivy.uix.behaviors.button import ButtonBehavior
 from kivy.uix.behaviors import TouchRippleBehavior
 from kivy.uix.button import Button
-from kivy.uix.settings import SettingString
 from kivy.utils import get_color_from_hex
-from kivy.logger import Logger
 
 
 class RectangleFlatButton(TouchRippleBehavior, Button):
