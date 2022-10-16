@@ -4,7 +4,7 @@ import os
 
 settings_defaults = {
             'NAMESPACE': "laboratory1",
-            'LAST_IP': "opc.tcp://192.168.1.22:4840",
+            'LAST_IP': "opc.tcp://192.168.1.1:4840",
             'MAX_HISTORY_VALUES': 120,
             'MAX_RECONNECTIONS_NUMBER': 10,
             'RECONNECTION_TIME': 5,
@@ -35,8 +35,7 @@ settings_json = json.dumps([
      'title': 'Последний IP',
      'desc': 'LAST_IP',
      'section': 'allSettings',
-     'key': 'LAST_IP',
-     'disabled': True},
+     'key': 'LAST_IP'},
 
     {'type': 'numeric',
      'title': 'Максимальное число переподключений',
@@ -145,6 +144,7 @@ class MConf:
 
     def set(self, section, key, value):
         self.instance.set(section, key, value)
+        self.instance.write()
 
 
 ALL_SETTINGS = 'allSettings'
