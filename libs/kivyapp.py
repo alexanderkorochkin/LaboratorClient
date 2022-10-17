@@ -17,11 +17,6 @@ from kivy.config import Config
 
 Logger.setLevel(LOG_LEVELS["debug"])
 
-print(platform.system())
-
-if platform.system() != "Windows":
-    Config.set('graphics', 'fullscreen', 'auto')
-
 
 def ResizeGraphCallback(instance, value):
     if value[0] > value[1]:
