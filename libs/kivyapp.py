@@ -1,4 +1,5 @@
 import os
+import platform
 
 from libs.settings.settingsJSON import settings_defaults, settings_json, msettings
 
@@ -12,8 +13,14 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import Graph, LinePlot
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.lang import Builder
+from kivy.config import Config
 
 Logger.setLevel(LOG_LEVELS["debug"])
+
+print(platform.system())
+
+if platform.system() != "Windows":
+    Config.set('graphics', 'fullscreen', 'auto')
 
 
 def ResizeGraphCallback(instance, value):
@@ -444,7 +451,7 @@ KivyApp = KivyApp()
 # Программа получает на вход готовые приведенные параметры, выводит их графики,
 # считает косвенные параметры, считает спектральные параметры, среднее значение...
 
-# TODO Установить kivy в редактируем режиме
+# TODO Установить kivyMD
 # TODO Реализовать свой стиль для кнопок, лэйблов, и т.д. для унификации интерфейса
 # TODO Реализовать сохранение и подгрузку лэйаута
 # TODO Реализовать индивидуальные настройки для графиков
