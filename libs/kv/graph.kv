@@ -1,78 +1,65 @@
-#:import Factory kivy.factory.Factory
 #:import Window kivy.core.window.Window
+#:import get_hex_from_color kivy.utils.get_hex_from_color
+#:import OpacityScrollEffect kivy.effects.opacityscroll
+#:import ObjectProperty kivy.properties
 
 <GraphBox>:
-    BoxLayout:
-        canvas.before:
-            Color:
-                rgba: 0.5, 0.5, 0.5, 0.5
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        canvas.after:
-            Color:
-                rgba: 0.2, 0.2, 0.2, 1
-            Line:
-                width: 1
-                rectangle: self.x + 0.5, self.y + 0.5, self.width - 1, self.height - 1
-        RelativeLayout:
-            RelativeLayout:
-                canvas:
-                    Color:
-                        rgba: 0.0, 0.0, 0.0, 0.1
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                AnchorLayout:
-                    anchor_x: "left"
-                    anchor_y: "center"
-                    id: garden_graph_placer
-            RelativeLayout:
-                AnchorLayout:
+    MDCard:
+        md_bg_color: app.theme_cls.accent_color
+        radius: [sp(25), sp(25), sp(25), sp(25)]
+        MDRelativeLayout:
+            MDRelativeLayout:
+                MDAnchorLayout:
                     anchor_x: "center"
                     anchor_y: "center"
-                    RectangleFlatButton:
+                    id: garden_graph_placer
+            MDRelativeLayout:
+                MDAnchorLayout:
+                    anchor_x: "center"
+                    anchor_y: "center"
+                    MDLabel:
                         markup: True
-                        text: str(root.labvar_value) + " [color=#ffc66d](AVG: " + str(root.avg_value) + ")[/color]"
-                        font_size: Window.width / sp(15)
-                        opacity: 1
-                AnchorLayout:
+                        halign: "center"
+                        text: str(root.labvar_value) + " [color=" + get_hex_from_color(app.theme_cls.primary_color) + "](AVG: " + str(root.avg_value) + ")[/color]"
+                        font_size: root.width / sp(15)
+                MDAnchorLayout:
                     anchor_x: "left"
                     anchor_y: "top"
-                    padding: sp(10), sp(10), sp(10), sp(10)
-                    RectangleFlatButton:
+                    padding: sp(5), sp(5), sp(5), sp(5)
+                    MDIconButton:
                         id: btn_close_box
-                        size_hint: None, None
-                        size: sp(25), sp(25)
-                        font_name: "DejaVuSans.ttf"
-                        font_size: sp(10)
-                        text: "⨯"
-                        on_press: root.DoubleSingleTap()
-                AnchorLayout:
+                        icon: "close"
+                        theme_icon_color: "Custom"
+                        icon_color: "white"
+                        on_release: root.DoubleSingleTap()
+                MDAnchorLayout:
                     id: var_selection_box
                     anchor_x: "right"
                     anchor_y: "top"
-                    padding: sp(10), sp(10), sp(10), sp(10)
-                    RectangleFlatButton:
+                    padding: sp(5), sp(5), sp(5), sp(5)
+                    MDFlatButton:
                         size_hint: None, None
                         size: sp(75), sp(25)
                         font_name: "DejaVuSans.ttf"
-                        font_size: sp(10)
+                        font_size: sp(12)
                         text: str(root.labvar_name)
-                        on_press:
-                            Factory.ListLabVarPopup().open(root.id)
+                        on_release:
+                            app.dialogListLabVar.Open(root.id)
 
 
 <GraphContainer>:
     container: graph_container
     scrollview: scroll_view
 
-    ScrollView:
+    MDScrollView:
         id: scroll_view
         do_scroll_x: False
         do_scroll_y: True
-        GridLayout:
+        effect_cls: Factory.OpacityScrollEffect
+        MDGridLayout:
             id: graph_container
             size_hint_y: None
             cols: root.columns
+            spacing: sp(5)
+            #padding: [sp(5), sp(5), sp(5), sp(5)]
             height: self.minimum_height

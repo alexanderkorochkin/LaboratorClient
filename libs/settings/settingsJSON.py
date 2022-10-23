@@ -1,5 +1,6 @@
 import json
 import os
+from kivy.metrics import sp
 
 
 settings_defaults = {
@@ -16,8 +17,7 @@ settings_defaults = {
             'GRAPH_BUFFER_AVG_SIZE': 20,
             'GRAPH_ROUND_DIGITS': '1',
             'GRAPH_LINE_THICKNESS': 1.3,
-            'THEME_MAIN_COLOR': '#EB8933',
-            'THEME_SECOND_COLOR': '#F8AA51'
+            'USE_LAYOUT': True
             }
 
 settings_json = json.dumps([
@@ -35,7 +35,8 @@ settings_json = json.dumps([
      'title': 'Последний IP',
      'desc': 'LAST_IP',
      'section': 'allSettings',
-     'key': 'LAST_IP'},
+     'key': 'LAST_IP',
+     'disabled': True},
 
     {'type': 'numeric',
      'title': 'Максимальное число переподключений',
@@ -107,17 +108,11 @@ settings_json = json.dumps([
      'section': 'allSettings',
      'key': 'GRAPH_LINE_THICKNESS'},
 
-    {'type': 'string',
-     'title': 'Основной цвет приложения',
-     'desc': 'THEME_MAIN_COLOR',
+    {'type': 'bool',
+     'title': 'Запоминать открытые графики',
+     'desc': 'USE_LAYOUT',
      'section': 'allSettings',
-     'key': 'THEME_MAIN_COLOR'},
-
-    {'type': 'string',
-     'title': 'Дополнительный цвет приложения',
-     'desc': 'THEME_SECOND_COLOR',
-     'section': 'allSettings',
-     'key': 'THEME_SECOND_COLOR'}
+     'key': 'USE_LAYOUT'},
 
 ])
 
@@ -148,5 +143,6 @@ class MConf:
 
 
 ALL_SETTINGS = 'allSettings'
+PADDING = sp(15)
 
 msettings = MConf()

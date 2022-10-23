@@ -7,6 +7,7 @@ idna==3.4
 Kivy==2.1.0
 Kivy-Garden==0.1.5
 kivy-garden.graph==0.4.0
+kivymd==1.1.1
 lxml==4.9.1
 opcua==0.98.13
 pycparser==2.21

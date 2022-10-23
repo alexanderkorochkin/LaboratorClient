@@ -1,0 +1,14 @@
+<DialogEndpointContent>
+    orientation: "vertical"
+    adaptive_height: True
+    MDTextField:
+        id: dialog_endpoint_text_input
+        hint_text: "OPCUA Server URL"
+        text: root.endpoint
+
+
+<ItemConfirm>
+    on_release: root.set_icon(check)
+    CheckboxLeftWidget:
+        id: check
+        group: "check"

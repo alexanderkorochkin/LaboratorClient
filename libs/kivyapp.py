@@ -1,43 +1,29 @@
 import os
-import platform
 
-from libs.settings.settingsJSON import settings_defaults, settings_json, msettings
+from libs.settings.settingsJSON import *
 
-from kivy.app import App
+from kivymd.app import MDApp
 from libs.opcua.opcuaclient import client
 from libs.toolConfigurator import LabVar
 
 from kivy.properties import NumericProperty, StringProperty, ObjectProperty
 from kivy.clock import Clock
-from kivy.uix.boxlayout import BoxLayout
+from kivymd.uix.screen import MDScreen
 from kivy_garden.graph import Graph, LinePlot
 from kivy.logger import Logger, LOG_LEVELS
 from kivy.lang import Builder
-from kivy.config import Config
+from kivy.factory import Factory
+
+from libs.dialogs import *
 
 Logger.setLevel(LOG_LEVELS["debug"])
-
-
-def ResizeGraphCallback(instance, value):
-    if value[0] > value[1]:
-        KivyApp.instance.GraphContainer.columns = 2
-        if len(KivyApp.instance.GraphContainer.GraphArr) > 1:
-            for element in KivyApp.instance.GraphContainer.GraphArr:
-                element.height = 0.5 * KivyApp.instance.ids.view_port.height
-        else:
-            for element in KivyApp.instance.GraphContainer.GraphArr:
-                element.height = KivyApp.instance.ids.view_port.height
-    if value[0] <= value[1]:
-        KivyApp.instance.GraphContainer.columns = 1
-        for element in KivyApp.instance.GraphContainer.GraphArr:
-            element.height = (1 / 3) * KivyApp.instance.ids.view_port.height
 
 
 class GardenGraph(Graph):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.plot = LinePlot(color=[0, 0.8, 0, 0.9], line_width=msettings.get('GRAPH_LINE_THICKNESS'))
-        self.plot.points = [(0, 0)]
+        self.plot = LinePlot(color=KivyApp.theme_cls.primary_color, line_width=msettings.get('GRAPH_LINE_THICKNESS'))
+        self.plot.points = []
         self.add_plot(self.plot)
         self.size_hint = [1, 1]
         self.padding = 0
@@ -88,7 +74,7 @@ class AVGBuffer:
         self.buffer.clear()
 
 
-class GraphBox(BoxLayout):
+class GraphBox(MDBoxLayout):
     labvar_name = StringProperty("None")
     labvar_value = NumericProperty(0)
     avg_value = NumericProperty(0)
@@ -97,19 +83,19 @@ class GraphBox(BoxLayout):
         super().__init__(**kwargs)
         self.avgBuffer = AVGBuffer(msettings.get('GRAPH_BUFFER_AVG_SIZE'))
         self.size_hint = [1, None]
-        self.id = _id
+        self.id = str(_id)
         self.current_touch = "None"
-        self.gardenGraph = GardenGraph(border_color=[0, 0, 0, 1],
+        self.gardenGraph = GardenGraph(border_color=[1, 1, 1, 0],
                                        x_ticks_major=int(msettings.get('MAX_HISTORY_VALUES'))/8,
                                        x_ticks_minor=5,
                                        y_ticks_major=6,
                                        y_ticks_minor=5,
-                                       tick_color=[0, 0, 0, 0.15],
+                                       tick_color=[0, 0, 0, 0],
                                        background_color=[1, 1, 1, 0],
                                        y_grid_label=False,
                                        x_grid_label=False,
-                                       x_grid=True,
-                                       y_grid=True,
+                                       x_grid=False,
+                                       y_grid=False,
                                        xmin=0,
                                        xmax=msettings.get('MAX_HISTORY_VALUES') + 1,
                                        ymin=-1,
@@ -117,13 +103,13 @@ class GraphBox(BoxLayout):
         self.ids.garden_graph_placer.add_widget(self.gardenGraph)
 
         if _cols == 1:
-            self.height = (1 / 3) * KivyApp.instance.ids.view_port.height
+            self.height = (1 / 3) * (KivyApp.instance.ids.view_port.height - PADDING)
         else:
             if _cols == 2:
                 if len(KivyApp.instance.GraphContainer.GraphArr) == 0:
-                    self.height = KivyApp.instance.ids.view_port.height
+                    self.height = (KivyApp.instance.ids.view_port.height - PADDING)
                 else:
-                    self.height = 0.5 * KivyApp.instance.ids.view_port.height
+                    self.height = 0.5 * (KivyApp.instance.ids.view_port.height - PADDING)
 
     def DoubleSingleTap(self):
         if self.current_touch != "None":
@@ -167,7 +153,22 @@ class GraphBox(BoxLayout):
         self.current_touch = "None"
 
 
-class GraphContainer(BoxLayout):
+def ResizeGraphCallback(instance, value):
+    if value[0] > value[1]:
+        KivyApp.instance.GraphContainer.columns = 2
+        if len(KivyApp.instance.GraphContainer.GraphArr) > 1:
+            for element in KivyApp.instance.GraphContainer.GraphArr:
+                element.height = 0.5 * (KivyApp.instance.ids.view_port.height - PADDING)
+        else:
+            for element in KivyApp.instance.GraphContainer.GraphArr:
+                element.height = (KivyApp.instance.ids.view_port.height - PADDING)
+    if value[0] <= value[1]:
+        KivyApp.instance.GraphContainer.columns = 1
+        for element in KivyApp.instance.GraphContainer.GraphArr:
+            element.height = (1 / 3) * (KivyApp.instance.ids.view_port.height - PADDING)
+
+
+class GraphContainer(MDBoxLayout):
     container = ObjectProperty(None)
     scrollview = ObjectProperty(None)
     columns = NumericProperty(None)
@@ -187,25 +188,25 @@ class GraphContainer(BoxLayout):
     def AddGraph(self):
         graphbox = None
         if self.columns == 1:
-            graphbox = GraphBox(self.columns, len(self.GraphArr))
+            graphbox = GraphBox(self.columns, str(len(self.GraphArr)))
             self.GraphArr.append(graphbox)
             self.ids.graph_container.add_widget(graphbox)
 
         if self.columns == 2:
             if len(self.GraphArr) == 0:
-                graphbox = GraphBox(self.columns, len(self.GraphArr))
+                graphbox = GraphBox(self.columns, str(len(self.GraphArr)))
                 self.GraphArr.append(graphbox)
                 self.ids.graph_container.add_widget(graphbox)
-                self.GraphArr[0].SetHeight(KivyApp.instance.ids.view_port.height)
+                self.GraphArr[0].SetHeight((KivyApp.instance.ids.view_port.height - PADDING))
             else:
                 if len(self.GraphArr) == 1:
-                    graphbox = GraphBox(self.columns, len(self.GraphArr))
+                    graphbox = GraphBox(self.columns, str(len(self.GraphArr)))
                     self.GraphArr.append(graphbox)
                     self.ids.graph_container.add_widget(graphbox)
-                    self.GraphArr[0].SetHeight(0.5 * KivyApp.instance.ids.view_port.height)
+                    self.GraphArr[0].SetHeight(0.5 * (KivyApp.instance.ids.view_port.height - PADDING))
                 else:
                     if len(self.GraphArr) > 1:
-                        graphbox = GraphBox(self.columns, len(self.GraphArr))
+                        graphbox = GraphBox(self.columns, str(len(self.GraphArr)))
                         self.GraphArr.append(graphbox)
                         self.ids.graph_container.add_widget(graphbox)
 
@@ -213,14 +214,14 @@ class GraphContainer(BoxLayout):
 
     def ShiftNumbering(self, _id):
         for element in self.GraphArr:
-            if element.id < _id:
+            if int(element.id) < int(_id):
                 continue
-            element.id -= 1
+            element.id = str(int(element.id) - 1)
 
     def RemoveGraphById(self, _id):
         if len(self.GraphArr) > 0:
 
-            temp = self.GraphArr[_id]
+            temp = self.GraphArr[int(_id)]
 
             if self.columns == 1:
                 self.ids.graph_container.remove_widget(temp)
@@ -234,7 +235,7 @@ class GraphContainer(BoxLayout):
                     if len(self.GraphArr) == 2:
                         self.ids.graph_container.remove_widget(temp)
                         self.GraphArr.remove(temp)
-                        self.GraphArr[0].SetHeight(KivyApp.instance.ids.view_port.height)
+                        self.GraphArr[0].SetHeight((KivyApp.instance.ids.view_port.height - PADDING))
                     else:
                         if len(self.GraphArr) > 2:
                             self.ids.graph_container.remove_widget(temp)
@@ -260,7 +261,7 @@ class GraphContainer(BoxLayout):
                     if len(self.GraphArr) == 2:
                         self.ids.graph_container.remove_widget(temp)
                         self.GraphArr.remove(temp)
-                        self.GraphArr[0].SetHeight(KivyApp.instance.ids.view_port.height)
+                        self.GraphArr[0].SetHeight((KivyApp.instance.ids.view_port.height - PADDING))
                     else:
                         if len(self.GraphArr) > 2:
                             self.ids.graph_container.remove_widget(temp)
@@ -269,7 +270,7 @@ class GraphContainer(BoxLayout):
             Logger.debug("GRAPH: Graph [" + temp.labvar_name + "] is removed!")
 
 
-class LaboratorClient(BoxLayout):
+class LaboratorClient(MDScreen):
     endpoint = StringProperty()
 
     def __init__(self, **kwargs):
@@ -331,19 +332,17 @@ class LaboratorClient(BoxLayout):
         else:
             self.Disconnect()
 
-    def Connect(self):
+    def ConnectLow(self, dt):
         try:
             client.Connect(self.endpoint)
             self.LabVarArr = self.LabVarArrConfigure(msettings.get('CONFIGURATION_PATH'))
             self.ids.btn_connect.disabled = True
             self.ids.btn_disconnect.disabled = False
             self.ids.endpoint_label.disabled = True
-            self.ids.info_log.color = [0, 1, 0, 1]
-            self.ids.info_log.text = "Connected!"
-            Logger.debug("CONNECT: Connected!")
+            Logger.debug("CONNECT: Connected to {}!".format(self.endpoint))
             self.ParseVars()
-            self.ids.info_log.text = "Connected!"
-            Logger.debug("CONNECT: Connected and parsed!")
+            self.ids.info_log.text = "Connected to {}!".format(self.endpoint)
+            Logger.debug("CONNECT: Parsed!")
             msettings.set('allSettings', 'LAST_IP', self.endpoint)
         except Exception:
             if not client.isReconnecting():
@@ -356,6 +355,11 @@ class LaboratorClient(BoxLayout):
                 self.ids.info_log.text = "Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')'
                 Logger.error("CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
 
+    def Connect(self):
+        self.ids.info_log.text = "Trying connect to {}!".format(self.endpoint)
+        self.ids.btn_connect.disabled = True
+        Clock.schedule_once(self.ConnectLow, 1)
+
     def Disconnect(self):
         client._isReconnecting = False
         try:
@@ -363,9 +367,8 @@ class LaboratorClient(BoxLayout):
             self.ids.btn_disconnect.disabled = True
             self.ids.btn_connect.disabled = False
             self.ids.endpoint_label.disabled = False
-            self.ids.info_log.color = 1, 0, 0, 1
-            self.ids.info_log.text = "Disconnected!"
-            Logger.debug("CONNECT: Disconnected!")
+            self.ids.info_log.text = "Disconnected from {}!".format(self.endpoint)
+            Logger.debug("CONNECT: Disconnected from {}!".format(self.endpoint))
         except Exception:
             self.ids.btn_disconnect.disabled = False
             self.ids.btn_connect.disabled = True
@@ -394,18 +397,20 @@ class LaboratorClient(BoxLayout):
                 client._isReconnecting = True
                 self.ids.btn_disconnect.disabled = False
                 self.ids.btn_connect.disabled = True
-                self.ids.info_log.color = 1, 0, 0, 1
                 self.ids.info_log.text = "Connection lost! Trying to reconnect..."
                 Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
                 self.Reconnection(msettings.get('RECONNECTION_TIME'))
 
 
-class KivyApp(App):
+class KivyApp(MDApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.instance = None
         self.settings_widget = None
+        self.title = "Laborator Client"
+        self.dialogEndpoint = None
+        self.dialogListLabVar = None
 
     def on_stop(self):
         try:
@@ -423,11 +428,16 @@ class KivyApp(App):
             Builder.load_file(os.path.join("libs", "kv", filename))
 
     def build(self):
+        self.theme_cls.theme_style = 'Dark'
+        self.theme_cls.set_colors("Orange", "300", "50", "800", "Gray", "600", "50", "800")
         self.LoadKV()
         laborator = LaboratorClient()
         self.instance = laborator
-        self.use_kivy_settings = False
-        return laborator
+
+        self.dialogEndpoint = DialogEndpoint(self)
+        self.dialogListLabVar = DialogListLabVar(self)
+
+        return self.instance
 
     def build_config(self, config):
         config.setdefaults('allSettings', settings_defaults)
@@ -439,6 +449,20 @@ class KivyApp(App):
 
     def on_config_change(self, config, section, key, value):
         print(config, section, key, value)
+
+    def create_settings(self):
+        if self.settings_cls is None:
+            from libs.settings.settings_mod import SettingsWithNoMenu
+            self.settings_cls = SettingsWithNoMenu
+        else:
+            self.settings_cls = Factory.get(self.settings_cls)
+        s = self.settings_cls()
+        self.build_settings(s)
+        if self.use_kivy_settings:
+            s.add_kivy_panel()
+        s.bind(on_close=self.close_settings,
+               on_config_change=self._on_config_change)
+        return s
 
 
 KivyApp = KivyApp()

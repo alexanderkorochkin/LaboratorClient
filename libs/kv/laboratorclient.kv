@@ -1,67 +1,77 @@
 #:import Factory kivy.factory.Factory
+#:import get_color_from_hex kivy.utils.get_color_from_hex
+
 
 <LaboratorClient>:
-    canvas.before:
-        Color:
-            rgb: 38 / 255, 38 / 255, 38 / 255
-        Rectangle:
-            pos: self.pos
-            size: self.size
-    BoxLayout:
+    MDBoxLayout:
         id: main_stack
         orientation: "vertical"
-        BoxLayout:
+        padding: [sp(5), sp(5), sp(5), sp(0)]
+        spacing: sp(5)
+        MDBoxLayout:
             id: top_menu
             orientation: "horizontal"
-            size_hint: 1, None
-            size: self.size[0], sp(50)
-            RectangleFlatButton:
-                id: endpoint_label
-                text: root.endpoint
-                font_size: sp(10)
-                padding_x: sp(10)
-                halign: 'left'
-                valign: 'middle'
-                on_press: Factory.EnterEndpointPopup().open(root.endpoint)
-            RectangleFlatButton:
-                id: btn_connect
-                size_hint_x: None
-                size: self.size[1], self.size[1]
-                font_name: "DejaVuSans.ttf"
-                text: "»"
-                on_press: root.Connect()
-            RectangleFlatButton:
-                id: btn_disconnect
-                size_hint_x: None
-                size: self.size[1], self.size[1]
-                font_name: "DejaVuSans.ttf"
-                text: '⨯'
-                disabled: True
-                on_press: root.Disconnect()
-            Label:
-                size_hint_x: None
-                size: self.size[1]/4, self.size[1]
-            RectangleFlatButton:
-                id: btn_add_graph
-                size_hint_x: None
-                size: self.size[1], self.size[1]
-                font_name: "DejaVuSans.ttf"
-                text: "+"
-                on_press: root.AddGraph()
-            RectangleFlatButton:
-                id: btn_menu
-                size_hint_x: None
-                size: self.size[1], self.size[1]
-                font_name: "DejaVuSans.ttf"
-                text: "⋮"
-                on_press: app.open_settings()
-        BoxLayout:
+            adaptive_height: True
+            md_bg_color: app.theme_cls.primary_color
+            radius: sp(25)
+            background_palette: "Primary"
+            spacing: sp(10)
+            MDAnchorLayout:
+                anchor_x: "left"
+                size_hint: None, None
+                size: self.size[0], sp(50)
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    MDIconButton:
+                        id: endpoint_label
+                        icon: "ip-outline"
+                        theme_icon_color: "Custom"
+                        icon_color: "white"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        on_release: app.dialogEndpoint.Open()
+                    MDTextButton:
+                        id: info_log
+                        text: "Not connected"
+                        size_hint_x: None
+                        size: root.size[0] - right_side_menu.size[0] - endpoint_label.size[0], self.size[1]
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        font_size: sp(12)
+            MDAnchorLayout:
+                anchor_x: "right"
+                size_hint_y: None
+                size: self.size[0], sp(50)
+                MDBoxLayout:
+                    id: right_side_menu
+                    orientation: "horizontal"
+                    adaptive_size: True
+                    MDIconButton:
+                        id: btn_connect
+                        icon: "play"
+                        theme_icon_color: "Custom"
+                        icon_color: "white"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        on_release: root.Connect()
+                    MDIconButton:
+                        id: btn_disconnect
+                        icon: "stop"
+                        theme_icon_color: "Custom"
+                        icon_color: "white"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        disabled: True
+                        on_release: root.Disconnect()
+                    MDIconButton:
+                        id: btn_add_graph
+                        icon: "plus"
+                        theme_icon_color: "Custom"
+                        icon_color: "white"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        on_release: root.AddGraph()
+                    MDIconButton:
+                        id: btn_menu
+                        icon: "cog-outline"
+                        theme_icon_color: "Custom"
+                        icon_color: "white"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        on_release: app.open_settings()
+        MDBoxLayout:
             id: view_port
-        BoxLayout:
-            size_hint: 1, None
-            size: self.size[0], sp(10)
-            RectangleFlatButton:
-                id: info_log
-                text: "Not connected"
-                color: 1,0,0,1
-                font_size: sp(8)
