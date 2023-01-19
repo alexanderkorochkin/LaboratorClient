@@ -1,28 +1,30 @@
-import os
-
 from libs.settings.settingsJSON import *
+import logging
+import random
 
 from kivymd.app import MDApp
 from libs.opcua.opcuaclient import client
 from libs.toolConfigurator import LabVar
 
-from kivy.properties import NumericProperty, StringProperty, ObjectProperty
+from kivy.properties import NumericProperty, ObjectProperty
 from kivy.clock import Clock
 from kivymd.uix.screen import MDScreen
 from kivy_garden.graph import Graph, LinePlot
-from kivy.logger import Logger, LOG_LEVELS
+from kivy.logger import Logger, LOG_LEVELS, LoggerHistory
 from kivy.lang import Builder
 from kivy.factory import Factory
 
 from libs.dialogs import *
+from libs.layoutManager import LayoutManager
 
 Logger.setLevel(LOG_LEVELS["debug"])
 
 
 class GardenGraph(Graph):
-    def __init__(self, **kwargs):
+    def __init__(self, _graph_instance=None, **kwargs):
         super().__init__(**kwargs)
-        self.plot = LinePlot(color=KivyApp.theme_cls.primary_color, line_width=msettings.get('GRAPH_LINE_THICKNESS'))
+        self.graph_instance = _graph_instance
+        self.plot = LinePlot(color=KivyApp.theme_cls.primary_color, line_width=self.graph_instance.s['GRAPH_LINE_THICKNESS'])
         self.plot.points = []
         self.add_plot(self.plot)
         self.size_hint = [1, 1]
@@ -36,8 +38,8 @@ class GardenGraph(Graph):
         self.plot.points = temp
 
         _yarr = [_arr[i][1] for i in range(len(_arr))]
-        self.ymax = round(((max(_yarr) + min(_yarr)) / 2) + abs(msettings.get('GRAPH_ADDITIONAL_SPACE_Y') * (max(_yarr) - ((max(_yarr) + min(_yarr)) / 2))))
-        self.ymin = round(((max(_yarr) + min(_yarr)) / 2) - abs(msettings.get('GRAPH_ADDITIONAL_SPACE_Y') * (-min(_yarr) + ((max(_yarr) + min(_yarr)) / 2))))
+        self.ymax = round(((max(_yarr) + min(_yarr)) / 2) + abs(self.graph_instance.s['GRAPH_ADDITIONAL_SPACE_Y'] * (max(_yarr) - ((max(_yarr) + min(_yarr)) / 2))))
+        self.ymin = round(((max(_yarr) + min(_yarr)) / 2) - abs(self.graph_instance.s['GRAPH_ADDITIONAL_SPACE_Y'] * (-min(_yarr) + ((max(_yarr) + min(_yarr)) / 2))))
         self.y_ticks_major = (self.ymax - self.ymin)/4
         if self.y_ticks_major == 0:
             self.ymax = 1
@@ -53,20 +55,20 @@ class GardenGraph(Graph):
 
 
 class AVGBuffer:
-    def __init__(self, buffer_size):
+    def __init__(self, _graph_instance):
+        self.graph_instance = _graph_instance
         self.isExecuted = True
-        self.buffer_size = buffer_size
         self.buffer = []
         self.lastavg = 0
 
     def AddValue(self, value):
-        if len(self.buffer) == self.buffer_size:
-            self.buffer = self.buffer[self.buffer_size - len(self.buffer) + 1:]
+        if len(self.buffer) == self.graph_instance.s['GRAPH_BUFFER_AVG_SIZE']:
+            self.buffer = self.buffer[self.graph_instance.s['GRAPH_BUFFER_AVG_SIZE'] - len(self.buffer) + 1:]
         self.buffer.append(float(value))
 
     def GetAVG(self):
         if len(self.buffer) != 0:
-            return round(sum(self.buffer)/len(self.buffer), msettings.get('GRAPH_ROUND_DIGITS'))
+            return round(sum(self.buffer)/len(self.buffer), self.graph_instance.s['GRAPH_ROUND_DIGITS'])
         else:
             return 0
 
@@ -75,16 +77,35 @@ class AVGBuffer:
 
 
 class GraphBox(MDBoxLayout):
-    labvar_name = StringProperty("None")
     labvar_value = NumericProperty(0)
     avg_value = NumericProperty(0)
+    labvar_name = StringProperty("None")
+    hash = NumericProperty(0)
 
-    def __init__(self, _cols, _id, **kwargs):
+    def __init__(self, _kivy_instance, _cols, settings=None, **kwargs):
         super().__init__(**kwargs)
-        self.avgBuffer = AVGBuffer(msettings.get('GRAPH_BUFFER_AVG_SIZE'))
+
+        if settings is None:
+            self.s = {
+                'NAME': graph_settings_defaults['NAME'],
+                'MODE': graph_settings_defaults['MODE'],
+                'GRAPH_ADDITIONAL_SPACE_Y': graph_settings_defaults['GRAPH_ADDITIONAL_SPACE_Y'],
+                'GRAPH_BUFFER_AVG_SIZE': graph_settings_defaults['GRAPH_BUFFER_AVG_SIZE'],
+                'GRAPH_ROUND_DIGITS': graph_settings_defaults['GRAPH_ROUND_DIGITS'],
+                'GRAPH_LINE_THICKNESS': graph_settings_defaults['GRAPH_LINE_THICKNESS'],
+                'HASH': random.randrange(100001, 999999)
+            }
+        else:
+            self.s = settings
+
+        self.labvar_name = self.s['NAME']
         self.size_hint = [1, None]
-        self.id = str(_id)
+        self.kivy_instance = _kivy_instance
         self.current_touch = "None"
+
+        self.avgBuffer = AVGBuffer(self)
+        self.dialogGraphSettings = DialogGraphSettings(self)
+
         self.gardenGraph = GardenGraph(border_color=[1, 1, 1, 0],
                                        x_ticks_major=int(msettings.get('MAX_HISTORY_VALUES'))/8,
                                        x_ticks_minor=5,
@@ -99,29 +120,22 @@ class GraphBox(MDBoxLayout):
                                        xmin=0,
                                        xmax=msettings.get('MAX_HISTORY_VALUES') + 1,
                                        ymin=-1,
-                                       ymax=1)
+                                       ymax=1,
+                                       _graph_instance=self)
+
         self.ids.garden_graph_placer.add_widget(self.gardenGraph)
 
         if _cols == 1:
-            self.height = (1 / 3) * (KivyApp.instance.ids.view_port.height - PADDING)
+            self.height = (1 / 3) * (self.kivy_instance.ids.view_port.height - PADDING)
         else:
             if _cols == 2:
-                if len(KivyApp.instance.GraphContainer.GraphArr) == 0:
-                    self.height = (KivyApp.instance.ids.view_port.height - PADDING)
+                if len(self.kivy_instance.main_container.GraphArr) == 0:
+                    self.height = (self.kivy_instance.ids.view_port.height - PADDING)
                 else:
-                    self.height = 0.5 * (KivyApp.instance.ids.view_port.height - PADDING)
-
-    def DoubleSingleTap(self):
-        if self.current_touch != "None":
-            Clock.unschedule(self.ClearGraph)
-            self.RemoveMe()
-            self.current_touch = "None"
-        else:
-            self.current_touch = "touch"
-            Clock.schedule_once(self.ClearGraph, msettings.get('KIVY_DOUBLETAP_TIME'))
+                    self.height = 0.5 * (self.kivy_instance.ids.view_port.height - PADDING)
 
     def RemoveMe(self):
-        KivyApp.instance.GraphContainer.RemoveGraphById(self.id)
+        self.kivy_instance.main_container.RemoveGraphByHASH(self.s['HASH'])
 
     def SetHeight(self, height):
         self.height = height
@@ -131,8 +145,12 @@ class GraphBox(MDBoxLayout):
         self.avgBuffer.AddValue(labvar_value)
         self.avg_value = self.avgBuffer.GetAVG()
 
-    def SetLabVarName(self, labvar_name):
-        self.labvar_name = labvar_name
+    def SetLabVarName(self, _labvar_name):
+        self.s['NAME'] = _labvar_name
+        self.labvar_name = _labvar_name
+
+    def GetLabVarName(self):
+        return self.s['NAME']
 
     def UpdateGardenGraph(self, _arr):
         self.gardenGraph.UpdatePlot(_arr)
@@ -141,152 +159,138 @@ class GraphBox(MDBoxLayout):
         self.gardenGraph.ClearPlot()
         self.avgBuffer.Clear()
 
-    def ClearGraph(self, value):
+    def ClearGraph(self, value=None):
         # Очищаем буфер прошлой переменной
-        for labvar in KivyApp.instance.LabVarArr:
-            if labvar.name == self.labvar_name:
+        for labvar in self.kivy_instance.LabVarArr:
+            if labvar.name == self.s['NAME']:
                 labvar.ClearHistory()
         self.avgBuffer.Clear()
-
         self.gardenGraph.ClearPlot()
-
         self.current_touch = "None"
 
 
 def ResizeGraphCallback(instance, value):
     if value[0] > value[1]:
-        KivyApp.instance.GraphContainer.columns = 2
-        if len(KivyApp.instance.GraphContainer.GraphArr) > 1:
-            for element in KivyApp.instance.GraphContainer.GraphArr:
-                element.height = 0.5 * (KivyApp.instance.ids.view_port.height - PADDING)
+        KivyApp.kivy_instance.main_container.columns = 2
+        if len(KivyApp.kivy_instance.main_container.GraphArr) > 1:
+            for element in KivyApp.kivy_instance.main_container.GraphArr:
+                element.height = 0.5 * (KivyApp.kivy_instance.ids.view_port.height - PADDING)
         else:
-            for element in KivyApp.instance.GraphContainer.GraphArr:
-                element.height = (KivyApp.instance.ids.view_port.height - PADDING)
+            for element in KivyApp.kivy_instance.main_container.GraphArr:
+                element.height = (KivyApp.kivy_instance.ids.view_port.height - PADDING)
     if value[0] <= value[1]:
-        KivyApp.instance.GraphContainer.columns = 1
-        for element in KivyApp.instance.GraphContainer.GraphArr:
-            element.height = (1 / 3) * (KivyApp.instance.ids.view_port.height - PADDING)
+        KivyApp.kivy_instance.main_container.columns = 1
+        for element in KivyApp.kivy_instance.main_container.GraphArr:
+            element.height = (1 / 3) * (KivyApp.kivy_instance.ids.view_port.height - PADDING)
 
 
-class GraphContainer(MDBoxLayout):
+class Container(MDBoxLayout):
     container = ObjectProperty(None)
     scrollview = ObjectProperty(None)
     columns = NumericProperty(None)
 
-    def __init__(self, **kwargs):
+    def __init__(self, _kivy_instance, **kwargs):
         super().__init__(**kwargs)
+        self.kivy_instance = _kivy_instance
         self.bind(size=ResizeGraphCallback)
         self.GraphArr = []
         self.columns = 1
 
     def isContainsGraphWithName(self, _labvar_name):
         for graph in self.GraphArr:
-            if graph.labvar_name == _labvar_name:
+            if graph.s['NAME'] == _labvar_name:
                 return True
         return False
 
-    def AddGraph(self):
+    def AddGraph(self, _settings=None):
         graphbox = None
         if self.columns == 1:
-            graphbox = GraphBox(self.columns, str(len(self.GraphArr)))
+            graphbox = GraphBox(self.kivy_instance, self.columns, settings=_settings)
             self.GraphArr.append(graphbox)
-            self.ids.graph_container.add_widget(graphbox)
+            self.container.add_widget(graphbox)
 
         if self.columns == 2:
             if len(self.GraphArr) == 0:
-                graphbox = GraphBox(self.columns, str(len(self.GraphArr)))
+                graphbox = GraphBox(self.kivy_instance, self.columns, settings=_settings)
                 self.GraphArr.append(graphbox)
-                self.ids.graph_container.add_widget(graphbox)
-                self.GraphArr[0].SetHeight((KivyApp.instance.ids.view_port.height - PADDING))
+                self.container.add_widget(graphbox)
+                self.GraphArr[0].SetHeight((self.kivy_instance.ids.view_port.height - PADDING))
             else:
                 if len(self.GraphArr) == 1:
-                    graphbox = GraphBox(self.columns, str(len(self.GraphArr)))
+                    graphbox = GraphBox(self.kivy_instance, self.columns, settings=_settings)
                     self.GraphArr.append(graphbox)
-                    self.ids.graph_container.add_widget(graphbox)
-                    self.GraphArr[0].SetHeight(0.5 * (KivyApp.instance.ids.view_port.height - PADDING))
+                    self.container.add_widget(graphbox)
+                    self.GraphArr[0].SetHeight(0.5 * (self.kivy_instance.ids.view_port.height - PADDING))
                 else:
                     if len(self.GraphArr) > 1:
-                        graphbox = GraphBox(self.columns, str(len(self.GraphArr)))
+                        graphbox = GraphBox(self.kivy_instance, self.columns, settings=_settings)
                         self.GraphArr.append(graphbox)
-                        self.ids.graph_container.add_widget(graphbox)
+                        self.container.add_widget(graphbox)
 
-        Logger.debug("GRAPH: Graph [" + graphbox.labvar_name + "] is added, id: " + str(len(self.GraphArr) - 1) + "!")
+        Logger.debug("GRAPH: Graph [{}] with HASH: {} is added!".format(graphbox.s['NAME'], graphbox.s['HASH']))
 
-    def ShiftNumbering(self, _id):
-        for element in self.GraphArr:
-            if int(element.id) < int(_id):
-                continue
-            element.id = str(int(element.id) - 1)
+    # def ShiftNumbering(self, _id):
+    #     for element in self.GraphArr:
+    #         if int(element.s.get('ID')) < int(_id):
+    #             continue
+    #         element.s.set('ID', str(int(element.s.get('ID')) - 1))
 
-    def RemoveGraphById(self, _id):
+    def GetGraphByHASH(self, _hash):
+        for x in self.GraphArr:
+            if x.s['HASH'] == _hash:
+                return x
+        return None
+
+    def RemoveGraphByHASH(self, _hash):
+        self.RemoveGraph(self.GetGraphByHASH(_hash))
+
+    def RemoveGraph(self, graph):
         if len(self.GraphArr) > 0:
 
-            temp = self.GraphArr[int(_id)]
+            temp = graph
 
             if self.columns == 1:
-                self.ids.graph_container.remove_widget(temp)
+                self.container.remove_widget(temp)
                 self.GraphArr.remove(temp)
 
             if self.columns == 2:
                 if len(self.GraphArr) == 1:
-                    self.ids.graph_container.remove_widget(temp)
+                    self.container.remove_widget(temp)
                     self.GraphArr.remove(temp)
                 else:
                     if len(self.GraphArr) == 2:
-                        self.ids.graph_container.remove_widget(temp)
+                        self.container.remove_widget(temp)
                         self.GraphArr.remove(temp)
-                        self.GraphArr[0].SetHeight((KivyApp.instance.ids.view_port.height - PADDING))
+                        self.GraphArr[0].SetHeight((self.kivy_instance.ids.view_port.height - PADDING))
                     else:
                         if len(self.GraphArr) > 2:
-                            self.ids.graph_container.remove_widget(temp)
+                            self.container.remove_widget(temp)
                             self.GraphArr.remove(temp)
 
-            self.ShiftNumbering(_id)
-            Logger.debug("GRAPH: Graph [" + temp.labvar_name + "] with id: " + str(_id) + " is removed!")
-
-    def RemoveGraph(self):
-        if len(self.GraphArr) > 0:
-
-            temp = self.GraphArr[len(self.GraphArr) - 1]
-
-            if self.columns == 1:
-                self.ids.graph_container.remove_widget(temp)
-                self.GraphArr.remove(temp)
-
-            if self.columns == 2:
-                if len(self.GraphArr) == 1:
-                    self.ids.graph_container.remove_widget(temp)
-                    self.GraphArr.remove(temp)
-                else:
-                    if len(self.GraphArr) == 2:
-                        self.ids.graph_container.remove_widget(temp)
-                        self.GraphArr.remove(temp)
-                        self.GraphArr[0].SetHeight((KivyApp.instance.ids.view_port.height - PADDING))
-                    else:
-                        if len(self.GraphArr) > 2:
-                            self.ids.graph_container.remove_widget(temp)
-                            self.GraphArr.remove(temp)
-
-            Logger.debug("GRAPH: Graph [" + temp.labvar_name + "] is removed!")
+            Logger.debug("GRAPH: Graph [{}] with HASH: {} is removed!".format(temp.s['NAME'], temp.s['HASH']))
 
 
 class LaboratorClient(MDScreen):
     endpoint = StringProperty()
 
-    def __init__(self, **kwargs):
+    def __init__(self, _main_app, **kwargs):
         super().__init__(**kwargs)
-        self.GraphContainer = GraphContainer()
+        self.main_container = Container(self)
+        self.main_app = _main_app
         self.LabVarArr = []
 
     def Prepare(self, dt):
-        self.ids.view_port.add_widget(self.GraphContainer)
+        self.ids.view_port.add_widget(self.main_container)
         self.endpoint = msettings.get('LAST_IP')
 
-    def AddGraph(self):
-        self.GraphContainer.AddGraph()
+    def GetGraphByHASH(self, _hash):
+        return self.main_container.GetGraphByHASH(_hash)
 
-    def RemoveGraph(self):
-        self.GraphContainer.RemoveGraph()
+    def AddGraph(self, _settings=None):
+        self.main_container.AddGraph(_settings)
+
+    def RemoveGraphByHASH(self, _hash):
+        self.main_container.RemoveGraphByHASH(_hash)
 
     @staticmethod
     def LabVarArrConfigure(path):
@@ -358,7 +362,7 @@ class LaboratorClient(MDScreen):
     def Connect(self):
         self.ids.info_log.text = "Trying connect to {}!".format(self.endpoint)
         self.ids.btn_connect.disabled = True
-        Clock.schedule_once(self.ConnectLow, 1)
+        Clock.schedule_once(self.ConnectLow, 0)
 
     def Disconnect(self):
         client._isReconnecting = False
@@ -379,19 +383,16 @@ class LaboratorClient(MDScreen):
     def Update(self, dt):
         if client.isConnected():
             try:
-                # Обновляем только те переменные, что есть в графиках
-                for labvar in self.LabVarArr:
-                    if self.GraphContainer.isContainsGraphWithName(labvar.name):
-                        _value = client.get_node(labvar.node_id).get_value()
-                        labvar.value = _value
-                        labvar.WriteHistory(_value)
                 # Заносим эти переменные в соответствующие графики
-                for graph in self.GraphContainer.GraphArr:
-                    if graph.labvar_name != "None":
+                for graph in self.main_container.GraphArr:
+                    if graph.s['NAME'] != "None":
                         for labvar in self.LabVarArr:
-                            if labvar.name == graph.labvar_name:
+                            if labvar.name == graph.s['NAME']:
+                                _value = client.get_node(labvar.node_id).get_value()
+                                labvar.value = _value
+                                labvar.WriteHistory(_value)
                                 graph.UpdateGardenGraph(labvar.GetHistory())
-                                graph.SetLabVarValue(round(labvar.value, msettings.get('GRAPH_ROUND_DIGITS')))
+                                graph.SetLabVarValue(round(labvar.value, graph.s['GRAPH_ROUND_DIGITS']))
             except Exception:
                 client._isConnected = False
                 client._isReconnecting = True
@@ -402,25 +403,46 @@ class LaboratorClient(MDScreen):
                 self.Reconnection(msettings.get('RECONNECTION_TIME'))
 
 
+class FullLogHandler(logging.Handler):
+
+    def __init__(self, _kivy_instance, _label, level=logging.NOTSET):
+        super(FullLogHandler, self).__init__(level=level)
+        self.label = _label
+        self.kivy_instance = _kivy_instance
+
+    def emit(self, record):
+        def f(dt=None):
+            self.label.text = "\n".join(list(map(self.format, LoggerHistory.history[::-1])))
+            # self.kivy_instance.instance.ids.log_scroll.scroll_y = 0
+        Clock.schedule_once(f)
+
+
 class KivyApp(MDApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.instance = None
+        self.kivy_instance = None
         self.settings_widget = None
         self.title = "Laborator Client"
         self.dialogEndpoint = None
-        self.dialogListLabVar = None
+        self.hiddenWidgets = []
+        self.layoutManager = None
 
     def on_stop(self):
         try:
             client.Disconnect()
+            self.layoutManager.SaveLayout()
         except Exception:
             Logger.error("KivyApp: Error while disconnecting on app stop!")
 
     def on_start(self):
-        Clock.schedule_once(self.instance.Prepare, 1)
-        Clock.schedule_interval(self.instance.Update, int(msettings.get('KIVY_UPDATE_FUNCTION_TIME')))
+        Clock.schedule_once(self.kivy_instance.Prepare, 1)
+        Clock.schedule_once(self.layout, 1)
+        Clock.schedule_interval(self.kivy_instance.Update, int(msettings.get('KIVY_UPDATE_FUNCTION_TIME')))
+
+    def layout(self, dt):
+        if msettings.get('USE_LAYOUT'):
+            self.layoutManager.LoadLayout()
 
     @staticmethod
     def LoadKV():
@@ -431,16 +453,23 @@ class KivyApp(MDApp):
         self.theme_cls.theme_style = 'Dark'
         self.theme_cls.set_colors("Orange", "300", "50", "800", "Gray", "600", "50", "800")
         self.LoadKV()
-        laborator = LaboratorClient()
-        self.instance = laborator
+        self.kivy_instance = LaboratorClient(self)
+
+        Logger.addHandler(FullLogHandler(self, self.kivy_instance.ids.log_label, logging.DEBUG))
+
+        if msettings.get("HIDE_LOG_BY_DEFAULT"):
+            self.hide_widget(self.kivy_instance.ids.log_box)
+        else:
+            self.hide_widget(self.kivy_instance.ids.view_port)
 
         self.dialogEndpoint = DialogEndpoint(self)
-        self.dialogListLabVar = DialogListLabVar(self)
+        self.layoutManager = LayoutManager(self.kivy_instance)
 
-        return self.instance
+        return self.kivy_instance
 
     def build_config(self, config):
         config.setdefaults('allSettings', settings_defaults)
+        config.setdefaults('GraphSettings', graph_settings_defaults)
         msettings.instance = self.config
 
     def build_settings(self, settings):
@@ -464,13 +493,32 @@ class KivyApp(MDApp):
                on_config_change=self._on_config_change)
         return s
 
+    # Swaps visibility of widgets. Wid1 are hiding permanently.
+    def swap_widgets(self, wid1, wid2):
+        if wid1 not in self.hiddenWidgets and wid2 not in self.hiddenWidgets:
+            self.hide_widget(wid1)
+        elif wid1 in self.hiddenWidgets and wid2 in self.hiddenWidgets:
+            self.hide_widget(wid2)
+        else:
+            self.hide_widget(wid1)
+            self.hide_widget(wid2)
+
+    # Hides or shows widget
+    def hide_widget(self, wid):
+        if wid not in self.hiddenWidgets:
+            self.hiddenWidgets.append(wid)
+            wid.saved_attrs = wid.height, wid.size_hint_y, wid.opacity, wid.disabled
+            wid.height, wid.size_hint_y, wid.opacity, wid.disabled = 0, None, 0, True
+        else:
+            self.hiddenWidgets.remove(wid)
+            wid.height, wid.size_hint_y, wid.opacity, wid.disabled = wid.saved_attrs
+
 
 KivyApp = KivyApp()
 
 # Программа получает на вход готовые приведенные параметры, выводит их графики,
 # считает косвенные параметры, считает спектральные параметры, среднее значение...
 
-# TODO Установить kivyMD
 # TODO Реализовать свой стиль для кнопок, лэйблов, и т.д. для унификации интерфейса
 # TODO Реализовать сохранение и подгрузку лэйаута
 # TODO Реализовать индивидуальные настройки для графиков

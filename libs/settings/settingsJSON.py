@@ -10,14 +10,21 @@ settings_defaults = {
             'MAX_RECONNECTIONS_NUMBER': 10,
             'RECONNECTION_TIME': 5,
             'GET_FROM_SERVER': True,
-            'CONFIGURATION_PATH': os.path.join("settings", "databaseconfig.txt"),
+            'CONFIGURATION_PATH': "databaseconfig.txt",
+            'LAYOUT_FILE': "layout.json",
             'KIVY_DOUBLETAP_TIME': 0.3,
             'KIVY_UPDATE_FUNCTION_TIME': 1,
+            'USE_LAYOUT': True,
+            'HIDE_LOG_BY_DEFAULT': True
+            }
+
+graph_settings_defaults = {
+            'NAME': 'None',
+            'MODE': '',
             'GRAPH_ADDITIONAL_SPACE_Y': 1.5,
             'GRAPH_BUFFER_AVG_SIZE': 20,
-            'GRAPH_ROUND_DIGITS': '1',
-            'GRAPH_LINE_THICKNESS': 1.3,
-            'USE_LAYOUT': True
+            'GRAPH_ROUND_DIGITS': 1,
+            'GRAPH_LINE_THICKNESS': 1.3
             }
 
 settings_json = json.dumps([
@@ -86,26 +93,26 @@ settings_json = json.dumps([
     {'type': 'numeric',
      'title': 'Сжатие графика по оси Y',
      'desc': 'GRAPH_ADDITIONAL_SPACE_Y',
-     'section': 'allSettings',
+     'section': 'GraphSettings',
      'key': 'GRAPH_ADDITIONAL_SPACE_Y'},
 
     {'type': 'numeric',
      'title': 'Количество значений для подсчета среднего',
      'desc': 'GRAPH_BUFFER_AVG_SIZE',
-     'section': 'allSettings',
+     'section': 'GraphSettings',
      'key': 'GRAPH_BUFFER_AVG_SIZE'},
 
     {'type': 'options',
      'title': 'Количество символов после запятой',
      'desc': 'GRAPH_ROUND_DIGITS',
-     'section': 'allSettings',
+     'section': 'GraphSettings',
      'key': 'GRAPH_ROUND_DIGITS',
      'options': ['1', '2', '3']},
 
     {'type': 'numeric',
      'title': 'Толщина линии графика',
      'desc': 'GRAPH_LINE_THICKNESS',
-     'section': 'allSettings',
+     'section': 'GraphSettings',
      'key': 'GRAPH_LINE_THICKNESS'},
 
     {'type': 'bool',
@@ -113,6 +120,12 @@ settings_json = json.dumps([
      'desc': 'USE_LAYOUT',
      'section': 'allSettings',
      'key': 'USE_LAYOUT'},
+
+    {'type': 'bool',
+     'title': 'Скрывать лог при открытии',
+     'desc': 'HIDE_LOG_BY_DEFAULT',
+     'section': 'allSettings',
+     'key': 'HIDE_LOG_BY_DEFAULT'},
 
 ])
 

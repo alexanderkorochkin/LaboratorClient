@@ -12,3 +12,32 @@
     CheckboxLeftWidget:
         id: check
         group: "check"
+
+
+<DialogGraphSettingsContent>
+    orientation: "vertical"
+    adaptive_height: True
+    size_hint_x: 1
+    spacing: sp(10)
+    padding: sp(10), sp(10), sp(10), sp(10)
+    MDFlatButton:
+        text: "Переменная: " + root.labvar_name
+        size_hint_x: 1
+        theme_text_color: "Custom"
+        text_color: "white"
+        line_color: app.theme_cls.primary_color
+        on_release: root.dialogListLabVar.Open()
+    MDFlatButton:
+        text: "Очистить график"
+        size_hint_x: 1
+        theme_text_color: "Custom"
+        text_color: "white"
+        line_color: app.theme_cls.primary_color
+        on_release: root.Refresh()
+    MDFlatButton:
+        text: "Удалить плитку"
+        size_hint_x: 1
+        theme_text_color: "Custom"
+        text_color: "white"
+        line_color: app.theme_cls.primary_color
+        on_release: root.removeIt()

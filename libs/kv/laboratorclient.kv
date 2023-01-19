@@ -67,6 +67,13 @@
                         pos_hint: {"center_x": .5, "center_y": .5}
                         on_release: root.AddGraph()
                     MDIconButton:
+                        id: btn_log
+                        icon: "math-log"
+                        theme_icon_color: "Custom"
+                        icon_color: "white"
+                        pos_hint: {"center_x": .5, "center_y": .5}
+                        on_release: app.swap_widgets(root.ids.log_box, root.ids.view_port)
+                    MDIconButton:
                         id: btn_menu
                         icon: "cog-outline"
                         theme_icon_color: "Custom"
@@ -75,3 +82,19 @@
                         on_release: app.open_settings()
         MDBoxLayout:
             id: view_port
+        MDBoxLayout:
+            id: log_box
+            size_hint_y: 1
+            MDScrollView:
+                id: log_scroll
+                do_scroll_x: False
+                do_scroll_y: True
+                effect_cls: Factory.OpacityScrollEffect
+                MDLabel:
+                    id: log_label
+                    multiline: True
+                    size_hint_y: None
+                    size: self.texture_size
+                    anchor_y: 'bottom'
+                    font_size: sp(12)
+                    text: "WELCOME TO LOG VIEWER!"
