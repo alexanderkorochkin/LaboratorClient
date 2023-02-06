@@ -1,4 +1,5 @@
 from libs.settings.settingsJSON import msettings
+from kivy.logger import Logger, LOG_LEVELS, LoggerHistory
 import numexpr as ne
 import re
 
@@ -69,8 +70,11 @@ class IndirectVariable:
         if number1 == number2:
             number = number1
             if number == 0 and len(expression) != 0:
-                self.value = float(ne.evaluate(expression))
-                self.WriteHistory(self.value)
+                try:
+                    self.value = float(ne.evaluate(expression))
+                    self.WriteHistory(self.value)
+                except Exception:
+                    Logger.debug(f"GetValue: Expression: '{expression}' are invalid!")
             if number > 0 and len(expression) != 0:
                 isWork = True
                 isError = False
@@ -85,9 +89,11 @@ class IndirectVariable:
                             return name
                     else:
                         isWork = False
-
-                self.value = float(ne.evaluate(expression))
-                self.WriteHistory(self.value)
+                try:
+                    self.value = float(ne.evaluate(expression))
+                    self.WriteHistory(self.value)
+                except Exception:
+                    Logger.debug(f"GetValue: Expression: '{expression}' are invalid!")
 
         return self.value
 

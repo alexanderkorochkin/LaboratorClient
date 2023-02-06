@@ -621,18 +621,18 @@ class LaboratorClient(MDScreen):
 
     def Update(self, dt):
         if client.isConnected():
-            #try:
+            try:
                 for graph in self.main_container.GraphArr:
                     graph.Update()
 
-            # except Exception:
-            #     client._isConnected = False
-            #     client._isReconnecting = True
-            #     self.ids.btn_disconnect.disabled = False
-            #     self.ids.btn_connect.disabled = True
-            #     self.ids.info_log.text = "Connection lost! Trying to reconnect..."
-            #     Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
-            #     self.Reconnection(msettings.get('RECONNECTION_TIME'))
+            except Exception:
+                client._isConnected = False
+                client._isReconnecting = True
+                self.ids.btn_disconnect.disabled = False
+                self.ids.btn_connect.disabled = True
+                self.ids.info_log.text = "Connection lost! Trying to reconnect..."
+                Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
+                self.Reconnection(msettings.get('RECONNECTION_TIME'))
 
     def GetLabVarByName(self, name):
         for labvar in self.LabVarArr:
