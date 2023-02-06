@@ -21,7 +21,9 @@ from kivy.factory import Factory
 
 from libs.dialogs import *
 from libs.layoutManager import LayoutManager
-from kivy.utils import get_hex_from_color as rgb
+from kivy.utils import get_hex_from_color as get_hex
+from kivy.utils import get_color_from_hex as get_color
+from kivy.utils import rgba
 
 Logger.setLevel(LOG_LEVELS["debug"])
 
@@ -112,12 +114,12 @@ class GraphBox(MDBoxLayout):
             'GRAPH_LABEL_X': graph_settings_defaults['GRAPH_LABEL_X'],
             'GRAPH_LABEL_Y': graph_settings_defaults['GRAPH_LABEL_Y'],
             'IS_INDIRECT': False,
-            'EXPRESSION': 'Empty',
-            'PARAMS': [],
+            'EXPRESSION': 'Empty'
         }
 
         self.size_hint = [1, None]
         self.kivy_instance = _kivy_instance
+        self.isBadExpression = False
 
         self.gardenGraph = GardenGraph(border_color=[1, 1, 1, 0],
                                        x_ticks_major=int(msettings.get('MAX_HISTORY_VALUES'))/8,
@@ -186,27 +188,12 @@ class GraphBox(MDBoxLayout):
             self.s['IS_INDIRECT'] = True
             self.var = IndirectVariable(client, self.kivy_instance)
             self.acf('EXPRESSION', settings, self.SetExpression)
-            self.ac('PARAMS', settings)
         else:
             self.s['IS_INDIRECT'] = False
             self.var = ServerVariable(client, self.kivy_instance, self.s['NAME'])
 
     def SetExpression(self, expression):
         self.s['EXPRESSION'] = expression
-        self.CalculateParamsNum()
-
-    def CalculateParamsNum(self):
-        number = self.s['EXPRESSION'].count('arg')
-        self.s['PARAMS'] = []
-        if number != 0:
-            for i in range(number):
-                self.s['PARAMS'].append('None')
-
-    def GetParams(self):
-        return self.s['PARAMS']
-
-    def SetParam(self, index, name):
-        self.s['PARAMS'][index] = name
 
     def toggle_x_grid_label(self):
         value = not self.s['GRAPH_LABEL_X']
@@ -249,39 +236,82 @@ class GraphBox(MDBoxLayout):
             self.s['IS_INDIRECT'] = False
             return False
 
+    def TurnONAVG(self):
+        self.s['SHOW_AVG'] = True
+        self.avgBuffer.Clear()
+
+    def TurnOFFAVG(self):
+        self.s['SHOW_AVG'] = False
+
+    def SwitchAVG(self):
+        self.TurnOFFAVG() if self.s['SHOW_AVG'] else self.TurnONAVG()
+
+    def GetAVGState(self):
+        return self.s['SHOW_AVG']
+
     def Update(self):
         if self.s['NAME'] != 'None':
+            _value = 0
             if not self.isIndirect():
                 _value = round(self.var.GetValue(), self.s['GRAPH_ROUND_DIGITS'])
                 self._UpdateGardenGraph(self.var.GetHistory())
+                if self.isBadExpression and _value:
+                    self.isBadExpression = False
             else:
-                _value = round(self.var.GetValue(self.s['EXPRESSION'], self.GetParams(), self.kivy_instance.LabVarArr), self.s['GRAPH_ROUND_DIGITS'])
-                self._UpdateGardenGraph(self.var.GetHistory())
-
-            if self.s['MODE'] == 'NORMAL':
-                if self.s['SHOW_AVG']:
-                    self.avgBuffer.AddValue(_value)
-                    self.avg_value = self.avgBuffer.GetAVG()
-                    self.ids.graph_main_text.text = str(_value) + " [color=" + self.s['AVG_COLOR'] + "](AVG: " + str(self.avg_value) + ")[/color]"
+                temp_value = self.var.GetValue(self.s['EXPRESSION'])
+                if type(temp_value) is not str:
+                    _value = round(temp_value, self.s['GRAPH_ROUND_DIGITS'])
+                    self._UpdateGardenGraph(self.var.GetHistory())
+                    if self.isBadExpression:
+                        self.isBadExpression = False
                 else:
-                    self.ids.graph_main_text.text = str(_value)
-            if self.s['MODE'] == 'SPECTRAL':
-                pass
+                    if not self.isBadExpression:
+                        self.isBadExpression = True
+                        snackBar = Snackbar(
+                            text=f"[{self.s['NAME']}]: Неверное имя аргумента: {temp_value}!",
+                            snackbar_x="10sp",
+                            snackbar_y="10sp",
+                        )
+                        snackBar.size_hint_x = (Window.width - (snackBar.snackbar_x * 2)) / Window.width
+                        snackBar.open()
 
-    def UpdateName(self, name):
+            if not self.isBadExpression:
+                if self.s['MODE'] == 'NORMAL':
+                    if self.s['SHOW_AVG']:
+                        self.avgBuffer.AddValue(_value)
+                        self.avg_value = self.avgBuffer.GetAVG()
+                        self.ids.graph_main_text.text = str(_value) + " [color=" + self.s[
+                            'AVG_COLOR'] + "](AVG: " + str(self.avg_value) + ")[/color]"
+                    else:
+                        self.ids.graph_main_text.text = str(_value)
+                if self.s['MODE'] == 'SPECTRAL':
+                    pass
+            else:
+                self.ids.graph_main_text.text = "[color=" + get_hex((0.8, 0.3, 0.3)) + "]" + 'BAD EXPRESSION!' + "[/color]"
+
+    # Return True if there are not labvar with 'name'
+    def CheckName(self, name):
+        for labvar in self.kivy_instance.LabVarArr:
+            if labvar.name == name:
+                return False
+        return True
+
+    def UpdateName(self, name, _clear_expression=True):
         self.s['NAME'] = name
         self._UpdateNameButton()
-        self.UpdateVarName()
+        self.UpdateVarName(_clear_expression)
 
-    def UpdateVarName(self):
+    def UpdateVarName(self, _clear_expression=True):
         if self.s['NAME'].find('*') != -1:
             self.var = IndirectVariable(client, self.kivy_instance)
             self.s['IS_INDIRECT'] = True
-            self.SetExpression('')
+            if _clear_expression:
+                self.SetExpression('')
         else:
             self.s['IS_INDIRECT'] = False
             self.var = ServerVariable(client, self.kivy_instance, self.s['NAME'])
-            self.SetExpression('')
+            if _clear_expression:
+                self.SetExpression('')
 
     def GetName(self):
         return self.s['NAME']
@@ -608,6 +638,7 @@ class LaboratorClient(MDScreen):
         for labvar in self.LabVarArr:
             if labvar.name == name:
                 return labvar
+        return None
 
 
 class FullLogHandler(logging.Handler):

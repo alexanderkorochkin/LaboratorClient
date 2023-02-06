@@ -22,12 +22,10 @@ class OPCUAClient(Client):
     @staticmethod
     def GetVarsFromNode(node):
         arr = []
-        arr_index = 1
         for childId in node.get_children():
             ch = client.get_node(childId)
             if ch.get_node_class() == 2:
                 arr.append(LabVar(str(ch.get_browse_name())[str(ch.get_browse_name()).find(":") + 1:len(str(ch.get_browse_name())) - 1]))
-                arr_index += 1
         return arr
 
     def isConnected(self):

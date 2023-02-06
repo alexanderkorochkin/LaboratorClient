@@ -1,5 +1,6 @@
 from libs.settings.settingsJSON import msettings
 import numexpr as ne
+import re
 
 
 class LabVar:
@@ -58,44 +59,36 @@ class IndirectVariable:
         self.client = _client
         self.kivy_instance = _kivy
 
-    def GetValue(self, expression, param_names, labvar_arr):
-        number = expression.count('arg')
-        mode = "NoneMode"
+    def GetValue(self, expr):
+        number1 = expr.count('[')
+        number2 = expr.count(']')
+        expression = expr
+        number = -1
+        mode = "NormalMode"
 
-        if number == 0:
-            if len(expression) == 0:
-                mode = 'error'
-            else:
-                mode = "simple_expression"
-        else:
-            if 'None' in param_names:
-                mode = "not_all_parameters_given"
-            else:
-                if number == len(param_names):
-                    mode = "expression_with_args"
-                else:
-                    mode = "error"
+        if number1 == number2:
+            number = number1
+            if number == 0 and len(expression) != 0:
+                self.value = float(ne.evaluate(expression))
+                self.WriteHistory(self.value)
+            if number > 0 and len(expression) != 0:
+                isWork = True
+                isError = False
+                while isWork:
+                    result = re.search(r'\[([^\]]*)\]', expression)
+                    if result:
+                        name = str(result.group(0))[1:-1]
+                        labvar = self.kivy_instance.GetLabVarByName(name)
+                        if labvar is not None:
+                            expression = expression.replace(f'[{name}]', str(self.client.get_node(labvar.node_id).get_value()))
+                        else:
+                            return name
+                    else:
+                        isWork = False
 
-        if mode == "expression_with_args":
+                self.value = float(ne.evaluate(expression))
+                self.WriteHistory(self.value)
 
-            temp = ''
-            var_values_arr = []
-            for name in param_names:
-                for labvar in labvar_arr:
-                    if labvar.GetName() == name:
-                        var = ServerVariable(self.client, self.kivy_instance, name, _id=111)
-                        value = var.GetValue(no_history=True)
-                        var_values_arr.append(float(value))
-                        del var
-            for i in range(len(var_values_arr)):
-                temp = expression.replace(f'{i + 1}arg', f'{var_values_arr[i]}')
-            self.value = float(ne.evaluate(temp))
-
-        elif mode == "simple_expression":
-
-            self.value = float(ne.evaluate(expression))
-
-        self.WriteHistory(self.value)
         return self.value
 
     def WriteHistory(self, _value):

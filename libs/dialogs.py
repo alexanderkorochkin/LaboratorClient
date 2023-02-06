@@ -9,7 +9,7 @@ from kivy.core.window import Window
 
 from typing import Union
 
-from kivy.properties import StringProperty, ObjectProperty, BooleanProperty
+from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ColorProperty
 from kivymd.uix.list.list import OneLineAvatarIconListItem
 
 from kivy.utils import get_hex_from_color
@@ -79,6 +79,11 @@ class ItemConfirm(OneLineAvatarIconListItem):
                 check.active = False
 
 
+class ItemArgument(MDFlatButton):
+
+    name = StringProperty('None')
+
+
 class DialogGraphSettingsContent(MDBoxLayout):
     labvar_name = StringProperty("None")
     mode = StringProperty("NORMAL")
@@ -108,12 +113,12 @@ class DialogGraphSettingsContent(MDBoxLayout):
 
         self.RedrawExpressionSettingsStart()
 
+    def CheckName(self, name):
+        return self.m_parent.graph_instance.CheckName(name)
+
     def SetExpression(self, expression):
         self.expression = expression
         self.m_parent.graph_instance.SetExpression(expression)
-
-    def SetParam(self, index, name):
-        self.m_parent.graph_instance.SetParam(0, name)
 
     def RedrawExpressionSettingsStart(self):
         if not self.m_parent.graph_instance.isIndirect():
@@ -144,10 +149,8 @@ class DialogGraphSettingsContent(MDBoxLayout):
 
     def CheckboxPress(self, _id):
         if _id == 'show_avg_checkbox':
-            self.m_parent.graph_instance.s['SHOW_AVG'] = not self.m_parent.graph_instance.s['SHOW_AVG']
-            self.show_avg = self.m_parent.graph_instance.s['SHOW_AVG']
-            if not self.m_parent.graph_instance.s['SHOW_AVG']:
-                self.m_parent.graph_instance.avgBuffer.Clear()
+            self.m_parent.graph_instance.SwitchAVG()
+            self.show_avg = self.m_parent.graph_instance.GetAVGState()
 
     def OpenColorPicker(self, _colorpicker_target):
         self.color_picker = MDColorPicker(size_hint=(0.6, 0.6))
@@ -213,52 +216,94 @@ class DialogEnterString:
         self.m_parent = _parent
         self.state = None
 
-    def Open(self, state, init_text, title, hint_text):
-        self.state = state
-        self.dialog = MDDialog(
-            title=title,
-            elevation=0,
-            auto_dismiss=False,
-            type="custom",
-            content_cls=MDTextField(
-                text=init_text,
-                hint_text=hint_text),
-            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    theme_text_color="Custom",
-                    text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
-                    on_release=self.Cancel,
-                ),
-                MDFlatButton(
-                    text="ENTER",
-                    theme_text_color="Custom",
-                    text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
-                    on_release=self.Enter,
+    def Open(self, state, init_text, title, hint_text, _need_connection=False):
+        if _need_connection:
+            kivy_instance = self.graph_instance.kivy_instance
+            if not client.isConnected():
+                snackbar = Snackbar(
+                    text="Вы не подключены к серверу!",
+                    snackbar_x="10sp",
+                    snackbar_y="10sp",
                 )
-            ],
-        )
-        self.dialog.open()
+
+                def ds(arg):
+                    kivy_instance.Connect()
+                    snackbar.dismiss()
+
+                snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
+                snackbar.buttons = [
+                    MDFlatButton(
+                        text="CONNECT",
+                        text_color=(1, 1, 1, 1),
+                        on_release=ds,
+                    ),
+                    MDFlatButton(
+                        text="CANCEL",
+                        text_color=(1, 1, 1, 1),
+                        on_release=snackbar.dismiss,
+                    ),
+                ]
+                snackbar.open()
+                return True
+
+        if state == "edit_name" and '*' not in init_text:
+            snackbar = Snackbar(
+                text="Нельзя поменять название этой переменной!",
+                snackbar_x="10sp",
+                snackbar_y="10sp",
+            )
+            snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
+            snackbar.open()
+        else:
+            if state == "edit_name":
+                init_text = init_text[1:]
+            self.state = state
+            self.dialog = MDDialog(
+                title=title,
+                elevation=0,
+                auto_dismiss=False,
+                type="custom",
+                content_cls=MDTextField(
+                    text=init_text,
+                    hint_text=hint_text),
+                buttons=[
+                    MDFlatButton(
+                        text="CANCEL",
+                        theme_text_color="Custom",
+                        text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
+                        on_release=self.Cancel,
+                    ),
+                    MDFlatButton(
+                        text="ENTER",
+                        theme_text_color="Custom",
+                        text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
+                        on_release=self.Enter,
+                    )
+                ],
+            )
+            self.dialog.open()
 
     def Cancel(self, *args):
         self.state = None
         self.dialog.dismiss(force=True)
 
     def Enter(self, *args):
-        if self.dialog.content_cls.text.strip().replace(' ', '') != '':
+        if self.dialog.content_cls.text.strip().replace(' ', '') != '' and self.graph_instance.CheckName(self.dialog.content_cls.text):
+            if self.state == 'edit_name':
+                default_name = '*' + self.dialog.content_cls.text
+                self.graph_instance.UpdateName(default_name, _clear_expression=False)
+                self.m_parent.m_parent.labvar_name = default_name
+                self.m_parent.m_parent.dialog.title = "{}:{}".format(default_name, self.graph_instance.s['MODE'])
+                self.state = None
+                self.dialog.dismiss(force=True)
+                self.m_parent.m_parent.Close()
+                self.m_parent.m_parent.Open()
             if self.state == 'expression':
                 self.m_parent.SetExpression(self.dialog.content_cls.text)
                 self.state = None
                 self.dialog.dismiss(force=True)
-            if self.state == 'argument0':
-                #parse argument
-                index = 0
-                self.m_parent.SetParam(index, self.dialog.content_cls.text)
-                self.state = None
-                self.dialog.dismiss(force=True)
             if self.state == 'new_var':
                 default_name = '*' + self.dialog.content_cls.text
-
                 self.graph_instance.ClearPlot()
                 self.graph_instance.UpdateName(default_name)
                 self.m_parent.m_parent.labvar_name = default_name
@@ -369,7 +414,6 @@ class DialogListLabVar:
                 self.m_parent.m_parent.Close()
                 self.m_parent.m_parent.Open()
             else:
-
                 self.new_dialog.Open('new_var', '', 'Название переменной', 'Название должно быть уникальным')
                 self.dialog.dismiss(force=True)
 
