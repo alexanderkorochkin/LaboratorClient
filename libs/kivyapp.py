@@ -22,8 +22,6 @@ from kivy.factory import Factory
 from libs.dialogs import *
 from libs.layoutManager import LayoutManager
 from kivy.utils import get_hex_from_color as get_hex
-from kivy.utils import get_color_from_hex as get_color
-from kivy.utils import rgba
 
 Logger.setLevel(LOG_LEVELS["debug"])
 
