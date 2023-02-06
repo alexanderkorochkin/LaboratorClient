@@ -13,7 +13,6 @@
         id: check
         group: "check"
 
-
 <DialogGraphSettingsContent>
     orientation: "vertical"
     adaptive_height: True
@@ -21,23 +20,112 @@
     spacing: sp(10)
     padding: sp(10), sp(10), sp(10), sp(10)
     MDFlatButton:
+        id: variable_list
         text: "Переменная: " + root.labvar_name
         size_hint_x: 1
         theme_text_color: "Custom"
         text_color: "white"
         line_color: app.theme_cls.primary_color
+        font_size: sp(14)
         on_release: root.dialogListLabVar.Open()
+    MDBoxLayout:
+        id: expression_settings
+        orientation: "vertical"
+        size_hint_x: 1
+        adaptive_height: True
+        MDFlatButton:
+            text: "Выражение: '{}'".format(root.expression)
+            size_hint_x: 1
+            theme_text_color: "Custom"
+            text_color: "white"
+            line_color: app.theme_cls.primary_color
+            font_size: sp(14)
+            on_release: root.dialogEnterString.Open('expression', root.expression, 'Введите выражение', 'Для обозначения параметров вводите 1arg, 2arg и т.д.')
+        MDGridLayout:
+            id: indirect_settings
+            size_hint_y: None
+            cols: 3
+            #spacing: sp(10)
+            padding: sp(10), sp(10), sp(10), sp(10)
+            height: self.minimum_height
+            MDFlatButton:
+                text: "ПАРАМЕТР"
+                size_hint_x: 1
+                theme_text_color: "Custom"
+                text_color: "white"
+                line_color: app.theme_cls.primary_color
+                font_size: sp(14)
+                on_release: root.dialogEnterString.Open('argument0', self.text, 'Введите название переменной', 'Переменная должна существовать')
     MDFlatButton:
+        id: change_mode_button
+        text: "Режим: " + root.mode
+        size_hint_x: 1
+        theme_text_color: "Custom"
+        text_color: "white"
+        line_color: app.theme_cls.primary_color
+        font_size: sp(14)
+        on_release: root.ChangeMode('change_mode_button')
+    MDBoxLayout:
+        id: avg_settings
+        orientation: "horizontal"
+        size_hint_x: 1
+        adaptive_height: True
+        MDCheckbox:
+            id: show_avg_checkbox
+            on_release: root.CheckboxPress('show_avg_checkbox')
+            size_hint: None,None
+            size: "48dp", "48dp"
+            active: root.show_avg
+        MDLabel:
+            text: "Показывать среднее"
+            size_hint_x: 1
+            theme_text_color: "Custom"
+            text_color: "white"
+            font_size: sp(14)
+        MDIconButton:
+            pos_hint: {"center_x": .5, "center_y": .5}
+            icon: 'palette'
+            theme_icon_color: "Custom"
+            icon_color: root.avg_color
+            on_release: root.OpenColorPicker('avg')
+    MDBoxLayout:
+        id: axes_settings
+        orientation: "horizontal"
+        size_hint_x: 1
+        adaptive_height: True
+        spacing: sp(10)
+        # padding: sp(10), sp(10), sp(10), sp(10)
+        MDFlatButton:
+            text: "Откл. ось X" if root.label_x else "Вкл. ось X"
+            size_hint_x: 1
+            theme_text_color: "Custom"
+            text_color: "white"
+            line_color: app.theme_cls.primary_color
+            font_size: sp(14)
+            on_release: root.ToggleX()
+        MDFlatButton:
+            text: "Откл. ось Y" if root.label_y else "Вкл. ось Y"
+            size_hint_x: 1
+            theme_text_color: "Custom"
+            text_color: "white"
+            line_color: app.theme_cls.primary_color
+            font_size: sp(14)
+            on_release: root.ToggleY()
+    MDFlatButton:
+        id: clear_graph
         text: "Очистить график"
         size_hint_x: 1
         theme_text_color: "Custom"
         text_color: "white"
         line_color: app.theme_cls.primary_color
+        font_size: sp(14)
         on_release: root.Refresh()
     MDFlatButton:
+        id: delete_graph
         text: "Удалить плитку"
         size_hint_x: 1
         theme_text_color: "Custom"
         text_color: "white"
-        line_color: app.theme_cls.primary_color
+        line_color: app.theme_cls.error_color
+        font_size: sp(14)
         on_release: root.removeIt()

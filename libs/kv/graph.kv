@@ -5,6 +5,7 @@
 
 <GraphBox>:
     MDCard:
+        id: mdcard_id
         md_bg_color: app.theme_cls.accent_color
         radius: [sp(25), sp(25), sp(25), sp(25)]
         MDRelativeLayout:
@@ -19,9 +20,11 @@
                     anchor_x: "center"
                     anchor_y: "center"
                     MDLabel:
+                        id: graph_main_text
                         markup: True
                         halign: "center"
-                        text: str(root.labvar_value) + " [color=" + get_hex_from_color(app.theme_cls.primary_color) + "](AVG: " + str(root.avg_value) + ")[/color]"
+                        # text: str(root.labvar_value) + " [color=" + get_hex_from_color(app.theme_cls.primary_color) + "](AVG: " + str(root.avg_value) + ")[/color]"
+                        text: '0'
                         font_size: root.width / sp(15)
             MDRelativeLayout:
                 MDAnchorLayout:
@@ -29,16 +32,17 @@
                     anchor_y: "top"
                     padding: sp(5), sp(5), sp(5), sp(5)
                     MDFlatButton:
+                        id: graph_labvar_name_button
                         size_hint: None, None
                         size: sp(75), sp(25)
                         font_name: "DejaVuSans.ttf"
                         font_size: sp(12)
-                        text: root.labvar_name
-                        on_release: root.dialogGraphSettings.Open()
+                        text: 'None'
+                        on_release: root.DialogGraphSettingsOpen()
 
 
-<Container>:
-    container: container
+<GContainer>:
+    gcontainer: gcontainer
     scrollview: scroll_view
 
     MDScrollView:
@@ -47,7 +51,7 @@
         do_scroll_y: True
         effect_cls: Factory.OpacityScrollEffect
         MDGridLayout:
-            id: container
+            id: gcontainer
             size_hint_y: None
             cols: root.columns
             spacing: sp(5)

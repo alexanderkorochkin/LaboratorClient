@@ -26,9 +26,12 @@ class OPCUAClient(Client):
         for childId in node.get_children():
             ch = client.get_node(childId)
             if ch.get_node_class() == 2:
-                arr.append(LabVar(0, arr_index, str(ch.get_browse_name())[str(ch.get_browse_name()).find(":") + 1:len(str(ch.get_browse_name())) - 1], "NONE_PORT", "NONE_MULTIPLIER"))
+                arr.append(LabVar(str(ch.get_browse_name())[str(ch.get_browse_name()).find(":") + 1:len(str(ch.get_browse_name())) - 1]))
                 arr_index += 1
         return arr
+
+    def isConnected(self):
+        return True if self._isConnected else False
 
     def Connect(self, url):
         try:

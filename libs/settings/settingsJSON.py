@@ -20,11 +20,15 @@ settings_defaults = {
 
 graph_settings_defaults = {
             'NAME': 'None',
-            'MODE': '',
+            'MODE': 'NORMAL',
             'GRAPH_ADDITIONAL_SPACE_Y': 1.5,
             'GRAPH_BUFFER_AVG_SIZE': 20,
             'GRAPH_ROUND_DIGITS': 1,
-            'GRAPH_LINE_THICKNESS': 1.3
+            'GRAPH_LINE_THICKNESS': 1.3,
+            'SHOW_AVG': True,
+            'AVG_COLOR': '#FFFFFF',
+            'GRAPH_LABEL_X': False,
+            'GRAPH_LABEL_Y': False,
             }
 
 settings_json = json.dumps([

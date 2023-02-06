@@ -60,26 +60,12 @@
                         disabled: True
                         on_release: root.Disconnect()
                     MDIconButton:
-                        id: btn_add_graph
-                        icon: "plus"
+                        id: menu_button
+                        icon: "dots-vertical"
                         theme_icon_color: "Custom"
                         icon_color: "white"
                         pos_hint: {"center_x": .5, "center_y": .5}
-                        on_release: root.AddGraph()
-                    MDIconButton:
-                        id: btn_log
-                        icon: "math-log"
-                        theme_icon_color: "Custom"
-                        icon_color: "white"
-                        pos_hint: {"center_x": .5, "center_y": .5}
-                        on_release: app.swap_widgets(root.ids.log_box, root.ids.view_port)
-                    MDIconButton:
-                        id: btn_menu
-                        icon: "cog-outline"
-                        theme_icon_color: "Custom"
-                        icon_color: "white"
-                        pos_hint: {"center_x": .5, "center_y": .5}
-                        on_release: app.open_settings()
+                        on_release: app.menu_open()
         MDBoxLayout:
             id: view_port
         MDBoxLayout:
@@ -98,3 +84,9 @@
                     anchor_y: 'bottom'
                     font_size: sp(12)
                     text: "WELCOME TO LOG VIEWER!"
+
+<Item>
+    IconLeftWidget:
+        icon: root.left_icon
+        theme_icon_color: "Custom"
+        icon_color: "white"

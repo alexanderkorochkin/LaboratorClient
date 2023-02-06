@@ -11,6 +11,7 @@ class LayoutManager:
         self.kivy_instance = _kivy_instance
 
     def LoadLayout(self):
+        Logger.debug("LayoutManager: Loading layout from {}".format(msettings.get('LAYOUT_FILE')))
         arr = []
         try:
             with open(msettings.get('LAYOUT_FILE'), 'r') as fp:
@@ -18,9 +19,10 @@ class LayoutManager:
                 for line in arr:
                     self.kivy_instance.AddGraph(json.loads(line))
         except Exception:
-            Logger.debug('Layout: Failed to open Layout File!')
+            Logger.debug('LayoutManager: Failed to open Layout File!')
 
     def SaveLayout(self):
+        Logger.debug("LayoutManager: Saving layout to {}".format(msettings.get('LAYOUT_FILE')))
         file_to_delete = open(msettings.get('LAYOUT_FILE'), 'w')
         file_to_delete.close()
         isFirst = True
