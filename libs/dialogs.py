@@ -113,8 +113,8 @@ class DialogGraphSettingsContent(MDBoxLayout):
 
         self.RedrawExpressionSettingsStart()
 
-    def CheckName(self, name):
-        return self.m_parent.graph_instance.CheckName(name)
+    def CheckCollizionName(self, name):
+        return self.m_parent.graph_instance.CheckCollizionName(name)
 
     def SetExpression(self, expression):
         self.expression = expression
@@ -288,7 +288,7 @@ class DialogEnterString:
         self.dialog.dismiss(force=True)
 
     def Enter(self, *args):
-        if self.dialog.content_cls.text.strip().replace(' ', '') != '' and self.graph_instance.CheckName(self.dialog.content_cls.text):
+        if self.dialog.content_cls.text.strip().replace(' ', '') != '' and self.graph_instance.CheckCollizionName(self.dialog.content_cls.text):
             if self.state == 'edit_name':
                 default_name = '*' + self.dialog.content_cls.text
                 self.graph_instance.UpdateName(default_name, _clear_expression=False)
