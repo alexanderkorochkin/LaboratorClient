@@ -1,13 +1,13 @@
 import opcua
 from opcua import Client
 from urllib.parse import urlparse
-from libs.toolConfigurator import LabVar
+from libs.variables import LabVar
 from libs.settings.settingsJSON import msettings
 
 
 class OPCUAClient(Client):
 
-    def __init__(self, url="opc.tcp://127.0.0.1", **kwargs):
+    def __init__(self, url="opc.tcp://127.0.0.1"):
         super().__init__(url)
         self._isConnected = False
         self._isReconnecting = False
@@ -19,17 +19,13 @@ class OPCUAClient(Client):
         self.lab_node = opcua.Node
         self.lab_id = ''
 
-    @staticmethod
-    def GetVarsFromNode(node):
+    def GetVarsFromNode(self):
         arr = []
-        for childId in node.get_children():
-            ch = client.get_node(childId)
+        for child in self.lab_node.get_children():
+            ch = client.get_node(child)
             if ch.get_node_class() == 2:
                 arr.append(LabVar(str(ch.get_browse_name())[str(ch.get_browse_name()).find(":") + 1:len(str(ch.get_browse_name())) - 1]))
         return arr
-
-    def isConnected(self):
-        return True if self._isConnected else False
 
     def Connect(self, url):
         try:

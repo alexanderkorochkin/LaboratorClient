@@ -1,5 +1,5 @@
 from libs.settings.settingsJSON import msettings
-from kivy.logger import Logger, LOG_LEVELS, LoggerHistory
+from kivy.logger import Logger
 import numexpr as ne
 import re
 
@@ -14,7 +14,7 @@ class LabVar:
         return self.name
 
 
-class ServerVariable:
+class DirectVariable:
     def __init__(self, _client, _kivy, _name, _id=0):
         self.id = _id
         self.name = _name
@@ -60,24 +60,20 @@ class IndirectVariable:
         self.client = _client
         self.kivy_instance = _kivy
 
-    def GetValue(self, expr):
-        number1 = expr.count('[')
-        number2 = expr.count(']')
-        expression = expr
-        number = -1
-        mode = "NormalMode"
+    def GetValue(self, expression):
 
-        if number1 == number2:
-            number = number1
-            if number == 0 and len(expression) != 0:
+        if expression.count('[') == expression.count(']'):
+            if expression.count('[') == 0 and len(expression) != 0:
                 try:
                     self.value = float(ne.evaluate(expression))
                     self.WriteHistory(self.value)
+                    return self.value
                 except Exception:
-                    Logger.debug(f"GetValue: Expression: '{expression}' are invalid!")
-            if number > 0 and len(expression) != 0:
+                    Logger.debug(f"GetValue: Cannot evaluate expression without args: {expression}!")
+                    return expression
+            elif expression.count('[') > 0 and len(expression) != 0:
+
                 isWork = True
-                isError = False
                 while isWork:
                     result = re.search(r'\[([^\]]*)\]', expression)
                     if result:
@@ -89,13 +85,20 @@ class IndirectVariable:
                             return name
                     else:
                         isWork = False
+
                 try:
                     self.value = float(ne.evaluate(expression))
                     self.WriteHistory(self.value)
+                    return self.value
                 except Exception:
-                    Logger.debug(f"GetValue: Expression: '{expression}' are invalid!")
-
-        return self.value
+                    Logger.debug(f"GetValue: Cannot evaluate expression with args: {expression}!")
+                    return expression
+            else:
+                Logger.debug(f"GetValue: Expression is empty!")
+                return expression
+        else:
+            Logger.debug(f"GetValue: Expression '{expression}' contains a different number of opening and closing brackets!")
+            return expression
 
     def WriteHistory(self, _value):
         if len(self.values_history) < msettings.get('MAX_HISTORY_VALUES'):

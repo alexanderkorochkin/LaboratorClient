@@ -19,7 +19,6 @@ from libs.graph import GraphBox
 from libs.dialogs import DialogEndpoint
 from libs.layoutManager import LayoutManager
 
-
 Logger.setLevel(LOG_LEVELS["debug"])
 
 
@@ -45,11 +44,11 @@ def animate_graph_removal(wid, method):
     t = wid.gardenGraph._trigger
     ts = wid.gardenGraph._trigger_size
     wid.gardenGraph.unbind(center=ts, padding=ts, precision=ts, plots=ts, x_grid=ts,
-              y_grid=ts, draw_border=ts)
+                           y_grid=ts, draw_border=ts)
     wid.gardenGraph.unbind(xmin=t, xmax=t, xlog=t, x_ticks_major=t, x_ticks_minor=t,
-              xlabel=t, x_grid_label=t, ymin=t, ymax=t, ylog=t,
-              y_ticks_major=t, y_ticks_minor=t, ylabel=t, y_grid_label=t,
-              font_size=t, label_options=t, x_ticks_angle=t)
+                           xlabel=t, x_grid_label=t, ymin=t, ymax=t, ylog=t,
+                           y_ticks_major=t, y_ticks_minor=t, ylabel=t, y_grid_label=t,
+                           font_size=t, label_options=t, x_ticks_angle=t)
     anim.start(wid)
 
 
@@ -213,15 +212,14 @@ class LaboratorClient(MDScreen):
 
     def LabVarArrConfigure(self, path):
         Logger.debug("LabVarConf: Getting configuration from server...")
-        arr = client.GetVarsFromNode(client.lab_node)
+        arr = client.GetVarsFromNode()
 
         for var in arr:
             for child in client.lab_node.get_children():
                 if str(child.get_browse_name()).find(str(var.name)) != -1:
                     var.browse_name = str(child.get_browse_name())
                     var.node_id = str(child)
-                    Logger.debug("PARSEVARS: [" + var.name + "], the browse_name is: [" + str(
-                        var.browse_name) + "], NodeId: [" + var.node_id + "]")
+                    Logger.debug("PARSEVARS: [" + var.name + "], the browse_name is: [" + str(var.browse_name) + "], NodeId: [" + var.node_id + "]")
 
         self.LabVarArr = arr
 
@@ -264,8 +262,10 @@ class LaboratorClient(MDScreen):
                 self.ids.info_log.text = "Error while connecting... Disconnected!"
                 Logger.error("CONNECT: Error while connecting... Disconnected!")
             else:
-                self.ids.info_log.text = "Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')'
-                Logger.error("CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
+                self.ids.info_log.text = "Connection lost! Error while reconnecting... (" + str(
+                    client.GetReconnectNumber()) + ')'
+                Logger.error(
+                    "CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
 
     def Connect(self):
         self.ids.info_log.text = "Trying connect to {}!".format(self.endpoint)
@@ -321,6 +321,7 @@ class FullLogHandler(logging.Handler):
         def f(dt=None):
             self.label.text = "\n".join(list(map(self.format, LoggerHistory.history[::-1])))
             self.label.scroll_y = 0
+
         Clock.schedule_once(f)
 
 
@@ -451,9 +452,5 @@ class KivyApp(MDApp):
 
 KivyApp = KivyApp()
 
-# Программа получает на вход готовые приведенные параметры, выводит их графики,
-# считает косвенные параметры, считает спектральные параметры, среднее значение...
-
-# TODO Научиться считать косвенные параметры по измеряемым и выводить на график
 # TODO Научиться делать статистический анализ
 # TODO Научиться подключаться к LabView

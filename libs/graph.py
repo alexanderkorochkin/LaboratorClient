@@ -9,7 +9,7 @@ from kivy.utils import get_hex_from_color as get_hex
 from libs.dialogs import DialogGraphSettings
 from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
-from libs.toolConfigurator import ServerVariable, IndirectVariable
+from libs.variables import DirectVariable, IndirectVariable
 
 
 class GardenGraph(Graph):
@@ -174,7 +174,7 @@ class GraphBox(MDBoxLayout):
             self.acf('EXPRESSION', settings, self.SetExpression)
         else:
             self.s['IS_INDIRECT'] = False
-            self.var = ServerVariable(client, self.kivy_instance, self.s['NAME'])
+            self.var = DirectVariable(client, self.kivy_instance, self.s['NAME'])
 
     def SetExpression(self, expression):
         self.s['EXPRESSION'] = expression
@@ -293,7 +293,7 @@ class GraphBox(MDBoxLayout):
                 self.SetExpression('')
         else:
             self.s['IS_INDIRECT'] = False
-            self.var = ServerVariable(client, self.kivy_instance, self.s['NAME'])
+            self.var = DirectVariable(client, self.kivy_instance, self.s['NAME'])
             if _clear_expression:
                 self.SetExpression('')
 
@@ -323,7 +323,7 @@ class GraphBox(MDBoxLayout):
             pass
 
     def _UpdateNameButton(self):
-        self.ids.graph_labvar_name_button.text = '{}:{}'.format(self.s['NAME'], self.s['MODE'])
+        self.ids.graph_labvar_name_button.text = f"{self.s['NAME']}:{self.s['MODE']}"
 
     def _SetMode(self, _mode):
         self.s['MODE'] = _mode

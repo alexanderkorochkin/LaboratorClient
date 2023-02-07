@@ -145,7 +145,7 @@ class DialogGraphSettingsContent(MDBoxLayout):
         if _id == 'change_mode_button':
             self.mode = self.m_parent.graph_instance.NextMode()
             self.m_parent.graph_instance.ClearPlot()
-            self.m_parent.dialog.title = "{}:{}".format(self.m_parent.graph_instance.s['NAME'], self.m_parent.graph_instance.s['MODE'])
+            self.m_parent.dialog.title = f"{self.m_parent.graph_instance.s['NAME']}:{self.m_parent.graph_instance.s['MODE']}"
 
     def CheckboxPress(self, _id):
         if _id == 'show_avg_checkbox':
@@ -182,7 +182,7 @@ class DialogGraphSettings:
     def Open(self):
         self.graph_instance.AccentIt()
         self.dialog = MDDialog(
-            title="{}:{}".format(self.graph_instance.s['NAME'], self.graph_instance.s['MODE']),
+            title=f"{self.graph_instance.s['NAME']}:{self.graph_instance.s['MODE']}",
             elevation=0,
             type="custom",
             content_cls=DialogGraphSettingsContent(self, self.dialog),
@@ -293,7 +293,7 @@ class DialogEnterString:
                 default_name = '*' + self.dialog.content_cls.text
                 self.graph_instance.UpdateName(default_name, _clear_expression=False)
                 self.m_parent.m_parent.labvar_name = default_name
-                self.m_parent.m_parent.dialog.title = "{}:{}".format(default_name, self.graph_instance.s['MODE'])
+                self.m_parent.m_parent.dialog.title = f"{default_name}:{self.graph_instance.s['MODE']}"
                 self.state = None
                 self.dialog.dismiss(force=True)
                 self.m_parent.m_parent.Close()
@@ -307,7 +307,7 @@ class DialogEnterString:
                 self.graph_instance.ClearPlot()
                 self.graph_instance.UpdateName(default_name)
                 self.m_parent.m_parent.labvar_name = default_name
-                self.m_parent.dialog.title = "{}:{}".format(default_name, self.graph_instance.s['MODE'])
+                self.m_parent.dialog.title = f"{default_name}:{self.graph_instance.s['MODE']}"
 
                 self.state = None
                 self.dialog.dismiss(force=True)
@@ -407,8 +407,7 @@ class DialogListLabVar:
                 self.m_parent.m_parent.graph_instance.ClearPlot()
                 self.m_parent.m_parent.graph_instance.UpdateName(self.items[active_nn].text)
                 self.m_parent.labvar_name = self.items[active_nn].text
-                self.m_parent.m_parent.dialog.title = "{}:{}".format(self.items[active_nn].text,
-                                                                     self.m_parent.m_parent.graph_instance.s['MODE'])
+                self.m_parent.m_parent.dialog.title = f"{self.items[active_nn].text}:{self.m_parent.m_parent.graph_instance.s['MODE']}"
 
                 self.dialog.dismiss(force=True)
                 self.m_parent.m_parent.Close()
