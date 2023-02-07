@@ -99,7 +99,7 @@ class GContainer(MDBoxLayout):
                         self.GraphArr.append(graphbox)
                         self.gcontainer.add_widget(graphbox)
 
-        Logger.debug("GRAPH: Graph [{}] with HASH: {} is added!".format(graphbox.s['NAME'], graphbox.s['HASH']))
+        Logger.debug(f"GRAPH: Graph [{graphbox.s['NAME']}] with HASH: {graphbox.s['HASH']} is added!")
 
     def GetGraphByHASH(self, _hash):
         for x in self.GraphArr:
@@ -133,7 +133,7 @@ class GContainer(MDBoxLayout):
                             self.gcontainer.remove_widget(temp)
                             self.GraphArr.remove(temp)
 
-            Logger.debug("GRAPH: Graph [{}] with HASH: {} is removed!".format(temp.s['NAME'], temp.s['HASH']))
+            Logger.debug(f"GRAPH: Graph [{temp.s['NAME']}] with HASH: {temp.s['HASH']} is removed!")
 
 
 class Item(OneLineIconListItem):
@@ -250,8 +250,8 @@ class LaboratorClient(MDScreen):
             self.ids.btn_connect.disabled = True
             self.ids.btn_disconnect.disabled = False
             self.ids.endpoint_label.disabled = True
-            Logger.debug("CONNECT: Connected to {}!".format(self.endpoint))
-            self.ids.info_log.text = "Connected to {}!".format(self.endpoint)
+            Logger.debug(f"CONNECT: Connected to {self.endpoint}!")
+            self.ids.info_log.text = f"Connected to {self.endpoint}!"
             Logger.debug("CONNECT: Parsed!")
             msettings.set('allSettings', 'LAST_IP', self.endpoint)
         except Exception:
@@ -268,7 +268,7 @@ class LaboratorClient(MDScreen):
                     "CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
 
     def Connect(self):
-        self.ids.info_log.text = "Trying connect to {}!".format(self.endpoint)
+        self.ids.info_log.text = f"Trying connect to {self.endpoint}!"
         self.ids.btn_connect.disabled = True
         Clock.schedule_once(self.ConnectLow, 0)
 
@@ -279,8 +279,8 @@ class LaboratorClient(MDScreen):
             self.ids.btn_disconnect.disabled = True
             self.ids.btn_connect.disabled = False
             self.ids.endpoint_label.disabled = False
-            self.ids.info_log.text = "Disconnected from {}!".format(self.endpoint)
-            Logger.debug("CONNECT: Disconnected from {}!".format(self.endpoint))
+            self.ids.info_log.text = f"Disconnected from {self.endpoint}!"
+            Logger.debug(f"CONNECT: Disconnected from {self.endpoint}!")
         except Exception:
             self.ids.btn_disconnect.disabled = False
             self.ids.btn_connect.disabled = True
