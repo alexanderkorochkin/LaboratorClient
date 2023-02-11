@@ -11,33 +11,38 @@
         MDRelativeLayout:
             MDRelativeLayout:
                 MDAnchorLayout:
-                    anchor_x: "center"
-                    anchor_y: "center"
                     id: garden_graph_placer
-            MDRelativeLayout:
-                id: value_screen
-                MDAnchorLayout:
                     anchor_x: "center"
                     anchor_y: "center"
-                    MDLabel:
+                    padding: 0, sp(20), 0, sp(28)
+            MDRelativeLayout:
+                MDAnchorLayout:
+                    anchor_x: "right"
+                    anchor_y: "bottom"
+                    padding: sp(5), sp(5), sp(5), sp(5)
+                    MDFillRoundFlatButton:
                         id: graph_main_text
-                        markup: True
-                        halign: "center"
-                        # text: str(root.labvar_value) + " [color=" + get_hex_from_color(app.theme_cls.primary_color) + "](AVG: " + str(root.avg_value) + ")[/color]"
-                        text: '0'
-                        font_size: root.width / sp(15)
+                        #markup: True
+                        #halign: "center"
+                        #valign: "middle"
+                        text: ''
+                        md_bg_color: root.graph_main_text_color
+                        font_size: sp(18)
             MDRelativeLayout:
                 MDAnchorLayout:
                     anchor_x: "right"
                     anchor_y: "top"
                     padding: sp(5), sp(5), sp(5), sp(5)
-                    MDFlatButton:
+                    MDFillRoundFlatButton:
                         id: graph_labvar_name_button
                         size_hint: None, None
                         size: sp(75), sp(25)
+                        text: 'None'
+                        theme_text_color: "Custom"
                         font_name: "DejaVuSans.ttf"
                         font_size: sp(12)
-                        text: 'None'
+                        text_color: 1, 1, 1, 1
+                        md_bg_color: 0, 0, 0, 0
                         on_release: root.DialogGraphSettingsOpen()
 
 

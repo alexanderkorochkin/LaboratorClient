@@ -1,15 +1,14 @@
-from kivy.clock import Clock
-from kivymd.uix.button import MDFlatButton, MDRaisedButton
+from kivymd.material_resources import DEVICE_TYPE
+from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDRoundFlatButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.pickers import MDColorPicker
-from kivymd.toast import toast
 
 from kivy.core.window import Window
 
 from typing import Union
 
-from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ColorProperty
+from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ColorProperty, NumericProperty
 from kivymd.uix.list.list import OneLineAvatarIconListItem
 
 from kivy.utils import get_hex_from_color
@@ -18,6 +17,23 @@ from kivymd.uix.textfield import MDTextField
 
 from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
+
+
+class MDDialogFix(MDDialog):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def update_width(self, *args) -> None:
+        super().update_width(*args)
+        # self.width = min(
+        #     self.height + self.width_offset,
+        #     min(
+        #         sp(560) if DEVICE_TYPE != "mobile" else sp(280),
+        #         Window.width - self.width_offset,
+        #     ),
+        # )
+
+        self.width = Window.width - self.width_offset if self.height > Window.width - self.width_offset else self.height
 
 
 class DialogEndpointContent(MDBoxLayout):
@@ -87,8 +103,18 @@ class ItemArgument(MDFlatButton):
 class DialogGraphSettingsContent(MDBoxLayout):
     labvar_name = StringProperty("None")
     mode = StringProperty("NORMAL")
-    show_avg = BooleanProperty(False)
+
+    show_avg_value = BooleanProperty(False)
+    show_main_value = BooleanProperty(False)
+
+    show_avg_graph = BooleanProperty(False)
+    show_intime_graph = BooleanProperty(False)
+    show_main_graph = BooleanProperty(False)
+
+    main_graph_color = StringProperty('#FFFFFF')
     avg_color = StringProperty('#FFFFFF')
+    intime_graph_color = StringProperty('#FFFFFF')
+
     label_x = BooleanProperty(False)
     label_y = BooleanProperty(False)
     expression = StringProperty('')
@@ -97,10 +123,21 @@ class DialogGraphSettingsContent(MDBoxLayout):
         super().__init__(**kwargs)
         self.m_parent = _parent
         self.dialog = _dialog
+
         self.labvar_name = self.m_parent.graph_instance.GetName()
         self.mode = self.m_parent.graph_instance.s['MODE']
-        self.show_avg = self.m_parent.graph_instance.s['SHOW_AVG']
+        
+        self.show_avg_graph = self.m_parent.graph_instance.s['SHOW_AVG_GRAPH']
+        self.show_intime_graph = self.m_parent.graph_instance.s['SHOW_INTIME_GRAPH']
+        self.show_main_graph = self.m_parent.graph_instance.s['SHOW_MAIN_GRAPH']
+
+        self.show_main_value = self.m_parent.graph_instance.s['SHOW_MAIN_VALUE']
+        self.show_avg_value = self.m_parent.graph_instance.s['SHOW_AVG_VALUE']
+        
+        self.main_graph_color = self.m_parent.graph_instance.s['MAIN_GRAPH_COLOR']
         self.avg_color = self.m_parent.graph_instance.s['AVG_COLOR']
+        self.intime_graph_color = self.m_parent.graph_instance.s['INTIME_GRAPH_COLOR']
+
         self.label_x = self.m_parent.graph_instance.s['GRAPH_LABEL_X']
         self.label_y = self.m_parent.graph_instance.s['GRAPH_LABEL_Y']
         self.expression = self.m_parent.graph_instance.s['EXPRESSION']
@@ -144,25 +181,51 @@ class DialogGraphSettingsContent(MDBoxLayout):
     def ChangeMode(self, _id):
         if _id == 'change_mode_button':
             self.mode = self.m_parent.graph_instance.NextMode()
-            self.m_parent.graph_instance.ClearPlot()
             self.m_parent.dialog.title = f"{self.m_parent.graph_instance.s['NAME']}:{self.m_parent.graph_instance.s['MODE']}"
 
     def CheckboxPress(self, _id):
-        if _id == 'show_avg_checkbox':
-            self.m_parent.graph_instance.SwitchAVG()
-            self.show_avg = self.m_parent.graph_instance.GetAVGState()
+        if _id == 'show_main_value':
+            self.m_parent.graph_instance.Toggle('SHOW_MAIN_VALUE')
+            self.show_main_value = self.m_parent.graph_instance.s['SHOW_MAIN_VALUE']
+        if _id == 'show_avg_value':
+            self.m_parent.graph_instance.Toggle('SHOW_AVG_VALUE')
+            self.show_avg_value = self.m_parent.graph_instance.s['SHOW_AVG_VALUE']
+        if _id == 'show_main_graph':
+            self.m_parent.graph_instance.Toggle('SHOW_MAIN_GRAPH', True)
+            self.m_parent.graph_instance.gardenGraph.TogglePlot(plot='MAIN')
+            self.show_main_graph = self.m_parent.graph_instance.s['SHOW_MAIN_GRAPH']
+        if _id == 'show_avg_graph':
+            self.m_parent.graph_instance.Toggle('SHOW_AVG_GRAPH', True)
+            self.m_parent.graph_instance.gardenGraph.TogglePlot(plot='AVG')
+            self.show_avg_graph = self.m_parent.graph_instance.s['SHOW_AVG_GRAPH']
+        if _id == 'show_intime_graph':
+            self.m_parent.graph_instance.Toggle('SHOW_INTIME_GRAPH', True)
+            self.m_parent.graph_instance.gardenGraph.TogglePlot(plot='INTIME')
+            self.show_intime_graph = self.m_parent.graph_instance.s['SHOW_INTIME_GRAPH']
 
     def OpenColorPicker(self, _colorpicker_target):
         self.color_picker = MDColorPicker(size_hint=(0.6, 0.6))
-        self.color_picker.default_color = self.m_parent.graph_instance.s['AVG_COLOR']
+
+        if _colorpicker_target == 'MAIN':
+            self.color_picker.default_color = self.m_parent.graph_instance.s['MAIN_GRAPH_COLOR']
+        if _colorpicker_target == 'AVG':
+            self.color_picker.default_color = self.m_parent.graph_instance.s['AVG_COLOR']
+        if _colorpicker_target == 'INTIME':
+            self.color_picker.default_color = self.m_parent.graph_instance.s['INTIME_GRAPH_COLOR']
+
         self.color_picker.open()
         self.colorpicker_target = _colorpicker_target
         self.color_picker.bind(on_release=self.save_color)
 
     def save_color(self, instance_color_picker: MDColorPicker, type_color: str, selected_color: Union[list, str]):
-        if self.colorpicker_target == 'avg':
+        if self.colorpicker_target == 'AVG':
             self.avg_color = get_hex_from_color(selected_color)
             self.m_parent.graph_instance.s['AVG_COLOR'] = self.avg_color
+            self.m_parent.graph_instance.gardenGraph.UpdatePlotColor(plot='AVG')
+        if self.colorpicker_target == 'MAIN':
+            self.main_graph_color = get_hex_from_color(selected_color)
+            self.m_parent.graph_instance.s['MAIN_GRAPH_COLOR'] = self.main_graph_color
+            self.m_parent.graph_instance.gardenGraph.UpdatePlotColor(plot='MAIN')
 
         self.color_picker.dismiss(force=True)
         self.colorpicker_target = None
@@ -181,7 +244,7 @@ class DialogGraphSettings:
 
     def Open(self):
         self.graph_instance.AccentIt()
-        self.dialog = MDDialog(
+        self.dialog = MDDialogFix(
             title=f"{self.graph_instance.s['NAME']}:{self.graph_instance.s['MODE']}",
             elevation=0,
             type="custom",
@@ -196,6 +259,7 @@ class DialogGraphSettings:
                 )
             ],
         )
+        self.dialog.size_hint_x = None
         self.dialog.open()
 
     def PreDismiss(self, *args):
@@ -207,6 +271,31 @@ class DialogGraphSettings:
         self.dialog.dismiss(force=True)
 
 
+class ChipsContent(MDBoxLayout):
+
+    init_text = StringProperty('')
+    hint_text = StringProperty('')
+
+    def __init__(self, _graph, _parent, init_text, hint_text):
+        super().__init__()
+        self.graph_instance = _graph
+        self.m_parent = _parent
+        self.init_text = init_text
+        self.hint_text = hint_text
+
+        names = self.graph_instance.kivy_instance.GetNamesArr()
+        if names:
+            self.ids.chips_stack.adaptive_height = True
+            for name in names:
+                self.ids.chips_stack.add_widget(MDRoundFlatButton(text=name, on_release=self.ChipReleased))
+        else:
+            self.ids.chips_stack.adaptive_height = False
+            self.ids.chips_stack.height = 0
+
+    def ChipReleased(self, instance):
+        self.ids.my_text_field.text += f'[{instance.text}]'
+
+
 class DialogEnterString:
 
     def __init__(self, _graph, _parent, **kwargs):
@@ -215,6 +304,7 @@ class DialogEnterString:
         self.graph_instance = _graph
         self.m_parent = _parent
         self.state = None
+        self.text_field = None
 
     def Open(self, state, init_text, title, hint_text, _need_connection=False):
         if _need_connection:
@@ -258,29 +348,56 @@ class DialogEnterString:
             if state == "edit_name":
                 init_text = init_text[1:]
             self.state = state
-            self.dialog = MDDialog(
-                title=title,
-                elevation=0,
-                auto_dismiss=False,
-                type="custom",
-                content_cls=MDTextField(
+
+            if self.state == "expression":
+
+                self.dialog = MDDialog(
+                    title=title,
+                    elevation=0,
+                    auto_dismiss=False,
+                    type="custom",
+                    content_cls=ChipsContent(self.graph_instance, self, init_text, hint_text),
+                    buttons=[
+                        MDFlatButton(
+                            text="CANCEL",
+                            theme_text_color="Custom",
+                            text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
+                            on_release=self.Cancel,
+                        ),
+                        MDFlatButton(
+                            text="ENTER",
+                            theme_text_color="Custom",
+                            text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
+                            on_release=self.Enter,
+                        )
+                    ],
+                )
+            else:
+                self.text_field = MDTextField(
                     text=init_text,
-                    hint_text=hint_text),
-                buttons=[
-                    MDFlatButton(
-                        text="CANCEL",
-                        theme_text_color="Custom",
-                        text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
-                        on_release=self.Cancel,
-                    ),
-                    MDFlatButton(
-                        text="ENTER",
-                        theme_text_color="Custom",
-                        text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
-                        on_release=self.Enter,
-                    )
-                ],
-            )
+                    hint_text=hint_text)
+
+                self.dialog = MDDialog(
+                    title=title,
+                    elevation=0,
+                    auto_dismiss=False,
+                    type="custom",
+                    content_cls=self.text_field,
+                    buttons=[
+                        MDFlatButton(
+                            text="CANCEL",
+                            theme_text_color="Custom",
+                            text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
+                            on_release=self.Cancel,
+                        ),
+                        MDFlatButton(
+                            text="ENTER",
+                            theme_text_color="Custom",
+                            text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
+                            on_release=self.Enter,
+                        )
+                    ],
+                )
             self.dialog.open()
 
     def Cancel(self, *args):
@@ -288,41 +405,49 @@ class DialogEnterString:
         self.dialog.dismiss(force=True)
 
     def Enter(self, *args):
-        if self.dialog.content_cls.text.strip().replace(' ', '') != '' and self.graph_instance.CheckCollizionName(self.dialog.content_cls.text):
-            if self.state == 'edit_name':
-                default_name = '*' + self.dialog.content_cls.text
-                self.graph_instance.UpdateName(default_name, _clear_expression=False)
-                self.m_parent.m_parent.labvar_name = default_name
-                self.m_parent.m_parent.dialog.title = f"{default_name}:{self.graph_instance.s['MODE']}"
+        if self.state == 'expression':
+            if self.dialog.content_cls.ids.my_text_field.text.strip().replace(' ', '') != '' and self.graph_instance.CheckCollizionName(self.dialog.content_cls.ids.my_text_field.text):
+                self.m_parent.SetExpression(self.dialog.content_cls.ids.my_text_field.text)
                 self.state = None
                 self.dialog.dismiss(force=True)
-                self.m_parent.m_parent.Close()
-                self.m_parent.m_parent.Open()
-            if self.state == 'expression':
-                self.m_parent.SetExpression(self.dialog.content_cls.text)
-                self.state = None
-                self.dialog.dismiss(force=True)
-            if self.state == 'new_var':
-                default_name = '*' + self.dialog.content_cls.text
-                self.graph_instance.ClearPlot()
-                self.graph_instance.UpdateName(default_name)
-                self.m_parent.m_parent.labvar_name = default_name
-                self.m_parent.dialog.title = f"{default_name}:{self.graph_instance.s['MODE']}"
-
-                self.state = None
-                self.dialog.dismiss(force=True)
-                self.m_parent.m_parent.m_parent.Close()
-                self.m_parent.m_parent.m_parent.Open()
-
+            else:
+                snackbar = Snackbar(
+                    text="Некорректный ввод!",
+                    snackbar_x="10sp",
+                    snackbar_y="10sp",
+                )
+                snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
+                snackbar.open()
         else:
-            snackbar = Snackbar(
-                text="Некорректный ввод!",
-                snackbar_x="10sp",
-                snackbar_y="10sp",
-            )
-            snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
-            snackbar.open()
-            self.dialog.content_cls.text = ''
+            if self.text_field.text.strip().replace(' ', '') != '' and self.graph_instance.CheckCollizionName(self.text_field.text):
+                if self.state == 'edit_name':
+                    default_name = '*' + self.text_field.text
+                    self.graph_instance.UpdateName(default_name, _clear_expression=False)
+                    self.m_parent.m_parent.labvar_name = default_name
+                    self.m_parent.m_parent.dialog.title = f"{default_name}:{self.graph_instance.s['MODE']}"
+                    self.state = None
+                    self.dialog.dismiss(force=True)
+                    self.m_parent.m_parent.Close()
+                    self.m_parent.m_parent.Open()
+                if self.state == 'new_var':
+                    default_name = '*' + self.text_field.text
+                    self.graph_instance.ClearPlot()
+                    self.graph_instance.UpdateName(default_name)
+                    self.m_parent.m_parent.labvar_name = default_name
+                    self.m_parent.dialog.title = f"{default_name}:{self.graph_instance.s['MODE']}"
+
+                    self.state = None
+                    self.dialog.dismiss(force=True)
+                    self.m_parent.m_parent.m_parent.Close()
+                    self.m_parent.m_parent.m_parent.Open()
+            else:
+                snackbar = Snackbar(
+                    text="Некорректный ввод!",
+                    snackbar_x="10sp",
+                    snackbar_y="10sp",
+                )
+                snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
+                snackbar.open()
 
 
 class DialogListLabVar:

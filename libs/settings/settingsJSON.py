@@ -21,12 +21,28 @@ settings_defaults = {
 graph_settings_defaults = {
             'NAME': 'None',
             'MODE': 'NORMAL',
-            'GRAPH_ADDITIONAL_SPACE_Y': 1.5,
-            'GRAPH_BUFFER_AVG_SIZE': 20,
+
+            'GRAPH_ADDITIONAL_SPACE_Y': 1.2,
+            'GRAPH_BUFFER_AVG_SIZE': 40,
             'GRAPH_ROUND_DIGITS': 1,
-            'GRAPH_LINE_THICKNESS': 1.3,
-            'SHOW_AVG': True,
+
+            'SHOW_MAIN_VALUE': True,
+            'SHOW_AVG_VALUE': True,
+
+            'SHOW_MAIN_GRAPH': True,
+            'SHOW_AVG_GRAPH': True,
+            'SHOW_INTIME_GRAPH': True,
+
+            'MAIN_GRAPH_COLOR': '#ffb74d',
             'AVG_COLOR': '#FFFFFF',
+            'INTIME_GRAPH_COLOR': '#FFFFFF',
+
+            'MAIN_GRAPH_LINE_THICKNESS': 1.2,
+            'AVG_GRAPH_LINE_THICKNESS': 1.2,
+            'INTIME_GRAPH_LINE_THICKNESS': 1,
+
+            'AVG_GRAPH_OPACITY': 0.8,
+
             'GRAPH_LABEL_X': False,
             'GRAPH_LABEL_Y': False,
             }
@@ -115,9 +131,9 @@ settings_json = json.dumps([
 
     {'type': 'numeric',
      'title': 'Толщина линии графика',
-     'desc': 'GRAPH_LINE_THICKNESS',
+     'desc': 'MAIN_GRAPH_LINE_THICKNESS',
      'section': 'GraphSettings',
-     'key': 'GRAPH_LINE_THICKNESS'},
+     'key': 'MAIN_GRAPH_LINE_THICKNESS'},
 
     {'type': 'bool',
      'title': 'Запоминать открытые графики',
@@ -160,6 +176,6 @@ class MConf:
 
 
 ALL_SETTINGS = 'allSettings'
-PADDING = sp(15)
+PADDING = sp(10)
 
 msettings = MConf()
