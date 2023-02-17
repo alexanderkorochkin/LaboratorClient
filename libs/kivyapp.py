@@ -2,12 +2,14 @@ import logging
 
 from kivymd.app import MDApp
 from kivy.metrics import dp
+from kivymd.uix.label import MDLabel
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.animation import Animation
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.list import OneLineIconListItem
 from kivy.clock import Clock
+from kivymd.uix.responsivelayout import MDResponsiveLayout
 from kivymd.uix.screen import MDScreen
 from kivy.logger import Logger, LOG_LEVELS, LoggerHistory
 from kivy.lang import Builder
@@ -136,8 +138,24 @@ class GContainer(MDBoxLayout):
             Logger.debug(f"GRAPH: Graph [{temp.s['NAME']}] with HASH: {temp.s['HASH']} is removed!")
 
 
-class Item(OneLineIconListItem):
-    left_icon = StringProperty()
+# class Item(OneLineIconListItem):
+#     left_icon = StringProperty()
+#
+#
+# class CommonComponentLabel(MDLabel):
+#     pass
+#
+#
+# class MobileView(MDScreen):
+#     pass
+#
+#
+# class TabletView(MDScreen):
+#     pass
+#
+#
+# class DesktopView(MDScreen):
+#     pass
 
 
 class LaboratorClient(MDScreen):
@@ -147,6 +165,9 @@ class LaboratorClient(MDScreen):
         super().__init__(**kwargs)
         self.main_container = GContainer(self)
         self.main_app = _main_app
+        # self.mobile_view = MobileView()
+        # self.tablet_view = TabletView()
+        # self.desktop_view = DesktopView()
         self.LabVarArr = []
 
         menu_items = [
@@ -253,7 +274,7 @@ class LaboratorClient(MDScreen):
             self.Disconnect()
 
     def ConnectLow(self, dt):
-        #try:
+        try:
             client.Connect(self.endpoint)
             self.LabVarArrConfigure(msettings.get('CONFIGURATION_PATH'))
             self.ids.btn_connect.disabled = True
@@ -263,18 +284,18 @@ class LaboratorClient(MDScreen):
             self.ids.info_log.text = f"Connected to {self.endpoint}!"
             Logger.debug("CONNECT: Parsed!")
             msettings.set('allSettings', 'LAST_IP', self.endpoint)
-        # except Exception:
-        #     if not client.isReconnecting():
-        #         self.ids.btn_connect.disabled = False
-        #         self.ids.btn_disconnect.disabled = True
-        #         self.ids.endpoint_label.disabled = False
-        #         self.ids.info_log.text = "Error while connecting... Disconnected!"
-        #         Logger.error("CONNECT: Error while connecting... Disconnected!")
-        #     else:
-        #         self.ids.info_log.text = "Connection lost! Error while reconnecting... (" + str(
-        #             client.GetReconnectNumber()) + ')'
-        #         Logger.error(
-        #             "CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
+        except Exception:
+            if not client.isReconnecting():
+                self.ids.btn_connect.disabled = False
+                self.ids.btn_disconnect.disabled = True
+                self.ids.endpoint_label.disabled = False
+                self.ids.info_log.text = "Error while connecting... Disconnected!"
+                Logger.error("CONNECT: Error while connecting... Disconnected!")
+            else:
+                self.ids.info_log.text = "Connection lost! Error while reconnecting... (" + str(
+                    client.GetReconnectNumber()) + ')'
+                Logger.error(
+                    "CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
 
     def Connect(self):
         self.ids.info_log.text = f"Trying connect to {self.endpoint}!"
@@ -283,34 +304,34 @@ class LaboratorClient(MDScreen):
 
     def Disconnect(self):
         client._isReconnecting = False
-        #try:
-        client.Disconnect()
-        self.ids.btn_disconnect.disabled = True
-        self.ids.btn_connect.disabled = False
-        self.ids.endpoint_label.disabled = False
-        self.ids.info_log.text = f"Disconnected from {self.endpoint}!"
-        Logger.debug(f"CONNECT: Disconnected from {self.endpoint}!")
-        # except Exception:
-        #     self.ids.btn_disconnect.disabled = False
-        #     self.ids.btn_connect.disabled = True
-        #     self.ids.endpoint_label.disabled = True
-        #     self.ids.info_log.text = "Error while disconnecting..."
-        #     Logger.info("CONNECT: Error while disconnecting...")
+        try:
+            client.Disconnect()
+            self.ids.btn_disconnect.disabled = True
+            self.ids.btn_connect.disabled = False
+            self.ids.endpoint_label.disabled = False
+            self.ids.info_log.text = f"Disconnected from {self.endpoint}!"
+            Logger.debug(f"CONNECT: Disconnected from {self.endpoint}!")
+        except Exception:
+            self.ids.btn_disconnect.disabled = False
+            self.ids.btn_connect.disabled = True
+            self.ids.endpoint_label.disabled = True
+            self.ids.info_log.text = "Error while disconnecting..."
+            Logger.info("CONNECT: Error while disconnecting...")
 
     def Update(self, dt):
         if client.isConnected():
-            #try:
+            try:
                 for graph in self.main_container.GraphArr:
                     graph.Update()
 
-            # except Exception:
-            #     client._isConnected = False
-            #     client._isReconnecting = True
-            #     self.ids.btn_disconnect.disabled = False
-            #     self.ids.btn_connect.disabled = True
-            #     self.ids.info_log.text = "Connection lost! Trying to reconnect..."
-            #     Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
-            #     self.Reconnection(msettings.get('RECONNECTION_TIME'))
+            except Exception:
+                client._isConnected = False
+                client._isReconnecting = True
+                self.ids.btn_disconnect.disabled = False
+                self.ids.btn_connect.disabled = True
+                self.ids.info_log.text = "Connection lost! Trying to reconnect..."
+                Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
+                self.Reconnection(msettings.get('RECONNECTION_TIME'))
 
     def GetLabVarByName(self, name):
         for labvar in self.LabVarArr:

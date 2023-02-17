@@ -1,5 +1,7 @@
+from kivy.clock import Clock
 from kivymd.material_resources import DEVICE_TYPE
 from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDRoundFlatButton
+from kivymd.uix.chip import MDChip
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.pickers import MDColorPicker
@@ -12,6 +14,7 @@ from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, Col
 from kivymd.uix.list.list import OneLineAvatarIconListItem
 
 from kivy.utils import get_hex_from_color
+from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.snackbar import Snackbar
 from kivymd.uix.textfield import MDTextField
 
@@ -95,11 +98,6 @@ class ItemConfirm(OneLineAvatarIconListItem):
                 check.active = False
 
 
-class ItemArgument(MDFlatButton):
-
-    name = StringProperty('None')
-
-
 class DialogGraphSettingsContent(MDBoxLayout):
     labvar_name = StringProperty("None")
     mode = StringProperty("NORMAL")
@@ -149,6 +147,10 @@ class DialogGraphSettingsContent(MDBoxLayout):
         self.dialogEnterString = DialogEnterString(self.m_parent.graph_instance, self)
 
         self.RedrawExpressionSettingsStart()
+        Window.bind(on_resize=self.Resize)
+
+    def Resize(self, *args):
+        pass
 
     def CheckCollizionName(self, name):
         return self.m_parent.graph_instance.CheckCollizionName(name)
@@ -283,14 +285,14 @@ class ChipsContent(MDBoxLayout):
         self.init_text = init_text
         self.hint_text = hint_text
 
-        names = self.graph_instance.kivy_instance.GetNamesArr()
-        if names:
-            self.ids.chips_stack.adaptive_height = True
-            for name in names:
-                self.ids.chips_stack.add_widget(MDRoundFlatButton(text=name, on_release=self.ChipReleased))
-        else:
-            self.ids.chips_stack.adaptive_height = False
-            self.ids.chips_stack.height = 0
+        # names = self.graph_instance.kivy_instance.GetNamesArr()
+        # if names:
+        #     self.ids.chips_stack.adaptive_height = True
+        #     for name in names:
+        #         self.ids.chips_stack.add_widget(MDChip(text=name, on_release=self.ChipReleased))
+        # else:
+        #     self.ids.chips_stack.adaptive_height = False
+        #     self.ids.chips_stack.height = 0
 
     def ChipReleased(self, instance):
         self.ids.my_text_field.text += f'[{instance.text}]'
@@ -305,8 +307,19 @@ class DialogEnterString:
         self.m_parent = _parent
         self.state = None
         self.text_field = None
+        self.init_text = None
+        self.title = None
+        self.hint_text = None
+        self._need_connection = None
+
+    def onResize(self, *args):
+        pass
 
     def Open(self, state, init_text, title, hint_text, _need_connection=False):
+        self.title = title
+        self.init_text = init_text
+        self.hint_text = hint_text
+        self._need_connection = _need_connection
         if _need_connection:
             kivy_instance = self.graph_instance.kivy_instance
             if not client.isConnected():
@@ -372,6 +385,7 @@ class DialogEnterString:
                         )
                     ],
                 )
+                Window.bind(on_resize=self.onResize)
             else:
                 self.text_field = MDTextField(
                     text=init_text,

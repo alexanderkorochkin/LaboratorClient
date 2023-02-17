@@ -14,34 +14,28 @@
         group: "check"
 
 
-<ItemArgument>:
-    MDFlatButton:
-        text: root.name
-        size_hint_x: 1
-        theme_text_color: "Custom"
-        text_color: "white"
-        line_color: app.theme_cls.primary_color
-        font_size: sp(14)
-        on_release: root.dialogEnterString.Open(root.name, root.name, 'Введите название переменной', 'Переменная должна существовать')
-
-
 <ChipsContent>:
     id: content_holder
     orientation: "vertical"
     #spacing: "12dp"
     size_hint_y: 1
     adaptive_height: True
+#    adaptive_width: True
 
     MDTextField:
         id: my_text_field
         text: root.init_text
         hint_text: root.hint_text
-
-    MDStackLayout:
-        id: chips_stack
-        spacing: sp(5)
-        padding: [sp(5), sp(5), sp(5), sp(5)]
         adaptive_height: True
+#
+#    MDBoxLayout:
+#        orientation: 'vertical'
+##        adaptive_height: True
+#        MDStackLayout:
+#            id: chips_stack
+#            spacing: sp(5)
+#            padding: [sp(5), sp(5), sp(5), sp(5)]
+##            adaptive_height: True
 
 
 <DialogGraphSettingsContent>
