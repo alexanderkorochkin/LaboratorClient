@@ -12,7 +12,6 @@ class LayoutManager:
 
     def LoadLayout(self):
         Logger.debug("LayoutManager: Loading layout from {}".format(msettings.get('LAYOUT_FILE')))
-        arr = []
         try:
             with open(msettings.get('LAYOUT_FILE'), 'r') as fp:
                 arr = fp.readlines()

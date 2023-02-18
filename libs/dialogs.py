@@ -253,10 +253,6 @@ class DialogGraphSettings:
         self.dialog = None
         self.isDeleting = False
 
-    # def Update(self):
-    #     self.dialog.update_height()
-    #     self.dialog.update_width()
-
     def Open(self):
         self.graph_instance.AccentIt()
         self.dialog = MDDialogFix(

@@ -498,8 +498,8 @@ class GraphBox(MDBoxLayout):
         self.s['MODE'] = _mode
         if _mode != 'NORMAL':
             self.kivy_instance.main_app.hide_widget_only(
-                self.ids.graph_main_text)
+                self.ids.graph_main_text_holder)
         else:
             self.kivy_instance.main_app.show_widget_only(
-                self.ids.graph_main_text)
+                self.ids.graph_main_text_holder)
         self._UpdateNameButton()

@@ -62,7 +62,6 @@ class GContainer(MDBoxLayout):
     def __init__(self, _kivy_instance, **kwargs):
         super().__init__(**kwargs)
         self.kivy_instance = _kivy_instance
-        # self.bind(size=ResizeGraphCallback)
         self.GraphArr = []
         self.columns = 1
 
@@ -108,8 +107,9 @@ class GContainer(MDBoxLayout):
         graphbox = GraphBox(self.kivy_instance, settings=_settings)
         self.GraphArr.append(graphbox)
         self.gcontainer.add_widget(graphbox)
-        self.ResizeGraphs(self.kivy_instance.main_app.d_ori, self.kivy_instance.main_app.d_type)
-        self.UpdateColumns(self.kivy_instance.main_app.d_ori, self.kivy_instance.main_app.d_type)
+        if not _settings:
+            self.ResizeGraphs(self.kivy_instance.main_app.d_ori, self.kivy_instance.main_app.d_type)
+            self.UpdateColumns(self.kivy_instance.main_app.d_ori, self.kivy_instance.main_app.d_type)
         Logger.debug(f"GRAPH: Graph [{graphbox.s['NAME']}] with HASH: {graphbox.s['HASH']} is added!")
 
     def GetGraphByHASH(self, _hash):
@@ -416,11 +416,6 @@ class KivyApp(MDApp):
 
         Factory.register('HoldBehavior', cls=HoldBehavior)
 
-    def load_layout(self, dt):
-        if msettings.get('USE_LAYOUT'):
-            self.layoutManager.LoadLayout()
-        self.kivy_instance.main_container.ResizeGraphs(self.d_ori, self.d_type)
-
     def on_stop(self):
         try:
             client.Disconnect()
@@ -430,8 +425,9 @@ class KivyApp(MDApp):
 
     def on_start(self):
         self.kivy_instance.Prepare()
-        self.update_orientation()
-        Clock.schedule_once(self.load_layout, 3)
+        if msettings.get('USE_LAYOUT'):
+            self.layoutManager.LoadLayout()
+        Clock.schedule_once(self.update_orientation, 0)
         Clock.schedule_interval(self.kivy_instance.Update, int(msettings.get('KIVY_UPDATE_FUNCTION_TIME')))
 
     @staticmethod
