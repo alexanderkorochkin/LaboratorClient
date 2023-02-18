@@ -2,8 +2,10 @@ import uuid
 import math
 from re import split
 
+from kivy.clock import Clock
 from kivy.core.window import Window
-from kivy.properties import ObjectProperty
+from kivy.factory import Factory
+from kivy.properties import ObjectProperty, NumericProperty
 from kivy.uix.label import Label
 from libs.gardengraph.init import Graph, LinePlot, SmoothLinePlot
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -167,13 +169,15 @@ class GraphBox(MDBoxLayout):
 
     graph_main_text_color = ObjectProperty([1, 1, 1, 0.0])
 
-    def __init__(self, _kivy_instance, _cols, settings=None, **kwargs):
+    def __init__(self, _kivy_instance, settings=None, **kwargs):
         super().__init__(**kwargs)
+        self.WasHold = False
         self.main_value = 0.
         self.avg_value = 0.
         self.size_hint = [1, None]
         self.isBadExpression = False
         self.isStartup = True
+        self.isChosen = False
 
         self.var = None
         self.kivy_instance = _kivy_instance
@@ -243,15 +247,7 @@ class GraphBox(MDBoxLayout):
                                        _graph_instance=self)
 
         self.ids.garden_graph_placer.add_widget(self.gardenGraph)
-
-        if _cols == 1:
-            self.height = (1 / 3) * (self.kivy_instance.ids.view_port.height - PADDING)
-        else:
-            if _cols == 2:
-                if len(self.kivy_instance.main_container.GraphArr) == 0:
-                    self.height = (self.kivy_instance.ids.view_port.height - PADDING)
-                else:
-                    self.height = 0.5 * (self.kivy_instance.ids.view_port.height - PADDING)
+        self._UpdateNameButton()
 
     def ac(self, s, settings):
         if settings[s]:
@@ -301,6 +297,28 @@ class GraphBox(MDBoxLayout):
         else:
             self.s['IS_INDIRECT'] = False
             self.var = DirectVariable(client, self.kivy_instance, self.s['NAME'])
+
+    def Resize(self, d_ori, d_type):
+        number_graphs = len(self.kivy_instance.main_container.GraphArr)
+        if d_ori == 'horizontal':
+            if number_graphs == 1:
+                self.height = self.kivy_instance.main_container.height
+            elif number_graphs == 2 or number_graphs == 3 or number_graphs == 4:
+                self.height = (1 / 2) * (self.kivy_instance.main_container.height - 1 * PADDING)
+            else:
+                if d_type == 'desktop':
+                    self.height = (1 / msettings.get('ROW_HD')) * (self.kivy_instance.main_container.height - (msettings.get('ROW_HD') - 1) * PADDING)
+                if d_type == 'tablet':
+                    self.height = (1 / msettings.get('ROW_HT')) * (self.kivy_instance.main_container.height - (msettings.get('ROW_HT') - 1) * PADDING)
+                if d_type == 'mobile':
+                    self.height = (1 / msettings.get('ROW_HM')) * (self.kivy_instance.main_container.height - (msettings.get('ROW_HM') - 1) * PADDING)
+        elif d_ori == 'vertical':
+            if d_type == 'desktop':
+                self.height = (1 / msettings.get('ROW_VD')) * (self.kivy_instance.main_container.height - (msettings.get('ROW_VD') - 1) * PADDING)
+            if d_type == 'tablet':
+                self.height = (1 / msettings.get('ROW_VT')) * (self.kivy_instance.main_container.height - (msettings.get('ROW_VT') - 1) * PADDING)
+            if d_type == 'mobile':
+                self.height = (1 / msettings.get('ROW_VM')) * (self.kivy_instance.main_container.height - (msettings.get('ROW_VM') - 1) * PADDING)
 
     def SetExpression(self, expression):
         self.s['EXPRESSION'] = expression
@@ -437,6 +455,35 @@ class GraphBox(MDBoxLayout):
         self.var.ClearHistory()
         self.avgBuffer.Clear()
         self.gardenGraph.ClearPlot()
+
+    def UnChooseIt(self):
+        if self.isChosen:
+            self.isChosen = False
+            self.UnAccentIt()
+
+    def SwitchChooseIt(self, state):
+        if state == 'hold' and not self.kivy_instance.selected:
+            if not self.isChosen:
+                self.isChosen = True
+                self.AccentIt()
+                self.kivy_instance.Selected(self)
+            else:
+                self.isChosen = False
+                self.UnAccentIt()
+                self.kivy_instance.Unselected(self)
+            self.WasHold = True
+        elif not self.WasHold:
+            if state == 'release' and self.kivy_instance.selected:
+                if not self.isChosen:
+                    self.isChosen = True
+                    self.AccentIt()
+                    self.kivy_instance.Selected(self)
+                else:
+                    self.isChosen = False
+                    self.UnAccentIt()
+                    self.kivy_instance.Unselected(self)
+        else:
+            self.WasHold = False
 
     def AccentIt(self):
         self.ids.mdcard_id.md_bg_color = self.kivy_instance.main_app.theme_cls.primary_color

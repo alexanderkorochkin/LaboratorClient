@@ -1,15 +1,17 @@
 import logging
 
+from kivy.base import EventLoop
+from kivy.core.window import Window
+from kivy.uix.behaviors import ButtonBehavior
 from kivymd.app import MDApp
 from kivy.metrics import dp
-from kivymd.uix.label import MDLabel
+from kivymd.uix.button import MDFloatingActionButton
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.animation import Animation
-from kivy.properties import NumericProperty, ObjectProperty, StringProperty
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty, OptionProperty, BooleanProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.list import OneLineIconListItem
 from kivy.clock import Clock
-from kivymd.uix.responsivelayout import MDResponsiveLayout
 from kivymd.uix.screen import MDScreen
 from kivy.logger import Logger, LOG_LEVELS, LoggerHistory
 from kivy.lang import Builder
@@ -24,19 +26,16 @@ from libs.layoutManager import LayoutManager
 Logger.setLevel(LOG_LEVELS["debug"])
 
 
-def ResizeGraphCallback(instance, value):
-    if value[0] > value[1]:
-        KivyApp.kivy_instance.main_container.columns = 2
-        if len(KivyApp.kivy_instance.main_container.GraphArr) > 1:
-            for element in KivyApp.kivy_instance.main_container.GraphArr:
-                element.height = 0.5 * (KivyApp.kivy_instance.ids.view_port.height - PADDING)
-        else:
-            for element in KivyApp.kivy_instance.main_container.GraphArr:
-                element.height = (KivyApp.kivy_instance.ids.view_port.height - PADDING)
-    if value[0] <= value[1]:
-        KivyApp.kivy_instance.main_container.columns = 1
-        for element in KivyApp.kivy_instance.main_container.GraphArr:
-            element.height = (1 / 3) * (KivyApp.kivy_instance.ids.view_port.height - PADDING)
+def animated_hide_widget_only(wid, method):
+    anim = Animation(pos=(wid.pos[0], sp(10) - sp(200)), opacity=0, duration=0.2, t='in_quart')
+    anim.bind(on_complete=method)
+    anim.start(wid)
+
+
+def animated_show_widget_only(wid, method):
+    anim = Animation(pos=(wid.pos[0], sp(10)), opacity=1,  duration=0.2, t='out_quart')
+    anim.bind(on_start=method)
+    anim.start(wid)
 
 
 def animate_graph_removal(wid, method):
@@ -57,14 +56,43 @@ def animate_graph_removal(wid, method):
 class GContainer(MDBoxLayout):
     gcontainer = ObjectProperty(None)
     scrollview = ObjectProperty(None)
-    columns = NumericProperty(None)
+    columns = NumericProperty(1)
+    spacing_value = NumericProperty(sp(5))
 
     def __init__(self, _kivy_instance, **kwargs):
         super().__init__(**kwargs)
         self.kivy_instance = _kivy_instance
-        self.bind(size=ResizeGraphCallback)
+        # self.bind(size=ResizeGraphCallback)
         self.GraphArr = []
         self.columns = 1
+
+    def ResizeGraphs(self, d_ori, d_type):
+        for graph in self.GraphArr:
+            graph.Resize(d_ori, d_type)
+
+    def UpdateColumns(self, d_ori, d_type):
+        value = -1
+        number_graphs = len(self.GraphArr)
+        if d_ori == 'horizontal':
+            if number_graphs == 1:
+                value = 1
+            elif number_graphs == 2 or number_graphs == 3 or number_graphs == 4:
+                value = 2
+            else:
+                if d_type == 'desktop':
+                    value = msettings.get('COL_HD')
+                if d_type == 'tablet':
+                    value = msettings.get('COL_HT')
+                if d_type == 'mobile':
+                    value = msettings.get('COL_HM')
+        elif d_ori == 'vertical':
+            if d_type == 'desktop':
+                value = msettings.get('COL_VD')
+            if d_type == 'tablet':
+                value = msettings.get('COL_VT')
+            if d_type == 'mobile':
+                value = msettings.get('COL_VM')
+        self.columns = value
 
     def isContainsGraphWithName(self, _labvar_name):
         for graph in self.GraphArr:
@@ -77,30 +105,11 @@ class GContainer(MDBoxLayout):
             gr.ClearGraph()
 
     def AddGraph(self, _settings=None):
-        graphbox = None
-        if self.columns == 1:
-            graphbox = GraphBox(self.kivy_instance, self.columns, settings=_settings)
-            self.GraphArr.append(graphbox)
-            self.gcontainer.add_widget(graphbox)
-
-        if self.columns == 2:
-            if len(self.GraphArr) == 0:
-                graphbox = GraphBox(self.kivy_instance, self.columns, settings=_settings)
-                self.GraphArr.append(graphbox)
-                self.gcontainer.add_widget(graphbox)
-                self.GraphArr[0].SetHeight((self.kivy_instance.ids.view_port.height - PADDING))
-            else:
-                if len(self.GraphArr) == 1:
-                    graphbox = GraphBox(self.kivy_instance, self.columns, settings=_settings)
-                    self.GraphArr.append(graphbox)
-                    self.gcontainer.add_widget(graphbox)
-                    self.GraphArr[0].SetHeight(0.5 * (self.kivy_instance.ids.view_port.height - PADDING))
-                else:
-                    if len(self.GraphArr) > 1:
-                        graphbox = GraphBox(self.kivy_instance, self.columns, settings=_settings)
-                        self.GraphArr.append(graphbox)
-                        self.gcontainer.add_widget(graphbox)
-
+        graphbox = GraphBox(self.kivy_instance, settings=_settings)
+        self.GraphArr.append(graphbox)
+        self.gcontainer.add_widget(graphbox)
+        self.ResizeGraphs(self.kivy_instance.main_app.d_ori, self.kivy_instance.main_app.d_type)
+        self.UpdateColumns(self.kivy_instance.main_app.d_ori, self.kivy_instance.main_app.d_type)
         Logger.debug(f"GRAPH: Graph [{graphbox.s['NAME']}] with HASH: {graphbox.s['HASH']} is added!")
 
     def GetGraphByHASH(self, _hash):
@@ -114,60 +123,31 @@ class GContainer(MDBoxLayout):
 
     def RemoveGraph(self, anim, graph):
         if len(self.GraphArr) > 0:
-
             temp = graph
-
-            if self.columns == 1:
-                self.gcontainer.remove_widget(temp)
-                self.GraphArr.remove(temp)
-
-            if self.columns == 2:
-                if len(self.GraphArr) == 1:
-                    self.gcontainer.remove_widget(temp)
-                    self.GraphArr.remove(temp)
-                else:
-                    if len(self.GraphArr) == 2:
-                        self.gcontainer.remove_widget(temp)
-                        self.GraphArr.remove(temp)
-                        self.GraphArr[0].SetHeight((self.kivy_instance.ids.view_port.height - PADDING))
-                    else:
-                        if len(self.GraphArr) > 2:
-                            self.gcontainer.remove_widget(temp)
-                            self.GraphArr.remove(temp)
-
+            self.gcontainer.remove_widget(temp)
+            self.GraphArr.remove(temp)
+            self.ResizeGraphs(self.kivy_instance.main_app.d_ori, self.kivy_instance.main_app.d_type)
+            self.UpdateColumns(self.kivy_instance.main_app.d_ori, self.kivy_instance.main_app.d_type)
             Logger.debug(f"GRAPH: Graph [{temp.s['NAME']}] with HASH: {temp.s['HASH']} is removed!")
 
 
-# class Item(OneLineIconListItem):
-#     left_icon = StringProperty()
-#
-#
-# class CommonComponentLabel(MDLabel):
-#     pass
-#
-#
-# class MobileView(MDScreen):
-#     pass
-#
-#
-# class TabletView(MDScreen):
-#     pass
-#
-#
-# class DesktopView(MDScreen):
-#     pass
+class Item(OneLineIconListItem):
+    left_icon = StringProperty()
 
 
 class LaboratorClient(MDScreen):
     endpoint = StringProperty()
+    number_selected = NumericProperty(0)
+    show_menu = BooleanProperty(True)
 
     def __init__(self, _main_app, **kwargs):
         super().__init__(**kwargs)
         self.main_container = GContainer(self)
         self.main_app = _main_app
-        # self.mobile_view = MobileView()
-        # self.tablet_view = TabletView()
-        # self.desktop_view = DesktopView()
+        self.isFirst = True
+        self.selected = []
+        self.show_menu = True
+
         self.LabVarArr = []
 
         menu_items = [
@@ -212,9 +192,10 @@ class LaboratorClient(MDScreen):
             max_height=0,
         )
 
-    def Prepare(self, dt):
+    def Prepare(self):
         self.ids.view_port.add_widget(self.main_container)
         self.endpoint = msettings.get('LAST_IP')
+        self.animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
 
     def GetGraphByHASH(self, _hash):
         return self.main_container.GetGraphByHASH(_hash)
@@ -228,6 +209,46 @@ class LaboratorClient(MDScreen):
         self.main_container.RefreshAll()
         self.menu.dismiss()
 
+    def SwapShowMenu(self):
+        self.show_menu = not self.show_menu
+        self.main_app.update_orientation()
+
+    @staticmethod
+    def animated_hide_widget_only(wid, method):
+        animated_hide_widget_only(wid, method)
+
+    @staticmethod
+    def animated_show_widget_only(wid, method):
+        animated_show_widget_only(wid, method)
+
+    def GetNumberSelected(self):
+        return len(self.selected)
+
+    def Selected(self, graph):
+        if not self.selected:
+            self.animated_show_widget_only(self.ids.selection_controls, self.main_app.show_widget_only_anim)
+        self.selected.append(graph)
+        self.number_selected += 1
+
+    def Unselected(self, graph):
+        self.selected.remove(graph)
+        if not self.selected:
+            self.animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
+        self.number_selected -= 1
+
+    def UnselectAll(self):
+        for graph in self.selected:
+            graph.UnChooseIt()
+        self.selected = []
+        self.number_selected = 0
+        self.animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
+
+    def RemoveSelectedGraphs(self):
+        for selected_graph in self.selected:
+            self.main_container.RemoveGraph(None, selected_graph)
+        self.selected = []
+        self.animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
+
     def RemoveGraphByHASH(self, _hash):
         self.main_container.RemoveGraphByHASH(_hash)
 
@@ -240,7 +261,8 @@ class LaboratorClient(MDScreen):
                 if str(child.get_browse_name()).find(str(var.name)) != -1:
                     var.browse_name = str(child.get_browse_name())
                     var.node_id = str(child)
-                    Logger.debug("PARSEVARS: [" + var.name + "], the browse_name is: [" + str(var.browse_name) + "], NodeId: [" + var.node_id + "]")
+                    Logger.debug("PARSEVARS: [" + var.name + "], the browse_name is: [" + str(
+                        var.browse_name) + "], NodeId: [" + var.node_id + "]")
 
         self.LabVarArr = arr
 
@@ -297,7 +319,7 @@ class LaboratorClient(MDScreen):
                 Logger.error(
                     "CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
 
-    def Connect(self):
+    def Connect(self, *args):
         self.ids.info_log.text = f"Trying connect to {self.endpoint}!"
         self.ids.btn_connect.disabled = True
         Clock.schedule_once(self.ConnectLow, 0)
@@ -323,7 +345,6 @@ class LaboratorClient(MDScreen):
             try:
                 for graph in self.main_container.GraphArr:
                     graph.Update()
-
             except Exception:
                 client._isConnected = False
                 client._isReconnecting = True
@@ -355,7 +376,34 @@ class FullLogHandler(logging.Handler):
         Clock.schedule_once(f)
 
 
+class HoldBehavior(ButtonBehavior):
+    __events__ = ['on_hold']
+    timeout = NumericProperty(1)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._event = None
+        self.timeout = msettings.get('KIVY_DOUBLETAP_TIME')
+
+    def _cancel(self):
+        if self._event:
+            self._event.cancel()
+
+    def on_press(self):
+        self._cancel()
+        self._event = Clock.schedule_once(lambda *x: self.dispatch('on_hold'), self.timeout)
+        return super().on_press()
+
+    def on_hold(self, *args):
+        pass
+
+    def on_release(self):
+        self._cancel()
+
+
 class KivyApp(MDApp):
+    d_type = OptionProperty('mobile', options=('desktop', 'tablet', 'mobile'))
+    d_ori = OptionProperty('vertical', options=('vertical', 'horizontal'))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -366,6 +414,13 @@ class KivyApp(MDApp):
         self.hiddenWidgets = []
         self.layoutManager = None
 
+        Factory.register('HoldBehavior', cls=HoldBehavior)
+
+    def load_layout(self, dt):
+        if msettings.get('USE_LAYOUT'):
+            self.layoutManager.LoadLayout()
+        self.kivy_instance.main_container.ResizeGraphs(self.d_ori, self.d_type)
+
     def on_stop(self):
         try:
             client.Disconnect()
@@ -374,24 +429,51 @@ class KivyApp(MDApp):
             Logger.error("KivyApp: Error while disconnecting on app stop!")
 
     def on_start(self):
-        Clock.schedule_once(self.kivy_instance.Prepare, 1)
-        Clock.schedule_once(self.layout, 1)
+        self.kivy_instance.Prepare()
+        self.update_orientation()
+        Clock.schedule_once(self.load_layout, 3)
         Clock.schedule_interval(self.kivy_instance.Update, int(msettings.get('KIVY_UPDATE_FUNCTION_TIME')))
-
-    def layout(self, dt):
-        if msettings.get('USE_LAYOUT'):
-            self.layoutManager.LoadLayout()
 
     @staticmethod
     def LoadKV():
         for filename in os.listdir(os.path.join("libs", "kv")):
             Builder.load_file(os.path.join("libs", "kv", filename))
 
+    def update_orientation(self, *args):
+        Clock.schedule_once(self.update_orientation_low, 0.2)
+
+    def update_orientation_low(self, *args):
+        width, height = Window.size
+        if width < dp(500) or height < dp(500):
+            device_type = "mobile"
+        elif width < dp(1100) or height < dp(1100):
+            device_type = "tablet"
+        else:
+            device_type = "desktop"
+
+        if width > height:
+            device_orientation = 'horizontal'
+        else:
+            device_orientation = 'vertical'
+
+        self.d_ori = device_orientation
+        self.d_type = device_type
+
+        self.kivy_instance.main_container.UpdateColumns(self.d_ori, self.d_type)
+        self.kivy_instance.main_container.ResizeGraphs(self.d_ori, self.d_type)
+
     def build(self):
         self.theme_cls.theme_style = 'Dark'
         self.theme_cls.set_colors("Orange", "300", "50", "800", "Gray", "600", "50", "800")
         self.LoadKV()
         self.kivy_instance = LaboratorClient(self)
+
+        Window.bind(size=self.update_orientation,
+                    on_maximize=self.update_orientation,
+                    on_restore=self.update_orientation,
+                    on_rotate=self.update_orientation,
+                    on_minimize=self.update_orientation
+                    )
 
         Logger.addHandler(FullLogHandler(self, self.kivy_instance.ids.log_label, logging.DEBUG))
 
@@ -451,16 +533,25 @@ class KivyApp(MDApp):
             self.hide_widget(wid1)
             self.hide_widget(wid2)
 
+    def show_widget_only_anim(self, anim, wid):
+        self.show_widget_only(wid)
+
     def show_widget_only(self, wid):
         if wid in self.hiddenWidgets:
             self.hiddenWidgets.remove(wid)
             wid.height, wid.size_hint_y, wid.opacity, wid.disabled = wid.saved_attrs
+
+    def hide_widget_only_anim(self, anim, wid):
+        self.hide_widget_only(wid)
 
     def hide_widget_only(self, wid):
         if wid not in self.hiddenWidgets:
             self.hiddenWidgets.append(wid)
             wid.saved_attrs = wid.height, wid.size_hint_y, wid.opacity, wid.disabled
             wid.height, wid.size_hint_y, wid.opacity, wid.disabled = 0, None, 0, True
+
+    def hide_widget_anim(self, anim, wid):
+        self.hide_widget(wid)
 
     # Hides or shows widget
     def hide_widget(self, wid):

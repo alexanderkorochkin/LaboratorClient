@@ -1,46 +1,47 @@
 #:import Factory kivy.factory.Factory
 #:import get_color_from_hex kivy.utils.get_color_from_hex
 
+<GContainer>:
+    gcontainer: gcontainer
+    scrollview: scroll_view
 
-<CommonComponentLabel>
-    halign: "center"
-
-
-<MobileView>
-    CommonComponentLabel:
-        text: "Mobile"
-
-
-<TabletView>
-    CommonComponentLabel:
-        text: "Table"
-
-
-<DesktopView>
-    CommonComponentLabel:
-        text: "Desktop"
-
+    MDScrollView:
+        id: scroll_view
+        do_scroll_x: False
+        do_scroll_y: True
+        effect_cls: Factory.OpacityScrollEffect
+        MDGridLayout:
+            id: gcontainer
+            size_hint_y: None
+            cols: root.columns
+            spacing: root.spacing_value
+            #padding: [sp(5), sp(5), sp(5), sp(5)]
+            height: self.minimum_height
 
 <LaboratorClient>:
     MDBoxLayout:
         id: main_stack
-        orientation: "vertical"
-        padding: [sp(5), sp(5), sp(5), sp(0)]
-        spacing: sp(5)
+        orientation: "vertical" if app.d_ori == 'vertical' else 'horizontal'
+        padding: [sp(5), sp(5), sp(5), sp(5)]
         MDBoxLayout:
             id: top_menu
-            orientation: "horizontal"
-            adaptive_height: True
+            orientation: "horizontal" if app.d_ori == 'vertical' else "vertical"
+            size_hint: None, None
+            height: root.show_menu*sp(48) if app.d_ori == 'vertical' else root.height - sp(5) * 2
+            width: root.width - sp(5) * 2 if app.d_ori == 'vertical' else root.show_menu*sp(48)
+            opacity: 1 if root.show_menu else 0
             md_bg_color: app.theme_cls.primary_color
-            radius: sp(25)
+            radius: sp(24)
             background_palette: "Primary"
             spacing: sp(10)
             MDAnchorLayout:
-                anchor_x: "left"
-                size_hint: None, None
-                size: self.size[0], sp(50)
+                anchor_x: "left" if app.d_ori == 'vertical' else 'center'
+                anchor_y: "center" if app.d_ori == 'vertical' else 'top'
+                height: sp(48) if app.d_ori == 'vertical' else root.height - sp(5) * 2
+                width: root.width - sp(5) * 2 if app.d_ori == 'vertical' else sp(48)
                 MDBoxLayout:
-                    orientation: "horizontal"
+                    orientation: "horizontal" if app.d_ori == 'vertical' else "vertical"
+                    adaptive_size: True
                     MDIconButton:
                         id: endpoint_label
                         icon: "ip-outline"
@@ -50,18 +51,21 @@
                         on_release: app.dialogEndpoint.Open()
                     MDTextButton:
                         id: info_log
-                        text: "Not connected"
+                        text: 'Not Connected!'
+                        opacity: 1 if app.d_ori == 'vertical' else 0
+                        disabled: False if app.d_ori == 'vertical' else True
                         size_hint_x: None
-                        size: root.size[0] - right_side_menu.size[0] - endpoint_label.size[0], self.size[1]
+                        size: [root.size[0] - right_side_menu.size[0] - endpoint_label.size[0], self.size[1]] if app.d_ori == 'vertical' else [0, 0]
                         pos_hint: {"center_x": .5, "center_y": .5}
                         font_size: sp(12)
             MDAnchorLayout:
-                anchor_x: "right"
-                size_hint_y: None
-                size: self.size[0], sp(50)
+                anchor_x: "right" if app.d_ori == 'vertical' else 'center'
+                anchor_y: "center" if app.d_ori == 'vertical' else 'bottom'
+                height: sp(50) if app.d_ori == 'vertical' else root.height - sp(5) * 2
+                width: root.width - sp(5) * 2 if app.d_ori == 'vertical' else sp(50)
                 MDBoxLayout:
                     id: right_side_menu
-                    orientation: "horizontal"
+                    orientation: "horizontal" if app.d_ori == 'vertical' else "vertical"
                     adaptive_size: True
                     MDIconButton:
                         id: btn_connect
@@ -80,29 +84,75 @@
                         on_release: root.Disconnect()
                     MDIconButton:
                         id: menu_button
-                        icon: "dots-vertical"
+                        icon: "dots-vertical" if app.d_ori == 'vertical' else 'dots-horizontal'
                         theme_icon_color: "Custom"
                         icon_color: "white"
                         pos_hint: {"center_x": .5, "center_y": .5}
                         on_release: app.menu_open()
-        MDBoxLayout:
-            id: view_port
-        MDBoxLayout:
-            id: log_box
-            size_hint_y: 1
-            MDScrollView:
-                id: log_scroll
-                do_scroll_x: False
-                do_scroll_y: True
-                effect_cls: Factory.OpacityScrollEffect
-                MDLabel:
-                    id: log_label
-                    multiline: True
-                    size_hint_y: None
-                    size: self.texture_size
+        MDAnchorLayout:
+            id: view_port_anchor
+            padding: [sp(0), sp(5), sp(0), sp(0)] if app.d_ori == 'vertical' else [sp(5), sp(0), sp(0), sp(0)]
+            MDBoxLayout:
+                id: view_port
+            MDAnchorLayout:
+                anchor_x: "center" if app.d_ori == 'vertical' else 'right'
+                anchor_y: "bottom" if app.d_ori == 'vertical' else 'center'
+                MDIconButton:
+                    id: hide_menu
+                    icon: 'arrow-up-thick' if app.d_ori == 'vertical' and root.show_menu else 'arrow-down-thick' if app.d_ori == 'vertical' and not root.show_menu else 'arrow-left-thick' if app.d_ori == 'horizontal' and root.show_menu else 'arrow-right-thick'
+                    icon_color: 'white'
+                    pos_hint: None, None
+                    md_bg_color: app.theme_cls.primary_color if root.show_menu else 'black'
+                    icon_size: sp(20)
+                    pos: [self.pos[0], Window.size[1] - sp(60) + sp(30) * (not root.show_menu)] if app.d_ori == 'vertical' else [sp(25) - sp(35) * (not root.show_menu), self.pos[1]]
+                    on_release: root.SwapShowMenu()
+            MDRelativeLayout:
+                MDAnchorLayout:
+                    anchor_x: 'right'
                     anchor_y: 'bottom'
-                    font_size: sp(12)
-                    text: "WELCOME TO LOG VIEWER!"
+                    padding: [sp(10), sp(10), sp(10), sp(10)]
+                    MDBoxLayout:
+                        id: selection_controls
+                        orientation: 'horizontal'
+                        adaptive_size: True
+                        spacing: sp(10)
+                        opacity: 0
+                        MDFloatingActionButton:
+                            id: unselect_all
+                            type: 'small'
+                            icon: "close"
+                            icon_color: app.theme_cls.primary_color
+                            md_bg_color: 'black'
+                            on_release: root.UnselectAll()
+                        MDFloatingActionButton:
+                            id: delete_selected_button
+                            icon: 'delete'
+                            icon_color: colors['Red']['500']
+                            md_bg_color: 'black'
+                            on_release: root.RemoveSelectedGraphs()
+                        MDFillRoundFlatButton:
+                            id: delete_selected_number_button
+                            text: str(root.number_selected)
+                            font_size: sp(40)
+                            theme_text_color: "Custom"
+                            text_color: colors['Red']['500']
+                            md_bg_color: 'black'
+            MDBoxLayout:
+                id: log_box
+                MDScrollView:
+                    id: log_scroll
+                    do_scroll_x: False
+                    do_scroll_y: True
+                    effect_cls: Factory.OpacityScrollEffect
+                    MDLabel:
+                        id: log_label
+                        multiline: True
+                        size_hint_y: None
+                        size: self.texture_size
+                        anchor_y: 'bottom'
+                        font_size: sp(12)
+                        text: "WELCOME TO LOG VIEWER!"
+
 
 <Item>
     IconLeftWidget:

@@ -15,7 +15,21 @@ settings_defaults = {
             'KIVY_DOUBLETAP_TIME': 0.3,
             'KIVY_UPDATE_FUNCTION_TIME': 1,
             'USE_LAYOUT': True,
-            'HIDE_LOG_BY_DEFAULT': True
+            'HIDE_LOG_BY_DEFAULT': True,
+            'COL_HM': 2,
+            'COL_HT': 4,
+            'COL_HD': 4,
+            'COL_VM': 1,
+            'COL_VT': 3,
+            'COL_VD': 4,
+            'ROW_HM': 2,
+            'ROW_HT': 4,
+            'ROW_HD': 4,
+            'ROW_VM': 3,
+            'ROW_VT': 4,
+            'ROW_VD': 5,
+            'DIALOG_MINIMUM_HEIGHT_VERTICAL': sp(400),
+            'DIALOG_MAXIMUM_HEIGHT_HORIZONTAL': sp(800),
             }
 
 graph_settings_defaults = {
@@ -147,6 +161,90 @@ settings_json = json.dumps([
      'section': 'allSettings',
      'key': 'HIDE_LOG_BY_DEFAULT'},
 
+    {'type': 'options',
+     'title': 'COL_HM',
+     'desc': 'COL_HM',
+     'section': 'allSettings',
+     'key': 'COL_HM',
+     'options': ['1', '2', '3', '4', '5']},
+
+    {'type': 'options',
+     'title': 'COL_HT',
+     'desc': 'COL_HT',
+     'section': 'allSettings',
+     'key': 'COL_HT',
+     'options': ['1', '2', '3', '4', '5']},
+
+    {'type': 'options',
+     'title': 'COL_HD',
+     'desc': 'COL_HD',
+     'section': 'allSettings',
+     'key': 'COL_HD',
+     'options': ['1', '2', '3', '4', '5']},
+
+    {'type': 'options',
+     'title': 'COL_VM',
+     'desc': 'COL_VM',
+     'section': 'allSettings',
+     'key': 'COL_VM',
+     'options': ['1', '2', '3', '4', '5']},
+
+    {'type': 'options',
+     'title': 'COL_VT',
+     'desc': 'COL_VT',
+     'section': 'allSettings',
+     'key': 'COL_VT',
+     'options': ['1', '2', '3', '4', '5']},
+
+    {'type': 'options',
+     'title': 'COL_VD',
+     'desc': 'COL_VD',
+     'section': 'allSettings',
+     'key': 'COL_VD',
+     'options': ['1', '2', '3', '4', '5']},
+
+    {'type': 'options',
+     'title': 'ROW_HM',
+     'desc': 'ROW_HM',
+     'section': 'allSettings',
+     'key': 'ROW_HM',
+     'options': ['1', '2', '3', '4', '5']},
+
+    {'type': 'options',
+     'title': 'ROW_HT',
+     'desc': 'ROW_HT',
+     'section': 'allSettings',
+     'key': 'ROW_HT',
+     'options': ['1', '2', '3', '4', '5']},
+
+    {'type': 'options',
+     'title': 'ROW_HD',
+     'desc': 'ROW_HD',
+     'section': 'allSettings',
+     'key': 'ROW_HD',
+     'options': ['1', '2', '3', '4', '5']},
+
+    {'type': 'options',
+     'title': 'ROW_VM',
+     'desc': 'ROW_VM',
+     'section': 'allSettings',
+     'key': 'ROW_VM',
+     'options': ['1', '2', '3', '4', '5']},
+
+    {'type': 'options',
+     'title': 'ROW_VT',
+     'desc': 'ROW_VT',
+     'section': 'allSettings',
+     'key': 'ROW_VT',
+     'options': ['1', '2', '3', '4', '5']},
+
+    {'type': 'options',
+     'title': 'ROW_VD',
+     'desc': 'ROW_VD',
+     'section': 'allSettings',
+     'key': 'ROW_VD',
+     'options': ['1', '2', '3', '4', '5']},
+
 ])
 
 
@@ -176,6 +274,6 @@ class MConf:
 
 
 ALL_SETTINGS = 'allSettings'
-PADDING = sp(10)
+PADDING = sp(5)
 
 msettings = MConf()

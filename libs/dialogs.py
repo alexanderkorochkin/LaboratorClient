@@ -25,18 +25,44 @@ from libs.settings.settingsJSON import *
 class MDDialogFix(MDDialog):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        Window.bind(size=self.update_height,
+                    on_maximize=self.update_height,
+                    on_restore=self.update_height,
+                    on_minimize=self.update_height)
+        Window.bind(on_maximize=self.update_width,
+                    on_restore=self.update_width,
+                    on_minimize=self.update_width)
+        self.MINIMAL_WIDTH_VERTICAL = msettings.get('DIALOG_MINIMUM_HEIGHT_VERTICAL')
+        self.MAXIMUM_WIDTH_HORIZONTAL = msettings.get('DIALOG_MAXIMUM_HEIGHT_HORIZONTAL')
 
     def update_width(self, *args) -> None:
-        super().update_width(*args)
-        # self.width = min(
-        #     self.height + self.width_offset,
-        #     min(
-        #         sp(560) if DEVICE_TYPE != "mobile" else sp(280),
-        #         Window.width - self.width_offset,
-        #     ),
-        # )
+        if self.type == 'custom':
+            if Window.width - sp(48) < self.MINIMAL_WIDTH_VERTICAL:
+                self.width = Window.width - sp(48)
+            elif self.MINIMAL_WIDTH_VERTICAL <= Window.width - sp(48) < self.MAXIMUM_WIDTH_HORIZONTAL:
+                self.width = self.MINIMAL_WIDTH_VERTICAL
+            else:
+                self.width = self.MAXIMUM_WIDTH_HORIZONTAL
+        if self.type == 'confirmation':
+            if Window.width - sp(48) < self.MINIMAL_WIDTH_VERTICAL:
+                self.width = Window.width - sp(48)
+            else:
+                self.width = self.MINIMAL_WIDTH_VERTICAL
 
-        self.width = Window.width - self.width_offset if self.height > Window.width - self.width_offset else self.height
+    def update_height(self, *args) -> None:
+        if self.type == 'custom':
+            self._spacer_top = \
+                Window.height - sp(48) - sp(100) \
+                if self.content_cls.ids.content_cls_box.height + sp(50) > Window.height - sp(48) - sp(100) \
+                else self.content_cls.ids.content_cls_box.height + sp(50)
+        if self.type == 'confirmation':
+            height = 0
+            for item in self.items:
+                height += item.height
+            if height > Window.height - sp(48) - sp(100):
+                self.ids.scroll.height = Window.height - sp(48) - sp(100)
+            else:
+                self.ids.scroll.height = height
 
 
 class DialogEndpointContent(MDBoxLayout):
@@ -87,7 +113,6 @@ class DialogEndpoint:
 
 
 class ItemConfirm(OneLineAvatarIconListItem):
-
     divider = None
 
     def set_icon(self, instance_check):
@@ -124,14 +149,14 @@ class DialogGraphSettingsContent(MDBoxLayout):
 
         self.labvar_name = self.m_parent.graph_instance.GetName()
         self.mode = self.m_parent.graph_instance.s['MODE']
-        
+
         self.show_avg_graph = self.m_parent.graph_instance.s['SHOW_AVG_GRAPH']
         self.show_intime_graph = self.m_parent.graph_instance.s['SHOW_INTIME_GRAPH']
         self.show_main_graph = self.m_parent.graph_instance.s['SHOW_MAIN_GRAPH']
 
         self.show_main_value = self.m_parent.graph_instance.s['SHOW_MAIN_VALUE']
         self.show_avg_value = self.m_parent.graph_instance.s['SHOW_AVG_VALUE']
-        
+
         self.main_graph_color = self.m_parent.graph_instance.s['MAIN_GRAPH_COLOR']
         self.avg_color = self.m_parent.graph_instance.s['AVG_COLOR']
         self.intime_graph_color = self.m_parent.graph_instance.s['INTIME_GRAPH_COLOR']
@@ -146,25 +171,12 @@ class DialogGraphSettingsContent(MDBoxLayout):
         self.dialogListLabVar = DialogListLabVar(self)
         self.dialogEnterString = DialogEnterString(self.m_parent.graph_instance, self)
 
-        self.RedrawExpressionSettingsStart()
-        Window.bind(on_resize=self.Resize)
-
-    def Resize(self, *args):
-        pass
-
     def CheckCollizionName(self, name):
         return self.m_parent.graph_instance.CheckCollizionName(name)
 
     def SetExpression(self, expression):
         self.expression = expression
         self.m_parent.graph_instance.SetExpression(expression)
-
-    def RedrawExpressionSettingsStart(self):
-        if not self.m_parent.graph_instance.isIndirect():
-            try:
-                self.remove_widget(self.ids.expression_settings)
-            except Exception:
-                pass
 
     def removeIt(self):
         self.m_parent.isDeleting = True
@@ -241,8 +253,9 @@ class DialogGraphSettings:
         self.dialog = None
         self.isDeleting = False
 
-    def Update(self):
-        self.dialog.update_height()
+    # def Update(self):
+    #     self.dialog.update_height()
+    #     self.dialog.update_width()
 
     def Open(self):
         self.graph_instance.AccentIt()
@@ -261,7 +274,8 @@ class DialogGraphSettings:
                 )
             ],
         )
-        self.dialog.size_hint_x = None
+        self.dialog.update_height()
+        self.dialog.update_width()
         self.dialog.open()
 
     def PreDismiss(self, *args):
@@ -274,7 +288,6 @@ class DialogGraphSettings:
 
 
 class ChipsContent(MDBoxLayout):
-
     init_text = StringProperty('')
     hint_text = StringProperty('')
 
@@ -284,15 +297,6 @@ class ChipsContent(MDBoxLayout):
         self.m_parent = _parent
         self.init_text = init_text
         self.hint_text = hint_text
-
-        # names = self.graph_instance.kivy_instance.GetNamesArr()
-        # if names:
-        #     self.ids.chips_stack.adaptive_height = True
-        #     for name in names:
-        #         self.ids.chips_stack.add_widget(MDChip(text=name, on_release=self.ChipReleased))
-        # else:
-        #     self.ids.chips_stack.adaptive_height = False
-        #     self.ids.chips_stack.height = 0
 
     def ChipReleased(self, instance):
         self.ids.my_text_field.text += f'[{instance.text}]'
@@ -330,7 +334,7 @@ class DialogEnterString:
                 )
 
                 def ds(arg):
-                    kivy_instance.Connect()
+                    Clock.schedule_once(kivy_instance.Connect, 1)
                     snackbar.dismiss()
 
                 snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
@@ -420,7 +424,9 @@ class DialogEnterString:
 
     def Enter(self, *args):
         if self.state == 'expression':
-            if self.dialog.content_cls.ids.my_text_field.text.strip().replace(' ', '') != '' and self.graph_instance.CheckCollizionName(self.dialog.content_cls.ids.my_text_field.text):
+            if self.dialog.content_cls.ids.my_text_field.text.strip().replace(' ',
+                                                                              '') != '' and self.graph_instance.CheckCollizionName(
+                    self.dialog.content_cls.ids.my_text_field.text):
                 self.m_parent.SetExpression(self.dialog.content_cls.ids.my_text_field.text)
                 self.state = None
                 self.dialog.dismiss(force=True)
@@ -433,7 +439,8 @@ class DialogEnterString:
                 snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
                 snackbar.open()
         else:
-            if self.text_field.text.strip().replace(' ', '') != '' and self.graph_instance.CheckCollizionName(self.text_field.text):
+            if self.text_field.text.strip().replace(' ', '') != '' and self.graph_instance.CheckCollizionName(
+                    self.text_field.text):
                 if self.state == 'edit_name':
                     default_name = '*' + self.text_field.text
                     self.graph_instance.UpdateName(default_name, _clear_expression=False)
@@ -484,7 +491,7 @@ class DialogListLabVar:
             )
 
             def ds(arg):
-                kivy_instance.Connect()
+                Clock.schedule_once(kivy_instance.Connect, 1)
                 snackbar.dismiss()
 
             snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
@@ -507,10 +514,8 @@ class DialogListLabVar:
             for element in kivy_instance.LabVarArr:
                 self.items.append(ItemConfirm(text=element.name))
             if not self.dialog:
-                self.dialog = MDDialog(
-                    title="Variables list",
-                    text="Choose necessary variable",
-                    size_hint=(0.8, 1),
+                self.dialog = MDDialogFix(
+                    text='Выберите переменную',
                     elevation=0,
                     type="confirmation",
                     items=self.items,
@@ -531,6 +536,8 @@ class DialogListLabVar:
                 )
             else:
                 self.dialog.update_items(self.items)
+            self.dialog.update_height()
+            self.dialog.update_width()
             self.dialog.open()
 
     def Select(self, *args):

@@ -1,3 +1,5 @@
+#:import msettings libs.settings.settingsJSON.msettings
+
 <DialogEndpointContent>
     orientation: "vertical"
     adaptive_height: True
@@ -17,218 +19,232 @@
 <ChipsContent>:
     id: content_holder
     orientation: "vertical"
-    #spacing: "12dp"
     size_hint_y: 1
     adaptive_height: True
-#    adaptive_width: True
 
     MDTextField:
         id: my_text_field
         text: root.init_text
         hint_text: root.hint_text
         adaptive_height: True
-#
-#    MDBoxLayout:
-#        orientation: 'vertical'
-##        adaptive_height: True
-#        MDStackLayout:
-#            id: chips_stack
-#            spacing: sp(5)
-#            padding: [sp(5), sp(5), sp(5), sp(5)]
-##            adaptive_height: True
 
 
 <DialogGraphSettingsContent>
     orientation: "vertical"
-    adaptive_height: True
-    size_hint_x: 1
-    spacing: sp(10)
-    padding: sp(10), sp(10), sp(10), sp(10)
-    MDBoxLayout:
-        orientation: "horizontal"
-        size_hint_x: 1
-        adaptive_height: True
-        spacing: sp(10)
-        MDFlatButton:
-            id: variable_list
-            text: "Переменная: " + root.labvar_name
-            size_hint_x: 1
-            theme_text_color: "Custom"
-            text_color: "white"
-            line_color: app.theme_cls.primary_color
-            font_size: sp(14)
-            on_release: root.dialogListLabVar.Open()
-        MDIconButton:
-            size_hint_y: 1
-            width: self.height
-            icon: 'pencil'
-            theme_icon_color: "Custom"
-            icon_color: "white"
-            on_release: root.dialogEnterString.Open('edit_name', root.labvar_name, 'Введите новое имя', 'Имя должно быть уникальным', _need_connection=True)
-    MDBoxLayout:
-        id: expression_settings
-        orientation: "vertical"
-        size_hint_x: 1
-        adaptive_height: True
-        MDFlatButton:
-            id: expression_button
-            text: "Выражение: " + root.expression
-            size_hint_x: 1
-            theme_text_color: "Custom"
-            text_color: "white"
-            line_color: app.theme_cls.primary_color
-            font_size: sp(14)
-            on_release: root.dialogEnterString.Open('expression', root.expression, 'Введите выражение', '')
-    MDFlatButton:
-        id: change_mode_button
-        text: "Режим: " + root.mode
-        size_hint_x: 1
-        theme_text_color: "Custom"
-        text_color: "white"
-        line_color: app.theme_cls.primary_color
-        font_size: sp(14)
-        on_release: root.ChangeMode('change_mode_button')
-    MDBoxLayout:
-        orientation: "vertical"
-        size_hint_x: 1
-        adaptive_height: True
+    size_hint_y: 1
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        size_hint_y: 1
         MDBoxLayout:
-            orientation: "horizontal"
-            size_hint_x: 1
+            id: content_cls_box
             adaptive_height: True
-            MDCheckbox:
-                on_release: root.CheckboxPress('show_main_value')
-                size_hint: None, 1
-                size: "48dp", "48dp"
-                active: root.show_main_value
-            MDFlatButton:
-                text: "Показывать текущее значение"
+            orientation: 'vertical' if not Window.width - sp(48) >= msettings.get('DIALOG_MAXIMUM_HEIGHT_HORIZONTAL') else 'horizontal'
+            spacing: sp(10)
+            padding: [sp(0), sp(5), sp(0), sp(5)]
+            MDBoxLayout:
+                id: first_second_cell
+                orientation: 'vertical'
+                adaptive_height: True
                 size_hint_x: 1
-                halign: 'left'
-                theme_text_color: "Custom"
-                text_color: "white"
-                font_size: sp(14)
-                on_release: root.CheckboxPress('show_main_value')
-        MDBoxLayout:
-            orientation: "horizontal"
-            size_hint_x: 1
-            adaptive_height: True
-            MDCheckbox:
-                on_release: root.CheckboxPress('show_avg_value')
-                size_hint: None, 1
-                size: "48dp", "48dp"
-                active: root.show_avg_value
-            MDFlatButton:
-                text: "Показывать среднее значение"
+                spacing: sp(10)
+                MDBoxLayout:
+                    id: first_cell
+                    orientation: 'vertical'
+                    adaptive_height: True
+                    size_hint_x: 1
+                    spacing: sp(10)
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        adaptive_height: True
+                        size_hint_x: 1
+                        MDFlatButton:
+                            id: variable_list
+                            text: "Переменная: " + root.labvar_name
+                            size_hint_x: 1
+                            theme_text_color: "Custom"
+                            text_color: "white"
+                            line_color: app.theme_cls.primary_color
+                            font_size: sp(14)
+                            on_release: root.dialogListLabVar.Open()
+                        MDIconButton:
+                            size_hint: None, 1
+                            size: "48dp", "48dp"
+                            icon: 'pencil'
+                            theme_icon_color: "Custom"
+                            icon_color: "white"
+                            on_release: root.dialogEnterString.Open('edit_name', root.labvar_name, 'Введите новое имя', 'Имя должно быть уникальным', _need_connection=True)
+                    MDBoxLayout:
+                        id: expression_settings
+                        orientation: "vertical"
+                        adaptive_height: True
+                        MDFlatButton:
+                            id: expression_button
+                            text: "Выражение: " + root.expression if '*' in root.ids.variable_list.text else 'Выражение не доступно'
+                            size_hint_x: 1
+                            theme_text_color: "Custom"
+                            text_color: "white"
+                            line_color: app.theme_cls.primary_color
+                            font_size: sp(14)
+                            disabled: False if '*' in root.ids.variable_list.text else True
+                            on_release: root.dialogEnterString.Open('expression', root.expression, 'Введите выражение', '')
+                    MDFlatButton:
+                        id: change_mode_button
+                        text: "Режим: " + root.mode
+                        size_hint_x: 1
+                        theme_text_color: "Custom"
+                        text_color: "white"
+                        line_color: app.theme_cls.primary_color
+                        font_size: sp(14)
+                        on_release: root.ChangeMode('change_mode_button')
+                MDBoxLayout:
+                    id: second_cell
+                    orientation: 'vertical'
+                    adaptive_height: True
+                    size_hint_x: 1
+                    spacing: sp(10)
+                    MDBoxLayout:
+                        id: axes_settings
+                        orientation: "horizontal"
+                        size_hint_x: 1
+                        adaptive_height: True
+                        spacing: sp(10)
+                        # padding: sp(10), sp(10), sp(10), sp(10)
+                #        MDFlatButton:
+                #            text: "Откл. ось X" if root.label_x else "Вкл. ось X"
+                #            size_hint_x: 1
+                #            theme_text_color: "Custom"
+                #            text_color: "white"
+                #            line_color: app.theme_cls.primary_color
+                #            font_size: sp(14)
+                #            on_release: root.ToggleX()
+                        MDFlatButton:
+                            text: "Откл. шкалу" if root.label_y else "Вкл. шкалу"
+                            size_hint_x: 1
+                            theme_text_color: "Custom"
+                            text_color: "white"
+                            line_color: app.theme_cls.primary_color
+                            font_size: sp(14)
+                            on_release: root.ToggleY()
+                    MDFlatButton:
+                        id: clear_graph
+                        text: "Очистить график"
+                        size_hint_x: 1
+                        theme_text_color: "Custom"
+                        text_color: "white"
+                        line_color: app.theme_cls.primary_color
+                        font_size: sp(14)
+                        on_release: root.Refresh()
+                    MDFlatButton:
+                        id: delete_graph
+                        text: "Удалить плитку"
+                        size_hint_x: 1
+                        theme_text_color: "Custom"
+                        text_color: "white"
+                        line_color: app.theme_cls.error_color
+                        font_size: sp(14)
+                        on_release: root.removeIt()
+            MDBoxLayout:
+                id: third_cell
+                orientation: 'vertical'
                 size_hint_x: 1
-                halign: 'left'
-                theme_text_color: "Custom"
-                text_color: "white"
-                font_size: sp(14)
-                on_release: root.CheckboxPress('show_avg_value')
-        MDBoxLayout:
-            orientation: "horizontal"
-            size_hint_x: 1
-            adaptive_height: True
-            MDCheckbox:
-                on_release: root.CheckboxPress('show_main_graph')
-                size_hint: None, 1
-                size: "48dp", "48dp"
-                active: root.show_main_graph
-            MDFlatButton:
-                text: "Основной график"
-                size_hint_x: 1
-                theme_text_color: "Custom"
-                halign: 'left'
-                text_color: "white"
-                font_size: sp(14)
-                on_release: root.CheckboxPress('show_main_graph')
-            MDIconButton:
-                size_hint: None, 1
-                size: "48dp", "48dp"
-                icon: 'palette'
-                theme_icon_color: "Custom"
-                icon_color: root.main_graph_color
-                on_release: root.OpenColorPicker('MAIN')
-        MDBoxLayout:
-            orientation: "horizontal"
-            size_hint_x: 1
-            adaptive_height: True
-            MDCheckbox:
-                on_release: root.CheckboxPress('show_avg_graph')
-                size_hint: None, 1
-                size: "48dp", "48dp"
-                active: root.show_avg_graph
-            MDFlatButton:
-                text: "График среднего значения"
-                size_hint_x: 1
-                halign: 'left'
-                theme_text_color: "Custom"
-                text_color: "white"
-                font_size: sp(14)
-                on_release: root.CheckboxPress('show_avg_graph')
-            MDIconButton:
-                size_hint: None, 1
-                size: "48dp", "48dp"
-                icon: 'palette'
-                theme_icon_color: "Custom"
-                icon_color: root.avg_color
-                on_release: root.OpenColorPicker('AVG')
-        MDBoxLayout:
-            orientation: "horizontal"
-            size_hint_x: 1
-            adaptive_height: True
-            MDCheckbox:
-                on_release: root.CheckboxPress('show_intime_graph')
-                size_hint: None, 1
-                size: "48dp", "48dp"
-                active: root.show_intime_graph
-            MDFlatButton:
-                text: "Линия текущего значения"
-                size_hint_x: 1
-                halign: 'left'
-                theme_text_color: "Custom"
-                text_color: "white"
-                font_size: sp(14)
-                on_release: root.CheckboxPress('show_intime_graph')
-    MDBoxLayout:
-        id: axes_settings
-        orientation: "horizontal"
-        size_hint_x: 1
-        adaptive_height: True
-        spacing: sp(10)
-        # padding: sp(10), sp(10), sp(10), sp(10)
-#        MDFlatButton:
-#            text: "Откл. ось X" if root.label_x else "Вкл. ось X"
-#            size_hint_x: 1
-#            theme_text_color: "Custom"
-#            text_color: "white"
-#            line_color: app.theme_cls.primary_color
-#            font_size: sp(14)
-#            on_release: root.ToggleX()
-        MDFlatButton:
-            text: "Откл. шкалу" if root.label_y else "Вкл. шкалу"
-            size_hint_x: 1
-            theme_text_color: "Custom"
-            text_color: "white"
-            line_color: app.theme_cls.primary_color
-            font_size: sp(14)
-            on_release: root.ToggleY()
-    MDFlatButton:
-        id: clear_graph
-        text: "Очистить график"
-        size_hint_x: 1
-        theme_text_color: "Custom"
-        text_color: "white"
-        line_color: app.theme_cls.primary_color
-        font_size: sp(14)
-        on_release: root.Refresh()
-    MDFlatButton:
-        id: delete_graph
-        text: "Удалить плитку"
-        size_hint_x: 1
-        theme_text_color: "Custom"
-        text_color: "white"
-        line_color: app.theme_cls.error_color
-        font_size: sp(14)
-        on_release: root.removeIt()
+                adaptive_height: True
+                spacing: sp(10)
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    adaptive_height: True
+                    MDCheckbox:
+                        on_release: root.CheckboxPress('show_main_value')
+                        size_hint: None, 1
+                        size: "48dp", "48dp"
+                        active: root.show_main_value
+                    MDFlatButton:
+                        text: "Показывать текущее значение"
+                        size_hint_x: 1
+                        halign: 'left'
+                        theme_text_color: "Custom"
+                        text_color: "white"
+                        font_size: sp(14)
+                        on_release: root.CheckboxPress('show_main_value')
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_x: 1
+                    adaptive_height: True
+                    MDCheckbox:
+                        on_release: root.CheckboxPress('show_avg_value')
+                        size_hint: None, 1
+                        size: "48dp", "48dp"
+                        active: root.show_avg_value
+                    MDFlatButton:
+                        text: "Показывать среднее значение"
+                        size_hint_x: 1
+                        halign: 'left'
+                        theme_text_color: "Custom"
+                        text_color: "white"
+                        font_size: sp(14)
+                        on_release: root.CheckboxPress('show_avg_value')
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_x: 1
+                    adaptive_height: True
+                    MDCheckbox:
+                        on_release: root.CheckboxPress('show_main_graph')
+                        size_hint: None, 1
+                        size: "48dp", "48dp"
+                        active: root.show_main_graph
+                    MDFlatButton:
+                        text: "Основной график"
+                        size_hint_x: 1
+                        theme_text_color: "Custom"
+                        halign: 'left'
+                        text_color: "white"
+                        font_size: sp(14)
+                        on_release: root.CheckboxPress('show_main_graph')
+                    MDIconButton:
+                        size_hint: None, 1
+                        size: "48dp", "48dp"
+                        icon: 'palette'
+                        theme_icon_color: "Custom"
+                        icon_color: root.main_graph_color
+                        on_release: root.OpenColorPicker('MAIN')
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_x: 1
+                    adaptive_height: True
+                    MDCheckbox:
+                        on_release: root.CheckboxPress('show_avg_graph')
+                        size_hint: None, 1
+                        size: "48dp", "48dp"
+                        active: root.show_avg_graph
+                    MDFlatButton:
+                        text: "График среднего значения"
+                        size_hint_x: 1
+                        halign: 'left'
+                        theme_text_color: "Custom"
+                        text_color: "white"
+                        font_size: sp(14)
+                        on_release: root.CheckboxPress('show_avg_graph')
+                    MDIconButton:
+                        size_hint: None, 1
+                        size: "48dp", "48dp"
+                        icon: 'palette'
+                        theme_icon_color: "Custom"
+                        icon_color: root.avg_color
+                        on_release: root.OpenColorPicker('AVG')
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_x: 1
+                    adaptive_height: True
+                    MDCheckbox:
+                        on_release: root.CheckboxPress('show_intime_graph')
+                        size_hint: None, 1
+                        size: "48dp", "48dp"
+                        active: root.show_intime_graph
+                    MDFlatButton:
+                        text: "Линия текущего значения"
+                        size_hint_x: 1
+                        halign: 'left'
+                        theme_text_color: "Custom"
+                        text_color: "white"
+                        font_size: sp(14)
+                        on_release: root.CheckboxPress('show_intime_graph')

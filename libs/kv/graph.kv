@@ -3,11 +3,14 @@
 #:import OpacityScrollEffect kivy.effects.opacityscroll
 #:import ObjectProperty kivy.properties
 
+<HoldMDButton@HoldBehavior+MDFlatButton>:
+
+
 <GraphBox>:
     MDCard:
         id: mdcard_id
         md_bg_color: app.theme_cls.accent_color
-        radius: [sp(25), sp(25), sp(25), sp(25)]
+        radius: [sp(24), sp(24), sp(24), sp(24)]
         MDRelativeLayout:
             MDRelativeLayout:
                 MDAnchorLayout:
@@ -30,6 +33,15 @@
                         font_size: sp(18)
             MDRelativeLayout:
                 MDAnchorLayout:
+                    anchor_x: "center"
+                    anchor_y: "center"
+                    HoldMDButton:
+                        size_hint: 1, 1
+                        radius: [sp(24), sp(24), sp(24), sp(24)]
+                        on_hold: root.SwitchChooseIt('hold')
+                        on_release: root.SwitchChooseIt('release')
+            MDRelativeLayout:
+                MDAnchorLayout:
                     anchor_x: "right"
                     anchor_y: "top"
                     padding: sp(5), sp(5), sp(5), sp(5)
@@ -44,21 +56,3 @@
                         text_color: 1, 1, 1, 1
                         md_bg_color: 0, 0, 0, 0
                         on_release: root.DialogGraphSettingsOpen()
-
-
-<GContainer>:
-    gcontainer: gcontainer
-    scrollview: scroll_view
-
-    MDScrollView:
-        id: scroll_view
-        do_scroll_x: False
-        do_scroll_y: True
-        effect_cls: Factory.OpacityScrollEffect
-        MDGridLayout:
-            id: gcontainer
-            size_hint_y: None
-            cols: root.columns
-            spacing: sp(5)
-            #padding: [sp(5), sp(5), sp(5), sp(5)]
-            height: self.minimum_height
