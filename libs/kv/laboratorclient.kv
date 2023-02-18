@@ -91,7 +91,7 @@
                         on_release: app.menu_open()
         MDAnchorLayout:
             id: view_port_anchor
-            padding: [sp(0), sp(5), sp(0), sp(0)] if app.d_ori == 'vertical' else [sp(5), sp(0), sp(0), sp(0)]
+            padding: [sp(0), sp(5) * root.show_menu, sp(0), sp(0)] if app.d_ori == 'vertical' else [sp(5) * root.show_menu, sp(0), sp(0), sp(0)]
             MDBoxLayout:
                 id: view_port
             MDAnchorLayout:
@@ -104,7 +104,7 @@
                     pos_hint: None, None
                     md_bg_color: app.theme_cls.primary_color if root.show_menu else 'black'
                     icon_size: sp(20)
-                    pos: [self.pos[0], Window.size[1] - sp(60) + sp(30) * (not root.show_menu)] if app.d_ori == 'vertical' else [sp(25) - sp(35) * (not root.show_menu), self.pos[1]]
+                    pos: [self.pos[0], Window.size[1] - sp(70) + sp(40) * (not root.show_menu)] if app.d_ori == 'vertical' else [sp(30) - sp(45) * (not root.show_menu), self.pos[1]]
                     on_release: root.SwapShowMenu()
             MDRelativeLayout:
                 MDAnchorLayout:

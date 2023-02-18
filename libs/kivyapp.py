@@ -436,13 +436,13 @@ class KivyApp(MDApp):
             Builder.load_file(os.path.join("libs", "kv", filename))
 
     def update_orientation(self, *args):
-        Clock.schedule_once(self.update_orientation_low, 0.2)
+        Clock.schedule_once(self.update_orientation_low, 0)
 
     def update_orientation_low(self, *args):
         width, height = Window.size
         if width < dp(500) or height < dp(500):
             device_type = "mobile"
-        elif width < dp(1100) or height < dp(1100):
+        elif width < dp(1100) and height < dp(1100):
             device_type = "tablet"
         else:
             device_type = "desktop"
@@ -454,6 +454,8 @@ class KivyApp(MDApp):
 
         self.d_ori = device_orientation
         self.d_type = device_type
+
+        Logger.debug(f'ORIENTATION: Changed orientation to: {self.d_type}:{self.d_ori}')
 
         self.kivy_instance.main_container.UpdateColumns(self.d_ori, self.d_type)
         self.kivy_instance.main_container.ResizeGraphs(self.d_ori, self.d_type)
@@ -493,7 +495,7 @@ class KivyApp(MDApp):
         settings.add_json_panel('Основные настройки', self.config, data=settings_json)
 
     def on_config_change(self, config, section, key, value):
-        print(config, section, key, value)
+        Logger.debug(f'{section}: {key} is {value}')
 
     def create_settings(self):
         if self.settings_cls is None:

@@ -219,9 +219,6 @@ class GraphBox(MDBoxLayout):
             'EXPRESSION': 'Empty'
         }
 
-        if settings is not None:
-            self.ApplyLayout(settings)
-
         self.gardenGraph = GardenGraph(border_color=[1, 1, 1, 0],
                                        x_ticks_major=0,
                                        x_ticks_minor=0,
@@ -247,6 +244,10 @@ class GraphBox(MDBoxLayout):
                                        _graph_instance=self)
 
         self.ids.garden_graph_placer.add_widget(self.gardenGraph)
+
+        if settings is not None:
+            self.ApplyLayout(settings)
+
         self._UpdateNameButton()
 
     def ac(self, s, settings):
@@ -430,6 +431,7 @@ class GraphBox(MDBoxLayout):
         self.s['NAME'] = name
         self._UpdateNameButton()
         self.UpdateVarName(_clear_expression)
+        self.ClearGraph()
 
     def UpdateVarName(self, _clear_expression=True):
         if self.s['NAME'].find('*') != -1:
@@ -447,14 +449,15 @@ class GraphBox(MDBoxLayout):
         return self.s['NAME']
 
     def ClearPlot(self):
-        self.gardenGraph.ClearPlot()
-        self.avgBuffer.Clear()
+        if self.gardenGraph:
+            self.gardenGraph.ClearPlot()
+        if self.avgBuffer:
+            self.avgBuffer.Clear()
 
-    def ClearGraph(self, value=None):
-        # Очищаем буфер прошлой переменной
-        self.var.ClearHistory()
-        self.avgBuffer.Clear()
-        self.gardenGraph.ClearPlot()
+    def ClearGraph(self):
+        if self.var:
+            self.var.ClearHistory()
+        self.ClearPlot()
 
     def UnChooseIt(self):
         if self.isChosen:
