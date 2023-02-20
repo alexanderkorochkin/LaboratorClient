@@ -1,11 +1,10 @@
 import logging
+import os
 
-from kivy.base import EventLoop
 from kivy.core.window import Window
 from kivy.uix.behaviors import ButtonBehavior
 from kivymd.app import MDApp
 from kivy.metrics import dp
-from kivymd.uix.button import MDFloatingActionButton
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.animation import Animation
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty, OptionProperty, BooleanProperty
@@ -20,7 +19,7 @@ from kivy.factory import Factory
 from libs.settings.settingsJSON import *
 from libs.opcua.opcuaclient import client
 from libs.graph import GraphBox
-from libs.dialogs import DialogEndpoint
+from libs.dialogs import DialogEndpoint, SnackbarMessage
 from libs.layoutManager import LayoutManager
 
 Logger.setLevel(LOG_LEVELS["debug"])
@@ -304,7 +303,7 @@ class LaboratorClient(MDScreen):
             self.ids.endpoint_label.disabled = True
             Logger.debug(f"CONNECT: Connected to {self.endpoint}!")
             self.ids.info_log.text = f"Connected to {self.endpoint}!"
-            Logger.debug("CONNECT: Parsed!")
+            SnackbarMessage(f"Connected to {self.endpoint}!")
             msettings.set('allSettings', 'LAST_IP', self.endpoint)
         except Exception:
             if not client.isReconnecting():
@@ -312,12 +311,12 @@ class LaboratorClient(MDScreen):
                 self.ids.btn_disconnect.disabled = True
                 self.ids.endpoint_label.disabled = False
                 self.ids.info_log.text = "Error while connecting... Disconnected!"
+                SnackbarMessage("Error while connecting... Disconnected!")
                 Logger.error("CONNECT: Error while connecting... Disconnected!")
             else:
-                self.ids.info_log.text = "Connection lost! Error while reconnecting... (" + str(
-                    client.GetReconnectNumber()) + ')'
-                Logger.error(
-                    "CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
+                self.ids.info_log.text = f"Connection lost! Error while reconnecting... ({str(client.GetReconnectNumber())})"
+                SnackbarMessage(f"Connection lost! Error while reconnecting... ({str(client.GetReconnectNumber())})")
+                Logger.error("CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
 
     def Connect(self, *args):
         self.ids.info_log.text = f"Trying connect to {self.endpoint}!"
@@ -514,11 +513,13 @@ class KivyApp(MDApp):
     def ToggleLog(self):
         wid1 = self.kivy_instance.ids.log_box
         wid2 = self.kivy_instance.ids.view_port
-        self.swap_widgets_visibility(wid1, wid2)
+        self.hide_widget(wid1)
         if self.kivy_instance.menu.items[2]['text'] == 'Показать лог':
+            self.kivy_instance.ids.hide_menu.disabled = True
             self.kivy_instance.menu.items[2]['text'] = 'Скрыть лог'
         else:
             self.kivy_instance.menu.items[2]['text'] = 'Показать лог'
+            self.kivy_instance.ids.hide_menu.disabled = False
         self.kivy_instance.menu.dismiss()
 
     # Swaps visibility of widgets. Wid1 are hiding permanently.(self.ids.log_box, self.ids.view_port)

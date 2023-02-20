@@ -1,17 +1,11 @@
 import uuid
-import math
 from re import split
 
-from kivy.clock import Clock
 from kivy.core.window import Window
-from kivy.factory import Factory
-from kivy.properties import ObjectProperty, NumericProperty
-from kivy.uix.label import Label
-from libs.gardengraph.init import Graph, LinePlot, SmoothLinePlot
+from kivy.properties import ObjectProperty
+from libs.gardengraph.init import Graph, LinePlot
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.label import MDLabel
 from kivymd.uix.snackbar import Snackbar
-from kivymd.uix.behaviors import BackgroundColorBehavior, CommonElevationBehavior
 
 from libs.dialogs import DialogGraphSettings
 from libs.opcua.opcuaclient import client
@@ -60,31 +54,37 @@ class GardenGraph(Graph):
         self.intime_plot = LinePlot()
         self.intime_plot.points = []
 
-        self.TogglePlot()
-        self.UpdatePlotColor()
-
     def TogglePlot(self, plot='ALL'):
         if plot == 'MAIN' or 'ALL':
-            self.add_plot(self.plot) if self.graph_instance.s['SHOW_MAIN_GRAPH'] else self.remove_plot(self.plot)
+            if self.graph_instance.s['SHOW_MAIN_GRAPH']:
+                self.add_plot(self.plot)
+            else:
+                self.remove_plot(self.plot)
         if plot == 'AVG' or 'ALL':
-            self.add_plot(self.avg_plot) if self.graph_instance.s['SHOW_AVG_GRAPH'] else self.remove_plot(self.avg_plot)
+            if self.graph_instance.s['SHOW_AVG_GRAPH']:
+                self.add_plot(self.avg_plot)
+            else:
+                self.remove_plot(self.avg_plot)
         if plot == 'INTIME' or 'ALL':
-            self.add_plot(self.intime_plot) if self.graph_instance.s['SHOW_INTIME_GRAPH'] else self.remove_plot(self.intime_plot)
+            if self.graph_instance.s['SHOW_INTIME_GRAPH']:
+                self.add_plot(self.intime_plot)
+            else:
+                self.remove_plot(self.intime_plot)
 
     def UpdatePlotColor(self, plot="ALL"):
-        if plot == 'ALL' or plot == 'MAIN':
+        if (plot == 'ALL' or plot == 'MAIN') and self.graph_instance.s['SHOW_MAIN_GRAPH']:
             self.remove_plot(self.plot)
             points_temp = self.plot.points
             self.plot = LinePlot(color=hex2color(self.graph_instance.s['MAIN_GRAPH_COLOR']), line_width=self.graph_instance.s['MAIN_GRAPH_LINE_THICKNESS'])
             self.plot.points = points_temp
             self.add_plot(self.plot)
-        if plot == 'ALL' or plot == 'AVG':
+        if (plot == 'ALL' or plot == 'AVG') and self.graph_instance.s['SHOW_AVG_GRAPH']:
             self.remove_plot(self.avg_plot)
             points_temp = self.avg_plot.points
             self.avg_plot = LinePlot(color=hex2color(self.graph_instance.s['AVG_COLOR'], self.graph_instance.s['AVG_GRAPH_OPACITY']), line_width=self.graph_instance.s['AVG_GRAPH_LINE_THICKNESS'])
             self.avg_plot.points = points_temp
             self.add_plot(self.avg_plot)
-        if plot == 'ALL' or plot == 'INTIME':
+        if (plot == 'ALL' or plot == 'INTIME') and self.graph_instance.s['SHOW_INTIME_GRAPH']:
             self.remove_plot(self.intime_plot)
             points_temp = self.intime_plot.points
             self.intime_plot = LinePlot(color=hex2color(self.graph_instance.s['INTIME_GRAPH_COLOR']), line_width=self.graph_instance.s['INTIME_GRAPH_LINE_THICKNESS'])
@@ -180,44 +180,51 @@ class GraphBox(MDBoxLayout):
         self.isChosen = False
 
         self.var = None
+        self.gardenGraph = None
         self.kivy_instance = _kivy_instance
         self.avgBuffer = AVGBuffer(self)
         self.dialogGraphSettings = DialogGraphSettings(self)
 
         self.MODES = ['NORMAL', 'SPECTRAL']
 
-        self.s = {
-            'NAME': graph_settings_defaults['NAME'],
-            'MODE': graph_settings_defaults['MODE'],
+        self.s = graph_settings_defaults.copy()
+        self.s['HASH'] = uuid.uuid4().hex
 
-            'GRAPH_ADDITIONAL_SPACE_Y': graph_settings_defaults['GRAPH_ADDITIONAL_SPACE_Y'],
-            'GRAPH_BUFFER_AVG_SIZE': graph_settings_defaults['GRAPH_BUFFER_AVG_SIZE'],
-            'GRAPH_ROUND_DIGITS': graph_settings_defaults['GRAPH_ROUND_DIGITS'],
-            'HASH': uuid.uuid4().hex,
+        if settings is not None:
+            self.ApplyLayout(settings)
 
-            'SHOW_MAIN_VALUE': graph_settings_defaults['SHOW_MAIN_VALUE'],
-            'SHOW_AVG_VALUE': graph_settings_defaults['SHOW_AVG_VALUE'],
-
-            'SHOW_MAIN_GRAPH': graph_settings_defaults['SHOW_MAIN_GRAPH'],
-            'SHOW_AVG_GRAPH': graph_settings_defaults['SHOW_AVG_GRAPH'],
-            'SHOW_INTIME_GRAPH': graph_settings_defaults['SHOW_INTIME_GRAPH'],
-
-            'MAIN_GRAPH_COLOR': graph_settings_defaults['MAIN_GRAPH_COLOR'],
-            'AVG_COLOR': graph_settings_defaults['AVG_COLOR'],
-            'INTIME_GRAPH_COLOR': graph_settings_defaults['INTIME_GRAPH_COLOR'],
-
-            'MAIN_GRAPH_LINE_THICKNESS': graph_settings_defaults['MAIN_GRAPH_LINE_THICKNESS'],
-            'AVG_GRAPH_LINE_THICKNESS': graph_settings_defaults['AVG_GRAPH_LINE_THICKNESS'],
-            'INTIME_GRAPH_LINE_THICKNESS': graph_settings_defaults['INTIME_GRAPH_LINE_THICKNESS'],
-
-            'AVG_GRAPH_OPACITY': graph_settings_defaults['AVG_GRAPH_OPACITY'],
-
-            'GRAPH_LABEL_X': graph_settings_defaults['GRAPH_LABEL_X'],
-            'GRAPH_LABEL_Y': graph_settings_defaults['GRAPH_LABEL_Y'],
-
-            'IS_INDIRECT': False,
-            'EXPRESSION': 'Empty'
-        }
+        # self.s = {
+        #     'NAME': graph_settings_defaults['NAME'],
+        #     'MODE': graph_settings_defaults['MODE'],
+        #
+        #     'GRAPH_ADDITIONAL_SPACE_Y': graph_settings_defaults['GRAPH_ADDITIONAL_SPACE_Y'],
+        #     'GRAPH_BUFFER_AVG_SIZE': graph_settings_defaults['GRAPH_BUFFER_AVG_SIZE'],
+        #     'GRAPH_ROUND_DIGITS': graph_settings_defaults['GRAPH_ROUND_DIGITS'],
+        #     'HASH': uuid.uuid4().hex,
+        #
+        #     'SHOW_MAIN_VALUE': graph_settings_defaults['SHOW_MAIN_VALUE'],
+        #     'SHOW_AVG_VALUE': graph_settings_defaults['SHOW_AVG_VALUE'],
+        #
+        #     'SHOW_MAIN_GRAPH': graph_settings_defaults['SHOW_MAIN_GRAPH'],
+        #     'SHOW_AVG_GRAPH': graph_settings_defaults['SHOW_AVG_GRAPH'],
+        #     'SHOW_INTIME_GRAPH': graph_settings_defaults['SHOW_INTIME_GRAPH'],
+        #
+        #     'MAIN_GRAPH_COLOR': graph_settings_defaults['MAIN_GRAPH_COLOR'],
+        #     'AVG_COLOR': graph_settings_defaults['AVG_COLOR'],
+        #     'INTIME_GRAPH_COLOR': graph_settings_defaults['INTIME_GRAPH_COLOR'],
+        #
+        #     'MAIN_GRAPH_LINE_THICKNESS': graph_settings_defaults['MAIN_GRAPH_LINE_THICKNESS'],
+        #     'AVG_GRAPH_LINE_THICKNESS': graph_settings_defaults['AVG_GRAPH_LINE_THICKNESS'],
+        #     'INTIME_GRAPH_LINE_THICKNESS': graph_settings_defaults['INTIME_GRAPH_LINE_THICKNESS'],
+        #
+        #     'AVG_GRAPH_OPACITY': graph_settings_defaults['AVG_GRAPH_OPACITY'],
+        #
+        #     'GRAPH_LABEL_X': graph_settings_defaults['GRAPH_LABEL_X'],
+        #     'GRAPH_LABEL_Y': graph_settings_defaults['GRAPH_LABEL_Y'],
+        #
+        #     'IS_INDIRECT': False,
+        #     'EXPRESSION': 'Empty'
+        # }
 
         self.gardenGraph = GardenGraph(border_color=[1, 1, 1, 0],
                                        x_ticks_major=0,
@@ -245,9 +252,8 @@ class GraphBox(MDBoxLayout):
 
         self.ids.garden_graph_placer.add_widget(self.gardenGraph)
 
-        if settings is not None:
-            self.ApplyLayout(settings)
-
+        self.gardenGraph.TogglePlot()
+        self.gardenGraph.UpdatePlotColor()
         self._UpdateNameButton()
 
     def ac(self, s, settings):
@@ -271,8 +277,8 @@ class GraphBox(MDBoxLayout):
         self.s['GRAPH_BUFFER_AVG_SIZE'] = settings['GRAPH_BUFFER_AVG_SIZE']
         self.s['GRAPH_ROUND_DIGITS'] = settings['GRAPH_ROUND_DIGITS']
 
-        self.s['SHOW_MAIN_VALUE'] = settings['SHOW_MAIN_GRAPH']
-        self.s['SHOW_AVG_VALUE'] = settings['SHOW_MAIN_GRAPH']
+        self.s['SHOW_MAIN_VALUE'] = settings['SHOW_MAIN_VALUE']
+        self.s['SHOW_AVG_VALUE'] = settings['SHOW_AVG_VALUE']
 
         self.s['SHOW_MAIN_GRAPH'] = settings['SHOW_MAIN_GRAPH']
         self.s['SHOW_AVG_GRAPH'] = settings['SHOW_AVG_GRAPH']

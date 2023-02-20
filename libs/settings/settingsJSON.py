@@ -1,5 +1,4 @@
 import json
-import os
 from kivy.metrics import sp
 
 
@@ -59,6 +58,10 @@ graph_settings_defaults = {
 
             'GRAPH_LABEL_X': False,
             'GRAPH_LABEL_Y': False,
+
+            'HASH': '0',
+            'IS_INDIRECT': False,
+            'EXPRESSION': 'Empty'
             }
 
 settings_json = json.dumps([
@@ -161,85 +164,88 @@ settings_json = json.dumps([
      'section': 'allSettings',
      'key': 'HIDE_LOG_BY_DEFAULT'},
 
+    {'type': 'title',
+     'title': 'Настройки сетки графиков'},
+
     {'type': 'options',
-     'title': 'COL_HM',
+     'title': 'COLS for Horizontal:Mobile',
      'desc': 'COL_HM',
      'section': 'allSettings',
      'key': 'COL_HM',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
-     'title': 'COL_HT',
+     'title': 'COLS for Horizontal:Tablet',
      'desc': 'COL_HT',
      'section': 'allSettings',
      'key': 'COL_HT',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
-     'title': 'COL_HD',
+     'title': 'COLS for Horizontal:Desktop',
      'desc': 'COL_HD',
      'section': 'allSettings',
      'key': 'COL_HD',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
-     'title': 'COL_VM',
+     'title': 'COLS for Vertical:Mobile',
      'desc': 'COL_VM',
      'section': 'allSettings',
      'key': 'COL_VM',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
-     'title': 'COL_VT',
+     'title': 'COLS for Vertical:Tablet',
      'desc': 'COL_VT',
      'section': 'allSettings',
      'key': 'COL_VT',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
-     'title': 'COL_VD',
+     'title': 'COLS for Vertical:Desktop',
      'desc': 'COL_VD',
      'section': 'allSettings',
      'key': 'COL_VD',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
-     'title': 'ROW_HM',
+     'title': 'ROWS for Horizontal:Mobile',
      'desc': 'ROW_HM',
      'section': 'allSettings',
      'key': 'ROW_HM',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
-     'title': 'ROW_HT',
+     'title': 'ROWS for Horizontal:Tablet',
      'desc': 'ROW_HT',
      'section': 'allSettings',
      'key': 'ROW_HT',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
-     'title': 'ROW_HD',
+     'title': 'ROWS for Horizontal:Desktop',
      'desc': 'ROW_HD',
      'section': 'allSettings',
      'key': 'ROW_HD',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
-     'title': 'ROW_VM',
+     'title': 'ROWS for Vertical:Mobile',
      'desc': 'ROW_VM',
      'section': 'allSettings',
      'key': 'ROW_VM',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
-     'title': 'ROW_VT',
+     'title': 'ROWS for Vertical:Tablet',
      'desc': 'ROW_VT',
      'section': 'allSettings',
      'key': 'ROW_VT',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
-     'title': 'ROW_VD',
+     'title': 'ROWS for Vertical:Desktop',
      'desc': 'ROW_VD',
      'section': 'allSettings',
      'key': 'ROW_VD',

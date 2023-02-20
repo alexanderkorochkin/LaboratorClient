@@ -1,5 +1,3 @@
-from libs.settings.settingsJSON import graph_settings_defaults
-import os
 from libs.settings.settingsJSON import msettings
 from kivy.logger import Logger
 import json

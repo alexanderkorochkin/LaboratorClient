@@ -103,8 +103,8 @@
                     icon_color: 'white'
                     pos_hint: None, None
                     md_bg_color: app.theme_cls.primary_color if root.show_menu else 'black'
-                    icon_size: sp(20)
-                    pos: [self.pos[0], Window.size[1] - sp(70) + sp(40) * (not root.show_menu)] if app.d_ori == 'vertical' else [sp(30) - sp(45) * (not root.show_menu), self.pos[1]]
+                    icon_size: sp(10)
+                    pos: [self.pos[0], Window.size[1] - sp(70) + sp(50) * (not root.show_menu)] if app.d_ori == 'vertical' else [sp(35) - sp(50) * (not root.show_menu), self.pos[1]]
                     on_release: root.SwapShowMenu()
             MDRelativeLayout:
                 MDAnchorLayout:
@@ -139,6 +139,7 @@
                             md_bg_color: 'black'
             MDBoxLayout:
                 id: log_box
+                md_bg_color: 0, 0, 0, 1
                 MDScrollView:
                     id: log_scroll
                     do_scroll_x: False

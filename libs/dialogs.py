@@ -1,7 +1,5 @@
 from kivy.clock import Clock
-from kivymd.material_resources import DEVICE_TYPE
-from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDRoundFlatButton
-from kivymd.uix.chip import MDChip
+from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.pickers import MDColorPicker
@@ -10,16 +8,58 @@ from kivy.core.window import Window
 
 from typing import Union
 
-from kivy.properties import StringProperty, ObjectProperty, BooleanProperty, ColorProperty, NumericProperty
+from kivy.properties import StringProperty, BooleanProperty
 from kivymd.uix.list.list import OneLineAvatarIconListItem
 
 from kivy.utils import get_hex_from_color
-from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.snackbar import Snackbar
 from kivymd.uix.textfield import MDTextField
 
 from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
+
+
+def SnackbarMessage(text):
+
+    snackbar = Snackbar(
+        text=text,
+        snackbar_x="10sp",
+        snackbar_y="10sp",
+    )
+
+    snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
+
+    snackbar.open()
+
+
+def SnackbarMessageAction(snackbar_text, action_button_text, action_function):
+
+    snackbar = Snackbar(
+        text=snackbar_text,
+        snackbar_x="10sp",
+        snackbar_y="10sp",
+    )
+
+    def ds(arg):
+        Clock.schedule_once(action_function, 1)
+        snackbar.dismiss()
+
+    snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
+
+    snackbar.buttons = [
+        MDFlatButton(
+            text=action_button_text,
+            text_color=(1, 1, 1, 1),
+            on_release=ds,
+        ),
+        MDFlatButton(
+            text="CANCEL",
+            text_color=(1, 1, 1, 1),
+            on_release=snackbar.dismiss,
+        ),
+    ]
+
+    snackbar.open()
 
 
 class MDDialogFix(MDDialog):
@@ -350,13 +390,7 @@ class DialogEnterString:
                 return True
 
         if state == "edit_name" and '*' not in init_text:
-            snackbar = Snackbar(
-                text="Нельзя поменять название этой переменной!",
-                snackbar_x="10sp",
-                snackbar_y="10sp",
-            )
-            snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
-            snackbar.open()
+            SnackbarMessage("Нельзя поменять название этой переменной!")
         else:
             if state == "edit_name":
                 init_text = init_text[1:]
@@ -427,13 +461,7 @@ class DialogEnterString:
                 self.state = None
                 self.dialog.dismiss(force=True)
             else:
-                snackbar = Snackbar(
-                    text="Некорректный ввод!",
-                    snackbar_x="10sp",
-                    snackbar_y="10sp",
-                )
-                snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
-                snackbar.open()
+                SnackbarMessage("Некорректный ввод!")
         else:
             if self.text_field.text.strip().replace(' ', '') != '' and self.graph_instance.CheckCollizionName(
                     self.text_field.text):
@@ -458,13 +486,7 @@ class DialogEnterString:
                     self.m_parent.m_parent.m_parent.Close()
                     self.m_parent.m_parent.m_parent.Open()
             else:
-                snackbar = Snackbar(
-                    text="Некорректный ввод!",
-                    snackbar_x="10sp",
-                    snackbar_y="10sp",
-                )
-                snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
-                snackbar.open()
+                SnackbarMessage("Некорректный ввод!")
 
 
 class DialogListLabVar:
@@ -480,30 +502,7 @@ class DialogListLabVar:
     def Open(self):
         kivy_instance = self.m_parent.m_parent.graph_instance.kivy_instance
         if not client.isConnected():
-            snackbar = Snackbar(
-                text="Вы не подключены к серверу!",
-                snackbar_x="10sp",
-                snackbar_y="10sp",
-            )
-
-            def ds(arg):
-                Clock.schedule_once(kivy_instance.Connect, 1)
-                snackbar.dismiss()
-
-            snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
-            snackbar.buttons = [
-                MDFlatButton(
-                    text="CONNECT",
-                    text_color=(1, 1, 1, 1),
-                    on_release=ds,
-                ),
-                MDFlatButton(
-                    text="CANCEL",
-                    text_color=(1, 1, 1, 1),
-                    on_release=snackbar.dismiss,
-                ),
-            ]
-            snackbar.open()
+            SnackbarMessageAction("Вы не подключены к серверу!", 'CONNECT', kivy_instance.Connect)
         else:
             self.items.clear()
             self.items.append(ItemConfirm(text='Новое выражение'))
@@ -511,7 +510,6 @@ class DialogListLabVar:
                 self.items.append(ItemConfirm(text=element.name))
             if not self.dialog:
                 self.dialog = MDDialogFix(
-                    text='Выберите переменную',
                     elevation=0,
                     type="confirmation",
                     items=self.items,
