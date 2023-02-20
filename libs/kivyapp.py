@@ -5,6 +5,8 @@ from kivy.core.window import Window
 from kivy.uix.behaviors import ButtonBehavior
 from kivymd.app import MDApp
 from kivy.metrics import dp
+from kivymd.uix.button import MDFlatButton
+from kivymd.uix.dialog import MDDialog
 from kivymd.uix.menu import MDDropdownMenu
 from kivy.animation import Animation
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty, OptionProperty, BooleanProperty
@@ -15,11 +17,12 @@ from kivymd.uix.screen import MDScreen
 from kivy.logger import Logger, LOG_LEVELS, LoggerHistory
 from kivy.lang import Builder
 from kivy.factory import Factory
+from kivymd.uix.textfield import MDTextField
 
 from libs.settings.settingsJSON import *
 from libs.opcua.opcuaclient import client
 from libs.graph import GraphBox
-from libs.dialogs import DialogEndpoint, SnackbarMessage
+from libs.dialogs import DialogEndpoint, SnackbarMessage, MDDialogFix
 from libs.layoutManager import LayoutManager
 
 Logger.setLevel(LOG_LEVELS["debug"])
@@ -146,6 +149,7 @@ class LaboratorClient(MDScreen):
         self.isFirst = True
         self.selected = []
         self.show_menu = True
+        self.dialog = None
 
         self.LabVarArr = []
 
@@ -157,6 +161,14 @@ class LaboratorClient(MDScreen):
                 "left_icon": 'plus',
                 "font_size": sp(12),
                 "on_release": self.AddGraph,
+            },
+            {
+                "text": 'Добавить несколько графиков',
+                "viewclass": "Item",
+                "height": dp(48),
+                "left_icon": 'plus',
+                "font_size": sp(12),
+                "on_release": self.AddGraphs,
             },
             {
                 "text": 'Обновить графики',
@@ -203,6 +215,50 @@ class LaboratorClient(MDScreen):
         self.main_container.AddGraph(_settings)
         if _settings is None:
             self.menu.dismiss()
+
+    def AddGraphs(self):
+        self.ActionAfterEnterStringDialog('ITERATIVE|DECIMAL', self.AddGraph, 'Введите число графиков', 'Введите целое число графиков')
+        self.menu.dismiss()
+
+    def ActionAfterEnterStringDialog(self, mode, action, title, hint_text):
+
+        def Cancel(*args):
+            self.dialog.dismiss(force=True)
+            self.dialog = None
+
+        def Enter(*args):
+            if 'ITERATIVE' in mode:
+                if 'DECIMAL' in mode:
+                    if self.dialog.content_cls.text.isdecimal():
+                        for i in range(int(self.dialog.content_cls.text)):
+                            action()
+                        self.dialog.dismiss(force=True)
+                        self.dialog = None
+                    else:
+                        SnackbarMessage('Некорректный ввод!')
+
+        self.dialog = MDDialog(
+            title=title,
+            elevation=0,
+            auto_dismiss=False,
+            type="custom",
+            content_cls=MDTextField(hint_text=hint_text),
+            buttons=[
+                MDFlatButton(
+                    text="CANCEL",
+                    theme_text_color="Custom",
+                    text_color=self.main_app.theme_cls.primary_color,
+                    on_release=Cancel,
+                ),
+                MDFlatButton(
+                    text="ENTER",
+                    theme_text_color="Custom",
+                    text_color=self.main_app.theme_cls.primary_color,
+                    on_release=Enter,
+                )
+            ]
+        )
+        self.dialog.open()
 
     def RefreshAll(self):
         self.main_container.RefreshAll()
@@ -331,12 +387,14 @@ class LaboratorClient(MDScreen):
             self.ids.btn_connect.disabled = False
             self.ids.endpoint_label.disabled = False
             self.ids.info_log.text = f"Disconnected from {self.endpoint}!"
+            SnackbarMessage(f"Disconnected from {self.endpoint}!")
             Logger.debug(f"CONNECT: Disconnected from {self.endpoint}!")
         except Exception:
             self.ids.btn_disconnect.disabled = False
             self.ids.btn_connect.disabled = True
             self.ids.endpoint_label.disabled = True
             self.ids.info_log.text = "Error while disconnecting..."
+            SnackbarMessage("Error while disconnecting...")
             Logger.info("CONNECT: Error while disconnecting...")
 
     def Update(self, dt):
@@ -511,14 +569,12 @@ class KivyApp(MDApp):
         return s
 
     def ToggleLog(self):
-        wid1 = self.kivy_instance.ids.log_box
-        wid2 = self.kivy_instance.ids.view_port
-        self.hide_widget(wid1)
-        if self.kivy_instance.menu.items[2]['text'] == 'Показать лог':
+        self.hide_widget(self.kivy_instance.ids.log_box)
+        if self.kivy_instance.menu.items[3]['text'] == 'Показать лог':
             self.kivy_instance.ids.hide_menu.disabled = True
-            self.kivy_instance.menu.items[2]['text'] = 'Скрыть лог'
+            self.kivy_instance.menu.items[3]['text'] = 'Скрыть лог'
         else:
-            self.kivy_instance.menu.items[2]['text'] = 'Показать лог'
+            self.kivy_instance.menu.items[3]['text'] = 'Показать лог'
             self.kivy_instance.ids.hide_menu.disabled = False
         self.kivy_instance.menu.dismiss()
 
