@@ -46,7 +46,7 @@ def animate_graph_removal(wid, method):
     anim.bind(on_complete=method)
     t = wid.gardenGraph._trigger
     ts = wid.gardenGraph._trigger_size
-    wid.gardenGraph.unbind(center=ts, padding=ts, precision=ts, plots=ts, x_grid=ts,
+    wid.gardenGraph.unbind(center=ts, padding=ts, x_precision=ts, y_precision=ts, plots=ts, x_grid=ts,
                            y_grid=ts, draw_border=ts)
     wid.gardenGraph.unbind(xmin=t, xmax=t, xlog=t, x_ticks_major=t, x_ticks_minor=t,
                            xlabel=t, x_grid_label=t, ymin=t, ymax=t, ylog=t,
@@ -184,7 +184,7 @@ class LaboratorClient(MDScreen):
                 "height": dp(48),
                 "left_icon": 'math-log',
                 "font_size": sp(12),
-                "on_release": self.main_app.ToggleLog,
+                "on_release": self.main_app.toggle_log,
             },
             {
                 "text": 'Настройки',
@@ -215,9 +215,11 @@ class LaboratorClient(MDScreen):
         self.main_container.AddGraph(_settings)
         if _settings is None:
             self.menu.dismiss()
+            Clock.schedule_once(self.main_app.layoutManager.SaveLayout, 0)
 
     def AddGraphs(self):
         self.ActionAfterEnterStringDialog('ITERATIVE|DECIMAL', self.AddGraph, 'Введите число графиков', 'Введите целое число графиков')
+        Clock.schedule_once(self.main_app.layoutManager.SaveLayout, 0)
         self.menu.dismiss()
 
     def ActionAfterEnterStringDialog(self, mode, action, title, hint_text):
@@ -303,9 +305,11 @@ class LaboratorClient(MDScreen):
             self.main_container.RemoveGraph(None, selected_graph)
         self.selected = []
         self.animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
+        Clock.schedule_once(self.main_app.layoutManager.SaveLayout, 0)
 
     def RemoveGraphByHASH(self, _hash):
         self.main_container.RemoveGraphByHASH(_hash)
+        Clock.schedule_once(self.main_app.layoutManager.SaveLayout, 0)
 
     def LabVarArrConfigure(self, path):
         Logger.debug("LabVarConf: Getting configuration from server...")
@@ -466,10 +470,10 @@ class KivyApp(MDApp):
         super().__init__(**kwargs)
         self.kivy_instance = None
         self.settings_widget = None
-        self.title = "Laborator Client"
         self.dialogEndpoint = None
-        self.hiddenWidgets = []
         self.layoutManager = None
+        self.title = "Laborator Client"
+        self.hiddenWidgets = []
 
         Factory.register('HoldBehavior', cls=HoldBehavior)
 
@@ -568,7 +572,7 @@ class KivyApp(MDApp):
                on_config_change=self._on_config_change)
         return s
 
-    def ToggleLog(self):
+    def toggle_log(self):
         self.hide_widget(self.kivy_instance.ids.log_box)
         if self.kivy_instance.menu.items[3]['text'] == 'Показать лог':
             self.kivy_instance.ids.hide_menu.disabled = True

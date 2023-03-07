@@ -8,7 +8,7 @@ from kivy.core.window import Window
 
 from typing import Union
 
-from kivy.properties import StringProperty, BooleanProperty
+from kivy.properties import StringProperty, BooleanProperty, NumericProperty
 from kivymd.uix.list.list import OneLineAvatarIconListItem
 
 from kivy.utils import get_hex_from_color
@@ -24,11 +24,13 @@ def SnackbarMessage(text):
     snackbar = Snackbar(
         text=text,
         snackbar_x="10sp",
-        snackbar_y="10sp",
+        snackbar_y="10sp"
     )
 
     snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
-
+    radius = snackbar.height * 0.5
+    snackbar.radius = [radius, radius, radius, radius]
+    snackbar.elevation = 0
     snackbar.open()
 
 
@@ -167,6 +169,8 @@ class DialogGraphSettingsContent(MDBoxLayout):
     labvar_name = StringProperty("None")
     mode = StringProperty("NORMAL")
 
+    max_variable_buffer_size = NumericProperty(0)
+
     show_avg_value = BooleanProperty(False)
     show_main_value = BooleanProperty(False)
 
@@ -189,6 +193,8 @@ class DialogGraphSettingsContent(MDBoxLayout):
 
         self.labvar_name = self.m_parent.graph_instance.GetName()
         self.mode = self.m_parent.graph_instance.s['MODE']
+
+        self.max_variable_buffer_size = self.m_parent.graph_instance.s['MAX_VARIABLE_BUFFER_SIZE']
 
         self.show_avg_graph = self.m_parent.graph_instance.s['SHOW_AVG_GRAPH']
         self.show_intime_graph = self.m_parent.graph_instance.s['SHOW_INTIME_GRAPH']
@@ -214,6 +220,10 @@ class DialogGraphSettingsContent(MDBoxLayout):
     def CheckCollizionName(self, name):
         return self.m_parent.graph_instance.CheckCollizionName(name)
 
+    def SetSpectralBufferSize(self, str_size):
+        self.max_variable_buffer_size = int(str_size)
+        self.m_parent.graph_instance.SetSpectralBufferSize(int(str_size))
+
     def SetExpression(self, expression):
         self.expression = expression
         self.m_parent.graph_instance.SetExpression(expression)
@@ -223,8 +233,8 @@ class DialogGraphSettingsContent(MDBoxLayout):
         self.m_parent.Close()
         self.m_parent.graph_instance.RemoveMe()
 
-    def ToggleX(self):
-        self.label_x = self.m_parent.graph_instance.toggle_x_grid_label()
+    # def ToggleX(self):
+    #     self.label_x = self.m_parent.graph_instance.toggle_x_grid_label()
 
     def ToggleY(self):
         self.label_y = self.m_parent.graph_instance.toggle_y_grid_label()
@@ -246,15 +256,15 @@ class DialogGraphSettingsContent(MDBoxLayout):
             self.show_avg_value = self.m_parent.graph_instance.s['SHOW_AVG_VALUE']
         if _id == 'show_main_graph':
             self.m_parent.graph_instance.Toggle('SHOW_MAIN_GRAPH', True)
-            self.m_parent.graph_instance.gardenGraph.TogglePlot(plot='MAIN')
+            self.m_parent.graph_instance.gardenGraph.TogglePlot()
             self.show_main_graph = self.m_parent.graph_instance.s['SHOW_MAIN_GRAPH']
         if _id == 'show_avg_graph':
             self.m_parent.graph_instance.Toggle('SHOW_AVG_GRAPH', True)
-            self.m_parent.graph_instance.gardenGraph.TogglePlot(plot='AVG')
+            self.m_parent.graph_instance.gardenGraph.TogglePlot()
             self.show_avg_graph = self.m_parent.graph_instance.s['SHOW_AVG_GRAPH']
         if _id == 'show_intime_graph':
             self.m_parent.graph_instance.Toggle('SHOW_INTIME_GRAPH', True)
-            self.m_parent.graph_instance.gardenGraph.TogglePlot(plot='INTIME')
+            self.m_parent.graph_instance.gardenGraph.TogglePlot()
             self.show_intime_graph = self.m_parent.graph_instance.s['SHOW_INTIME_GRAPH']
 
     def OpenColorPicker(self, _colorpicker_target):
@@ -320,6 +330,7 @@ class DialogGraphSettings:
             self.isDeleting = False
 
     def Close(self, *args):
+        Clock.schedule_once(self.graph_instance.kivy_instance.main_app.layoutManager.SaveLayout, 0)
         self.dialog.dismiss(force=True)
 
 
@@ -454,11 +465,19 @@ class DialogEnterString:
 
     def Enter(self, *args):
         if self.state == 'expression':
-            if self.dialog.content_cls.ids.my_text_field.text.strip().replace(' ',
-                                                                              '') != '' and self.graph_instance.CheckCollizionName(
-                    self.dialog.content_cls.ids.my_text_field.text):
+            self.dialog.content_cls.ids.my_text_field.text = self.dialog.content_cls.ids.my_text_field.text.strip().replace(' ', '')
+            if self.dialog.content_cls.ids.my_text_field.text != '' and self.graph_instance.CheckCollizionName(self.dialog.content_cls.ids.my_text_field.text):
                 self.m_parent.SetExpression(self.dialog.content_cls.ids.my_text_field.text)
                 self.state = None
+                self.dialog.dismiss(force=True)
+            else:
+                SnackbarMessage("Некорректный ввод!")
+        elif self.state == 'int':
+            self.text_field.text = self.text_field.text.strip().replace(' ', '')
+            if self.text_field.text != '' and self.text_field.text.isdecimal():
+                self.m_parent.SetSpectralBufferSize(self.text_field.text)
+                self.state = None
+                SnackbarMessage("Изменения будут применены после перезагрузки приложения!")
                 self.dialog.dismiss(force=True)
             else:
                 SnackbarMessage("Некорректный ввод!")

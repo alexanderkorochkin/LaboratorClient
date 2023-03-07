@@ -204,7 +204,7 @@ class Graph(Widget):
         ts = self._trigger_size = Clock.create_trigger(self._redraw_size)
         tc = self._trigger_color = Clock.create_trigger(self._update_colors)
 
-        self.bind(center=ts, padding=ts, precision=ts, plots=ts, x_grid=ts,
+        self.bind(center=ts, padding=ts, x_precision=ts, y_precision=ts, plots=ts, x_grid=ts,
                   y_grid=ts, draw_border=ts)
         self.bind(xmin=t, xmax=t, xlog=t, x_ticks_major=t, x_ticks_minor=t,
                   xlabel=t, x_grid_label=t, ymin=t, ymax=t, ylog=t,
@@ -336,7 +336,8 @@ class Graph(Widget):
         ymin = self.ymin
         ymax = self.ymax
         xmin = self.xmin
-        precision = self.precision
+        x_precision = self.x_precision
+        y_precision = self.y_precision
         x_overlap = False
         y_overlap = False
         # set up x and y axis labels
@@ -364,7 +365,7 @@ class Graph(Widget):
             # horizontal size of the largest tick label, to have enough room
             funcexp = exp10 if self.ylog else identity
             funclog = log10 if self.ylog else identity
-            ylabels[0].text = precision % funcexp(ypoints[0])
+            ylabels[0].text = y_precision % funcexp(ypoints[0])
             ylabels[0].texture_update()
             y1 = ylabels[0].texture_size
             y_start = y_next + (padding + y1[1] if len(xlabels) and xlabel_grid
@@ -377,7 +378,7 @@ class Graph(Widget):
             y_start -= y1[1] / 2.
             y1 = y1[0]
             for k in range(len(ylabels)):
-                ylabels[k].text = precision % funcexp(ypoints[k])
+                ylabels[k].text = y_precision % funcexp(ypoints[k])
                 ylabels[k].texture_update()
                 ylabels[k].size = ylabels[k].texture_size
                 y1 = max(y1, ylabels[k].texture_size[0])
@@ -392,19 +393,19 @@ class Graph(Widget):
             funcexp = exp10 if self.xlog else identity
             funclog = log10 if self.xlog else identity
             # find the distance from the end that'll fit the last tick label
-            xlabels[0].text = precision % funcexp(xpoints[-1])
+            xlabels[0].text = x_precision % funcexp(xpoints[-1])
             xlabels[0].texture_update()
             xextent = x + width - xlabels[0].texture_size[0] / 2. - padding
             # find the distance from the start that'll fit the first tick label
             if not x_next:
-                xlabels[0].text = precision % funcexp(xpoints[0])
+                xlabels[0].text = x_precision % funcexp(xpoints[0])
                 xlabels[0].texture_update()
                 x_next = padding + xlabels[0].texture_size[0] / 2.
             xmin = funclog(xmin)
             ratio = (xextent - x_next) / float(funclog(self.xmax) - xmin)
             right = -1
             for k in range(len(xlabels)):
-                xlabels[k].text = precision % funcexp(xpoints[k])
+                xlabels[k].text = x_precision % funcexp(xpoints[k])
                 # update the size so we can center the labels on ticks
                 xlabels[k].texture_update()
                 xlabels[k].size = xlabels[k].texture_size
@@ -939,7 +940,17 @@ class Graph(Widget):
     defaults to 0.
     '''
 
-    precision = StringProperty('%g')
+    x_precision = StringProperty('%g')
+    '''Determines the numerical precision of the tick mark labels. This value
+    governs how the numbers are converted into string representation. Accepted
+    values are those listed in Python's manual in the
+    "String Formatting Operations" section.
+
+    :data:`precision` is a :class:`~kivy.properties.StringProperty`, defaults
+    to '%g'.
+    '''
+
+    y_precision = StringProperty('%g')
     '''Determines the numerical precision of the tick mark labels. This value
     governs how the numbers are converted into string representation. Accepted
     values are those listed in Python's manual in the

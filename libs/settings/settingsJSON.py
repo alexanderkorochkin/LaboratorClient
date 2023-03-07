@@ -35,6 +35,8 @@ graph_settings_defaults = {
             'NAME': 'None',
             'MODE': 'NORMAL',
 
+            'MAX_VARIABLE_BUFFER_SIZE': 1000,
+
             'GRAPH_ADDITIONAL_SPACE_Y': 1.2,
             'GRAPH_BUFFER_AVG_SIZE': 40,
             'GRAPH_ROUND_DIGITS': 1,
