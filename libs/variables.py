@@ -1,13 +1,10 @@
-import math
-
-from scipy.fft import rfft, rfftfreq
-
-from libs.settings.settingsJSON import msettings
-from kivy.logger import Logger
+import numpy as np
 import numexpr as ne
 import re
 
-import numpy as np
+from scipy.fft import rfft, rfftfreq
+from libs.settings.settingsJSON import msettings
+from kivy.logger import Logger
 
 
 class LabVar:
@@ -29,7 +26,6 @@ class DirectVariable:
         self.values_history = []
         self.spectral_values = []
         self.max_history_size = _max_history_size
-        self.N = 2 ** math.ceil(math.log2(self.max_history_size))
         self.client = _client
 
     def SetName(self, _name):
@@ -59,33 +55,7 @@ class DirectVariable:
         return self.values_history[-msettings.get('MAX_HISTORY_VALUES'):]
 
     def GetSpectral(self):
-
-        SAMPLE_RATE = self.max_history_size                         # Количество точек в сэмпле, Гц
-        DURATION = 1                                                # Длительность сэмпла, сек
-        N = SAMPLE_RATE * DURATION                                  # Количество сэмплов всего
-        TIME_STEP = 1 / SAMPLE_RATE
-
-        sig = []
-        for i in range(len(self.values_history)):
-            sig.append(self.values_history[i][1])
-
-        avg = sum(sig) / len(sig)                                   # Среднее значение
-        sig = [y - avg for y in sig]                                # Выравнивание по оси Y
-
-        signal = np.array(sig, dtype=float)
-
-        yf = rfft(sig, N)
-        xf = rfftfreq(N, d=TIME_STEP) / N
-
-        out = []
-        i = 0
-        for x in xf:
-            out.append((xf[i], np.abs(yf[i])))
-            i += 1
-
-        print(xf[np.argmax(np.abs(yf))], np.max(np.abs(yf)))
-
-        return out
+        return FFTGraph(self.max_history_size, self.values_history)
 
     def ClearHistory(self):
         self.values_history = []
@@ -158,34 +128,37 @@ class IndirectVariable:
         return self.values_history[-msettings.get('MAX_HISTORY_VALUES'):]
 
     def GetSpectral(self):
-
-        SAMPLE_RATE = self.max_history_size                         # Количество точек в сэмпле, Гц
-        DURATION = 1                                                # Длительность сэмпла, сек
-        N = SAMPLE_RATE * DURATION                                  # Количество сэмплов всего
-        TIME_STEP = 1 / SAMPLE_RATE
-
-        sig = []
-        for i in range(len(self.values_history)):
-            sig.append(self.values_history[i][1])
-
-        avg = sum(sig) / len(sig)                                   # Среднее значение
-        sig = [y - avg for y in sig]                                # Выравнивание по оси Y
-
-        signal = np.array(sig, dtype=float)
-
-        yf = rfft(sig, N)
-        xf = rfftfreq(N, d=TIME_STEP) / N
-
-        out = []
-        i = 0
-        for x in xf:
-            out.append((xf[i], np.abs(yf[i])))
-            i += 1
-
-        print(xf[np.argmax(np.abs(yf))], np.max(np.abs(yf)))
-
-        return out
+        return FFTGraph(self.max_history_size, self.values_history)
 
     def ClearHistory(self):
         self.values_history = []
         self.spectral_values = []
+
+
+def FFTGraph(samplerate: int, values: list):
+
+    SAMPLE_RATE = samplerate
+    N = SAMPLE_RATE
+    TIME_STEP = 1 / SAMPLE_RATE
+
+    sig = []
+    if values:
+        if hasattr(values[0], '__iter__') and len(values[0]) == 2:
+            for i in range(len(values)):
+                sig.append(values[i][1])
+        else:
+            sig = values
+
+    avg = sum(sig) / len(sig)
+    signal = [y - avg for y in sig]
+
+    yf = 2 * np.abs(rfft(signal, N)) / len(sig)
+    xf = rfftfreq(N, d=TIME_STEP) / N
+
+    out = []
+    i = 0
+    for x in xf:
+        out.append((xf[i], yf[i]))
+        i += 1
+
+    return out

@@ -31,11 +31,12 @@ settings_defaults = {
             'DIALOG_MAXIMUM_HEIGHT_HORIZONTAL': sp(800),
             }
 
+
 graph_settings_defaults = {
             'NAME': 'None',
             'MODE': 'NORMAL',
 
-            'MAX_VARIABLE_BUFFER_SIZE': 1000,
+            'MAX_SPECTRAL_BUFFER_SIZE': 128,
 
             'GRAPH_ADDITIONAL_SPACE_Y': 1.2,
             'GRAPH_BUFFER_AVG_SIZE': 40,
@@ -112,22 +113,10 @@ settings_json = json.dumps([
      'title': 'Настройки интерфейса'},
 
     {'type': 'numeric',
-     'title': 'Скорость двойного нажатия',
-     'desc': 'KIVY_DOUBLETAP_TIME',
-     'section': 'allSettings',
-     'key': 'KIVY_DOUBLETAP_TIME'},
-
-    {'type': 'numeric',
-     'title': 'Количество точек по оси X на графиках (зависит от частоты обновления)',
+     'title': 'Количество точек по оси X на графиках',
      'desc': 'MAX_HISTORY_VALUES',
      'section': 'allSettings',
      'key': 'MAX_HISTORY_VALUES'},
-
-    {'type': 'numeric',
-     'title': 'Скорость обновления графики',
-     'desc': 'KIVY_UPDATE_FUNCTION_TIME',
-     'section': 'allSettings',
-     'key': 'KIVY_UPDATE_FUNCTION_TIME'},
 
     {'type': 'numeric',
      'title': 'Сжатие графика по оси Y',
@@ -142,7 +131,7 @@ settings_json = json.dumps([
      'key': 'GRAPH_BUFFER_AVG_SIZE'},
 
     {'type': 'options',
-     'title': 'Количество символов после запятой',
+     'title': 'Округление до N знаков после запятой',
      'desc': 'GRAPH_ROUND_DIGITS',
      'section': 'GraphSettings',
      'key': 'GRAPH_ROUND_DIGITS',

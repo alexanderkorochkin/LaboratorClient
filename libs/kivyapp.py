@@ -22,7 +22,7 @@ from kivymd.uix.textfield import MDTextField
 from libs.settings.settingsJSON import *
 from libs.opcua.opcuaclient import client
 from libs.graph import GraphBox
-from libs.dialogs import DialogEndpoint, SnackbarMessage, MDDialogFix
+from libs.dialogs import DialogEndpoint, SnackbarMessage, SnackbarMessageAction, MDDialogFix
 from libs.layoutManager import LayoutManager
 
 Logger.setLevel(LOG_LEVELS["debug"])
@@ -40,7 +40,8 @@ def animated_show_widget_only(wid, method):
     anim.start(wid)
 
 
-def animate_graph_removal(wid, method):
+def animate_graph_removal(wid, side, method):
+    print(side)
     # animate shrinking widget width
     anim = Animation(opacity=0, height=0, duration=0.5, t='out_expo')
     anim.bind(on_complete=method)
@@ -120,8 +121,13 @@ class GContainer(MDBoxLayout):
                 return x
         return None
 
+    def RemoveAll(self):
+        for graph in self.GraphArr:
+            self.RemoveGraph(anim=None, graph=graph)
+
     def RemoveGraphByHASH(self, _hash):
-        animate_graph_removal(self.GetGraphByHASH(_hash), self.RemoveGraph)
+        graph = self.GetGraphByHASH(_hash)
+        animate_graph_removal(graph, 'vertical' if (self.kivy_instance.main_app.d_type == 'mobile' and self.kivy_instance.main_app.d_ori == 'vertical') else 'horizontal', self.RemoveGraph)
 
     def RemoveGraph(self, anim, graph):
         if len(self.GraphArr) > 0:
@@ -206,7 +212,7 @@ class LaboratorClient(MDScreen):
     def Prepare(self):
         self.ids.view_port.add_widget(self.main_container)
         self.endpoint = msettings.get('LAST_IP')
-        self.animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
+        animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
 
     def GetGraphByHASH(self, _hash):
         return self.main_container.GetGraphByHASH(_hash)
@@ -215,11 +221,9 @@ class LaboratorClient(MDScreen):
         self.main_container.AddGraph(_settings)
         if _settings is None:
             self.menu.dismiss()
-            Clock.schedule_once(self.main_app.layoutManager.SaveLayout, 0)
 
     def AddGraphs(self):
         self.ActionAfterEnterStringDialog('ITERATIVE|DECIMAL', self.AddGraph, 'Введите число графиков', 'Введите целое число графиков')
-        Clock.schedule_once(self.main_app.layoutManager.SaveLayout, 0)
         self.menu.dismiss()
 
     def ActionAfterEnterStringDialog(self, mode, action, title, hint_text):
@@ -270,27 +274,19 @@ class LaboratorClient(MDScreen):
         self.show_menu = not self.show_menu
         self.main_app.update_orientation()
 
-    @staticmethod
-    def animated_hide_widget_only(wid, method):
-        animated_hide_widget_only(wid, method)
-
-    @staticmethod
-    def animated_show_widget_only(wid, method):
-        animated_show_widget_only(wid, method)
-
     def GetNumberSelected(self):
         return len(self.selected)
 
     def Selected(self, graph):
         if not self.selected:
-            self.animated_show_widget_only(self.ids.selection_controls, self.main_app.show_widget_only_anim)
+            animated_show_widget_only(self.ids.selection_controls, self.main_app.show_widget_only_anim)
         self.selected.append(graph)
         self.number_selected += 1
 
     def Unselected(self, graph):
         self.selected.remove(graph)
         if not self.selected:
-            self.animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
+            animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
         self.number_selected -= 1
 
     def UnselectAll(self):
@@ -298,14 +294,18 @@ class LaboratorClient(MDScreen):
             graph.UnChooseIt()
         self.selected = []
         self.number_selected = 0
-        self.animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
+        animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
 
     def RemoveSelectedGraphs(self):
         for selected_graph in self.selected:
             self.main_container.RemoveGraph(None, selected_graph)
         self.selected = []
-        self.animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
-        Clock.schedule_once(self.main_app.layoutManager.SaveLayout, 0)
+        self.number_selected = 0
+        SnackbarMessageAction('Отменить удаление', 'UNDO', cancel_button_text='SAVE', accept_action=self.main_app.layoutManager.ReloadLayout, cancel_action=self.main_app.layoutManager.SaveLayout)
+        animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
+
+    def RemoveAll(self):
+        self.main_container.RemoveAll()
 
     def RemoveGraphByHASH(self, _hash):
         self.main_container.RemoveGraphByHASH(_hash)

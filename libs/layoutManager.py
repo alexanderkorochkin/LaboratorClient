@@ -1,3 +1,5 @@
+from kivy.clock import Clock
+
 from libs.settings.settingsJSON import msettings
 from kivy.logger import Logger
 import json
@@ -7,16 +9,22 @@ class LayoutManager:
 
     def __init__(self, _kivy_instance):
         self.kivy_instance = _kivy_instance
+        self.deleting_clock = None
+
+    def ReloadLayout(self, *args):
+        self.kivy_instance.RemoveAll()
+        self.LoadLayout()
+        self.kivy_instance.main_app.update_orientation()
 
     def LoadLayout(self, *args):
         Logger.debug("LayoutManager: Loading layout from {}".format(msettings.get('LAYOUT_FILE')))
-        try:
-            with open(msettings.get('LAYOUT_FILE'), 'r') as fp:
-                arr = fp.readlines()
-                for line in arr:
-                    self.kivy_instance.AddGraph(json.loads(line))
-        except Exception:
-            Logger.debug('LayoutManager: Failed to open Layout File!')
+        #try:
+        with open(msettings.get('LAYOUT_FILE'), 'r') as fp:
+            arr = fp.readlines()
+            for line in arr:
+                self.kivy_instance.AddGraph(json.loads(line))
+        # except Exception:
+        #     Logger.debug('LayoutManager: Failed to open Layout File!')
 
     def SaveLayout(self, *args):
         Logger.debug(f"LayoutManager: Saving layout to {msettings.get('LAYOUT_FILE')}")

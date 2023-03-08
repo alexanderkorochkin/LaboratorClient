@@ -73,6 +73,7 @@
                             icon: 'pencil'
                             theme_icon_color: "Custom"
                             icon_color: "white"
+                            disabled: False if '*' in root.labvar_name else True
                             on_release: root.dialogEnterString.Open('edit_name', root.labvar_name, 'Введите новое имя', 'Имя должно быть уникальным', _need_connection=True)
                     MDBoxLayout:
                         id: expression_settings
@@ -80,13 +81,13 @@
                         adaptive_height: True
                         MDFlatButton:
                             id: expression_button
-                            text: "Выражение: " + root.expression if '*' in root.ids.variable_list.text else 'Выражение не доступно'
+                            text: "Выражение: " + root.expression if '*' in root.labvar_name else 'Встроенная переменная'
                             size_hint_x: 1
                             theme_text_color: "Custom"
                             text_color: "white"
                             line_color: app.theme_cls.primary_color
                             font_size: sp(14)
-                            disabled: False if '*' in root.ids.variable_list.text else True
+                            disabled: False if '*' in root.labvar_name else True
                             on_release: root.dialogEnterString.Open('expression', root.expression, 'Введите выражение', '')
                     MDFlatButton:
                         id: change_mode_button
@@ -96,7 +97,7 @@
                         text_color: "white"
                         line_color: app.theme_cls.primary_color
                         font_size: sp(14)
-                        on_release: root.ChangeMode('change_mode_button')
+                        on_release: root.Toggle('NEXT_MODE')
                 MDBoxLayout:
                     id: second_cell
                     orientation: 'vertical'
@@ -110,22 +111,25 @@
                         adaptive_height: True
                         spacing: sp(10)
                         # padding: sp(10), sp(10), sp(10), sp(10)
-#                        MDFlatButton:
-#                            text: "Откл. ось X" if root.label_x else "Вкл. ось X"
-#                            size_hint_x: 1
-#                            theme_text_color: "Custom"
-#                            text_color: "white"
-#                            line_color: app.theme_cls.primary_color
-#                            font_size: sp(14)
-#                            on_release: root.ToggleX()
                         MDFlatButton:
+                            id: toggle_x_button
+                            text: "Откл. ось X" if root.label_x else "Вкл. ось X"
+                            size_hint_x: 1
+                            theme_text_color: "Custom"
+                            text_color: "white"
+                            line_color: app.theme_cls.primary_color
+                            font_size: sp(14)
+                            disabled: False if root.mode == 'SPECTRAL' else True
+                            on_release: root.Toggle('GRAPH_LABEL_X')
+                        MDFlatButton:
+                            id: toggle_y_button
                             text: "Откл. ось Y" if root.label_y else "Вкл. ось Y"
                             size_hint_x: 1
                             theme_text_color: "Custom"
                             text_color: "white"
                             line_color: app.theme_cls.primary_color
                             font_size: sp(14)
-                            on_release: root.ToggleY()
+                            on_release: root.Toggle('GRAPH_LABEL_Y')
                     MDFlatButton:
                         id: clear_graph
                         text: "Очистить график"
@@ -154,20 +158,22 @@
                     orientation: "horizontal"
                     adaptive_height: True
                     MDFlatButton:
-                        text: "Размер спектрального буффера: " + str(root.max_variable_buffer_size)
+                        text: "Размер спектрального буффера: " + str(root.max_spectral_buffer_size) if root.mode == 'SPECTRAL' else 'Спектральный буфер не доступен'
                         size_hint_x: 1
                         halign: 'center'
                         theme_text_color: "Custom"
                         text_color: "white"
                         font_size: sp(14)
-                        on_release: root.dialogEnterString.Open('int', str(root.max_variable_buffer_size), 'Введите размер спектрального буффера', '')
+                        disabled: False if root.mode == 'SPECTRAL' else True
+                        on_release: root.dialogEnterString.Open('spectral_size', str(root.max_spectral_buffer_size), 'Введите размер спектрального буффера', '')
                 MDBoxLayout:
                     orientation: "horizontal"
                     adaptive_height: True
                     MDCheckbox:
-                        on_release: root.CheckboxPress('show_main_value')
+                        on_release: root.Toggle('SHOW_MAIN_VALUE')
                         size_hint: None, 1
                         size: "48dp", "48dp"
+                        disabled: True if root.mode == 'SPECTRAL' else False
                         active: root.show_main_value
                     MDFlatButton:
                         text: "Показывать текущее значение"
@@ -176,15 +182,17 @@
                         theme_text_color: "Custom"
                         text_color: "white"
                         font_size: sp(14)
-                        on_release: root.CheckboxPress('show_main_value')
+                        disabled: True if root.mode == 'SPECTRAL' else False
+                        on_release: root.Toggle('SHOW_MAIN_VALUE')
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_x: 1
                     adaptive_height: True
                     MDCheckbox:
-                        on_release: root.CheckboxPress('show_avg_value')
+                        on_release: root.Toggle('SHOW_AVG_VALUE')
                         size_hint: None, 1
                         size: "48dp", "48dp"
+                        disabled: True if root.mode == 'SPECTRAL' else False
                         active: root.show_avg_value
                     MDFlatButton:
                         text: "Показывать среднее значение"
@@ -193,15 +201,17 @@
                         theme_text_color: "Custom"
                         text_color: "white"
                         font_size: sp(14)
-                        on_release: root.CheckboxPress('show_avg_value')
+                        disabled: True if root.mode == 'SPECTRAL' else False
+                        on_release: root.Toggle('SHOW_AVG_VALUE')
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_x: 1
                     adaptive_height: True
                     MDCheckbox:
-                        on_release: root.CheckboxPress('show_main_graph')
+                        on_release: root.Toggle('SHOW_MAIN_GRAPH')
                         size_hint: None, 1
                         size: "48dp", "48dp"
+                        disabled: True if root.mode == 'SPECTRAL' else False
                         active: root.show_main_graph
                     MDFlatButton:
                         text: "Основной график"
@@ -210,22 +220,24 @@
                         halign: 'left'
                         text_color: "white"
                         font_size: sp(14)
-                        on_release: root.CheckboxPress('show_main_graph')
+                        disabled: True if root.mode == 'SPECTRAL' else False
+                        on_release: root.Toggle('SHOW_MAIN_GRAPH')
                     MDIconButton:
                         size_hint: None, 1
                         size: "48dp", "48dp"
                         icon: 'palette'
                         theme_icon_color: "Custom"
                         icon_color: root.main_graph_color
-                        on_release: root.OpenColorPicker('MAIN')
+                        on_release: root.Toggle('MAIN_GRAPH_COLOR')
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_x: 1
                     adaptive_height: True
                     MDCheckbox:
-                        on_release: root.CheckboxPress('show_avg_graph')
+                        on_release: root.Toggle('SHOW_AVG_GRAPH')
                         size_hint: None, 1
                         size: "48dp", "48dp"
+                        disabled: True if root.mode == 'SPECTRAL' else False
                         active: root.show_avg_graph
                     MDFlatButton:
                         text: "График среднего значения"
@@ -234,22 +246,25 @@
                         theme_text_color: "Custom"
                         text_color: "white"
                         font_size: sp(14)
-                        on_release: root.CheckboxPress('show_avg_graph')
+                        disabled: True if root.mode == 'SPECTRAL' else False
+                        on_release: root.Toggle('SHOW_AVG_GRAPH')
                     MDIconButton:
                         size_hint: None, 1
                         size: "48dp", "48dp"
                         icon: 'palette'
                         theme_icon_color: "Custom"
                         icon_color: root.avg_color
-                        on_release: root.OpenColorPicker('AVG')
+                        disabled: True if root.mode == 'SPECTRAL' else False
+                        on_release: root.Toggle('AVG_COLOR')
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_x: 1
                     adaptive_height: True
                     MDCheckbox:
-                        on_release: root.CheckboxPress('show_intime_graph')
+                        on_release: root.Toggle('SHOW_INTIME_GRAPH')
                         size_hint: None, 1
                         size: "48dp", "48dp"
+                        disabled: True if root.mode == 'SPECTRAL' else False
                         active: root.show_intime_graph
                     MDFlatButton:
                         text: "Линия текущего значения"
@@ -258,4 +273,5 @@
                         theme_text_color: "Custom"
                         text_color: "white"
                         font_size: sp(14)
-                        on_release: root.CheckboxPress('show_intime_graph')
+                        disabled: True if root.mode == 'SPECTRAL' else False
+                        on_release: root.Toggle('SHOW_INTIME_GRAPH')

@@ -14,6 +14,25 @@ from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
 from libs.variables import DirectVariable, IndirectVariable
 
+from kivy.logger import Logger
+
+
+class DictCallback(dict):
+
+    graph_instance = None
+    isSilent = True
+
+    def __setitem__(self, item, value):
+        old_name = self['NAME']
+        old_value = self[item]
+        super(DictCallback, self).__setitem__(item, value)
+        if not self.isSilent:
+            if old_value != value:
+                Logger.debug(f'GraphDict: [{old_name}]:[{item}] changed to [{value}]')
+            else:
+                Logger.debug(f'GraphDict: [{old_name}]:[{item}] is still [{value}]')
+            self.graph_instance.on_dict(item, value)
+
 
 def color2hex(color):
     return '#' + ''.join(['{0:02x}'.format(int(x * 255)) for x in color])
@@ -61,14 +80,11 @@ class GardenGraph(Graph):
         self.spectral_plot = LinePlot()
         self.spectral_plot.points = []
 
-        self.label = MDLabel(text='FFF', **self.label_options)
-
     def SetMode(self, mode):
         if mode == 'SPECTRAL':
             self.remove_plot(self.plot)
             self.remove_plot(self.avg_plot)
             self.remove_plot(self.intime_plot)
-            self.xmax = self.graph_instance.s['MAX_VARIABLE_BUFFER_SIZE'] / 2 + 1
             self.add_plot(self.spectral_plot)
         elif mode == 'NORMAL':
             self.remove_plot(self.spectral_plot)
@@ -122,66 +138,51 @@ class GardenGraph(Graph):
 
     def UpdatePlot(self, plot_name, arr: list):
 
-        if arr:
+        if arr and not self.isDeleting:
             if plot_name == 'AVG':
-                if not self.isDeleting:
-                    temp = []
-                    for i in range(len(arr)):
-                        temp.append([i, arr[i]])
-                    self.avg_plot.points = temp
+                temp = []
+                for i in range(len(arr)):
+                    temp.append([i, arr[i]])
+                self.avg_plot.points = temp
 
             if plot_name == 'MAIN':
-                if not self.isDeleting:
-                    temp_points = []
-                    temp_value_arr = []
-                    last_value = arr[-1][1]
-                    for i in range(len(arr)):
-                        temp_points.append([i, arr[i][1]])
-                    for i in range(msettings.get('MAX_HISTORY_VALUES')):
-                        temp_value_arr.append([i, last_value])
-                    self.plot.points = temp_points
-                    self.intime_plot.points = temp_value_arr
+                temp_points = []
+                temp_value_arr = []
+                last_value = arr[-1][1]
+                for i in range(len(arr)):
+                    temp_points.append([i, arr[i][1]])
+                for i in range(msettings.get('MAX_HISTORY_VALUES')):
+                    temp_value_arr.append([i, last_value])
+                self.plot.points = temp_points
+                self.intime_plot.points = temp_value_arr
 
-                    _yarr = [arr[i][1] for i in range(len(arr))]
-                    self.ymax = round(((max(_yarr) + min(_yarr)) / 2) + abs(self.graph_instance.s['GRAPH_ADDITIONAL_SPACE_Y'] * (max(_yarr) - ((max(_yarr) + min(_yarr)) / 2))))
-                    self.ymin = round(((max(_yarr) + min(_yarr)) / 2) - abs(self.graph_instance.s['GRAPH_ADDITIONAL_SPACE_Y'] * (-min(_yarr) + ((max(_yarr) + min(_yarr)) / 2))))
-                    self.y_ticks_major = (self.ymax - self.ymin)/4
-                    if self.y_ticks_major == 0:
-                        self.ymax = 1
-                        self.ymin = -1
-                        self.y_ticks_major = (self.ymax - self.ymin) / 4
+                _yarr = [arr[i][1] for i in range(len(arr))]
+                self.ymax = round(((max(_yarr) + min(_yarr)) / 2) + abs(self.graph_instance.s['GRAPH_ADDITIONAL_SPACE_Y'] * (max(_yarr) - ((max(_yarr) + min(_yarr)) / 2))))
+                self.ymin = round(((max(_yarr) + min(_yarr)) / 2) - abs(self.graph_instance.s['GRAPH_ADDITIONAL_SPACE_Y'] * (-min(_yarr) + ((max(_yarr) + min(_yarr)) / 2))))
+                self.y_ticks_major = (self.ymax - self.ymin)/4
+                if self.y_ticks_major == 0:
+                    self.ymax = 1
+                    self.ymin = -1
+                    self.y_ticks_major = (self.ymax - self.ymin) / 4
 
             if plot_name == 'SPECTRAL':
-                if not self.isDeleting:
-                    temp_points = []
-                    for i in range(len(arr)):
-                        temp_points.append([arr[i][0], arr[i][1]])
-                    self.spectral_plot.points = temp_points
+                temp_points = []
+                for i in range(len(arr)):
+                    temp_points.append([arr[i][0], arr[i][1]])
+                self.spectral_plot.points = temp_points
 
-                    self.xmin = 0
-                    self.xmax = 0.5
-                    self.x_ticks_major = (self.xmax - self.xmin) / 5
+                self.xmin = 0
+                self.xmax = 0.5
+                self.x_ticks_major = (self.xmax - self.xmin) / 5
 
-                    _yarr = [arr[i][1] for i in range(len(arr))]
-                    self.ymax = round(((max(_yarr) + min(_yarr)) / 2) + abs(
-                        self.graph_instance.s['GRAPH_ADDITIONAL_SPACE_Y'] * (
-                                    max(_yarr) - ((max(_yarr) + min(_yarr)) / 2))))
+                _yarr = [arr[i][1] for i in range(len(arr))]
+                self.ymax = round(((max(_yarr) + min(_yarr)) / 2) + abs(self.graph_instance.s['GRAPH_ADDITIONAL_SPACE_Y'] * (max(_yarr) - ((max(_yarr) + min(_yarr)) / 2))))
+                self.ymin = 0
+                self.y_ticks_major = (self.ymax - self.ymin) / 4
+                if self.y_ticks_major == 0.:
+                    self.ymax = 1
                     self.ymin = 0
                     self.y_ticks_major = (self.ymax - self.ymin) / 4
-                    if self.y_ticks_major == 0.:
-                        self.ymax = 1
-                        self.ymin = 0
-                        self.y_ticks_major = (self.ymax - self.ymin) / 4
-
-                    # self.label.text = '1'
-                    # self.label.texture_update()
-                    # self.label.size = self.label.texture_size
-                    # half_ts = self.label.texture_size[0] / 2.
-                    # self.label.pos_hint = None, None
-                    # self.label.size_hint = None, None
-                    # self.label.pos = self.label.texture_size[0] / 2., 0
-                    # self.remove_widget(self.label)
-                    # self.add_widget(self.label)
 
     def ClearPlot(self, _plot='ALL'):
         self.plot.points = []
@@ -190,7 +191,7 @@ class GardenGraph(Graph):
         self.spectral_plot.points = []
         self.ymax = 1
         self.ymin = 0
-        self.xmax = msettings.get('MAX_HISTORY_VALUES') + 1 if self.graph_instance.s['MODE'] == 'NORMAL' else self.graph_instance.s['MAX_VARIABLE_BUFFER_SIZE'] + 1
+        self.xmax = msettings.get('MAX_HISTORY_VALUES') + 1 if self.graph_instance.s['MODE'] == 'NORMAL' else self.xmax
         self.xmin = 0
 
     def SetDeleting(self):
@@ -242,30 +243,17 @@ class GraphBox(MDBoxLayout):
         self.isChosen = False
 
         self.var = None
-        self.gardenGraph = None
-        self.kivy_instance = _kivy_instance
-        self.avgBuffer = AVGBuffer(self)
-        self.dialogGraphSettings = DialogGraphSettings(self)
-
-        self.MODES = ['NORMAL', 'SPECTRAL']
-
-        self.s = graph_settings_defaults.copy()
-        self.s['HASH'] = uuid.uuid4().hex
-
-        if settings is not None:
-            self.ApplyLayout(settings)
-
         self.gardenGraph = GardenGraph(border_color=[1, 1, 1, 0],
                                        y_ticks_major=0,
                                        y_ticks_minor=0,
-                                       x_ticks_major=12,
+                                       x_ticks_major=0,
                                        x_ticks_minor=0,
                                        xlog=False,
                                        ylog=False,
-                                       tick_color=[0, 0, 0, 0.2],
+                                       tick_color=[0, 0, 0, 0],
                                        background_color=[1, 1, 1, 0],
-                                       y_grid_label=self.s['GRAPH_LABEL_Y'],
-                                       x_grid_label=self.s['GRAPH_LABEL_X'],
+                                       y_grid_label=False,
+                                       x_grid_label=False,
                                        x_grid=False,
                                        y_grid=False,
                                        xmin=0,
@@ -274,70 +262,73 @@ class GraphBox(MDBoxLayout):
                                        ymax=1,
                                        font_size='12sp',
                                        label_options={
-                                            'color': '#FFFFFF',  # color of tick labels and titles
-                                            'bold': False,
-                                            'halign': 'center',
-                                            'valign': 'middle',
-                                            },
+                                           'color': '#FFFFFF',  # color of tick labels and titles
+                                           'bold': False,
+                                           'halign': 'center',
+                                           'valign': 'middle',
+                                       },
                                        _graph_instance=self)
 
+        self.kivy_instance = _kivy_instance
+        self.avgBuffer = AVGBuffer(self)
+        self.dialogGraphSettings = DialogGraphSettings(self)
+
+        self.MODES = ['NORMAL', 'SPECTRAL']
+
+        self.s = DictCallback(graph_settings_defaults.copy())
+        self.s.graph_instance = self
+        self.s.isSilent = False
+        self.s['HASH'] = uuid.uuid4().hex
+
+        if settings:
+            self.ApplyLayout(settings)
+
         self.ids.garden_graph_placer.add_widget(self.gardenGraph)
-        self._SetMode(self.s['MODE'])
         self.gardenGraph.TogglePlot()
-        self.gardenGraph.SetMode(self.s['MODE'])
         self.gardenGraph.UpdatePlotColor()
-        self._UpdateNameButton()
 
-    def ac(self, s, settings):
-        if settings[s]:
-            self.s[s] = settings[s]
+    def apply_setting(self, tag, settings):
+        if settings[tag]:
+            self.s[tag] = settings[tag]
 
-    def acf(self, s, settings, function):
-        if settings[s]:
-            function(settings[s])
-
-    def acff(self, s, settings, function):
-        if settings[s]:
-            function(settings)
+    def apply_with_function(self, tag, settings, function):
+        if settings[tag]:
+            function(settings[tag])
 
     def ApplyLayout(self, settings):
 
-        self.acf('NAME', settings, self.UpdateName)
-        self.s['MODE'] = settings['MODE']
+        self.apply_with_function('NAME', settings, self.UpdateName)
 
-        self.s['MAX_VARIABLE_BUFFER_SIZE'] = settings['MAX_VARIABLE_BUFFER_SIZE']
+        for tag in settings.keys():
+            if tag not in ('NAME',):
+                self.apply_setting(tag, settings)
 
-        self.s['GRAPH_ADDITIONAL_SPACE_Y'] = settings['GRAPH_ADDITIONAL_SPACE_Y']
-        self.s['GRAPH_BUFFER_AVG_SIZE'] = settings['GRAPH_BUFFER_AVG_SIZE']
-        self.s['GRAPH_ROUND_DIGITS'] = settings['GRAPH_ROUND_DIGITS']
-
-        self.s['SHOW_MAIN_VALUE'] = settings['SHOW_MAIN_VALUE']
-        self.s['SHOW_AVG_VALUE'] = settings['SHOW_AVG_VALUE']
-
-        self.s['SHOW_MAIN_GRAPH'] = settings['SHOW_MAIN_GRAPH']
-        self.s['SHOW_AVG_GRAPH'] = settings['SHOW_AVG_GRAPH']
-        self.s['SHOW_INTIME_GRAPH'] = settings['SHOW_INTIME_GRAPH']
-
-        self.s['MAIN_GRAPH_COLOR'] = settings['MAIN_GRAPH_COLOR']
-        self.s['AVG_COLOR'] = settings['AVG_COLOR']
-        self.s['INTIME_GRAPH_COLOR'] = settings['INTIME_GRAPH_COLOR']
-
-        self.s['MAIN_GRAPH_LINE_THICKNESS'] = settings['MAIN_GRAPH_LINE_THICKNESS']
-        self.s['AVG_GRAPH_LINE_THICKNESS'] = settings['AVG_GRAPH_LINE_THICKNESS']
-        self.s['INTIME_GRAPH_LINE_THICKNESS'] = settings['INTIME_GRAPH_LINE_THICKNESS']
-
-        self.s['AVG_GRAPH_OPACITY'] = settings['AVG_GRAPH_OPACITY']
-
-        self.s['GRAPH_LABEL_X'] = settings['GRAPH_LABEL_X']
-        self.s['GRAPH_LABEL_Y'] = settings['GRAPH_LABEL_Y']
-
-        if settings['IS_INDIRECT']:
-            self.s['IS_INDIRECT'] = True
-            self.var = IndirectVariable(client, self.kivy_instance, self.s['MAX_VARIABLE_BUFFER_SIZE'])
-            self.acf('EXPRESSION', settings, self.SetExpression)
-        else:
-            self.s['IS_INDIRECT'] = False
-            self.var = DirectVariable(client, self.kivy_instance, self.s['MAX_VARIABLE_BUFFER_SIZE'], self.s['NAME'])
+    def on_dict(self, tag, value):
+        if tag == 'GRAPH_LABEL_Y':
+            self.gardenGraph.y_grid_label = value
+        if tag == 'GRAPH_LABEL_X':
+            self.gardenGraph.x_grid_label = value
+        if tag == 'NAME':
+            if value.find('*') != -1:
+                self.s['IS_INDIRECT'] = True
+            else:
+                self.s['IS_INDIRECT'] = False
+            self.UpdateNameButton()
+        if tag == 'IS_INDIRECT':
+            if value:
+                self.var = IndirectVariable(client, self.kivy_instance, self.s['MAX_SPECTRAL_BUFFER_SIZE'])
+            else:
+                self.var = DirectVariable(client, self.kivy_instance, self.s['MAX_SPECTRAL_BUFFER_SIZE'], self.s['NAME'])
+        if tag == 'MODE':
+            if value == 'SPECTRAL':
+                self.gardenGraph.tick_color = [0, 0, 0, 0.2]
+                self.gardenGraph.SetMode(value)
+                self.gardenGraph.x_grid_label = self.s['GRAPH_LABEL_X']
+            if value == 'NORMAL':
+                self.gardenGraph.tick_color = [0, 0, 0, 0]
+                self.gardenGraph.SetMode(value)
+                self.gardenGraph.x_grid_label = False
+            self.UpdateNameButton()
 
     def Resize(self, d_ori, d_type):
         number_graphs = len(self.kivy_instance.main_container.GraphArr)
@@ -361,16 +352,10 @@ class GraphBox(MDBoxLayout):
             if d_type == 'mobile':
                 self.height = (1 / msettings.get('ROW_VM')) * (self.kivy_instance.main_container.height - (msettings.get('ROW_VM') - 1) * PADDING)
 
-    def SetSpectralBufferSize(self, value):
-        self.s['MAX_VARIABLE_BUFFER_SIZE'] = value
-
-    def SetExpression(self, expression):
-        self.s['EXPRESSION'] = expression
-
-    def toggle_y_grid_label(self):
-        self.Toggle('GRAPH_LABEL_Y')
-        self.gardenGraph.y_grid_label = self.s['GRAPH_LABEL_Y']
-        return self.s['GRAPH_LABEL_Y']
+    def Toggle(self, setting: str, do_clear=False):
+        self.s[setting] = not self.s[setting]
+        if do_clear:
+            self.ClearGraph()
 
     def DialogGraphSettingsOpen(self):
         self.dialogGraphSettings.Open()
@@ -389,24 +374,11 @@ class GraphBox(MDBoxLayout):
             good_i = 0
         else:
             good_i += 1
-        self._SetMode(self.MODES[good_i])
+        self.s['MODE'] = self.MODES[good_i]
         return self.s['MODE']
 
-    def SetHeight(self, height):
-        self.height = height
-
     def isIndirect(self):
-        if self.s['NAME'].find('*') != -1:
-            self.s['IS_INDIRECT'] = True
-            return True
-        else:
-            self.s['IS_INDIRECT'] = False
-            return False
-
-    def Toggle(self, setting: str, do_clear=False):
-        self.s[setting] = not self.s[setting]
-        if do_clear:
-            self.ClearGraph()
+        return self.s['IS_INDIRECT']
 
     def Update(self):
         if self.s['NAME'] != 'None':
@@ -465,43 +437,29 @@ class GraphBox(MDBoxLayout):
             self.isStartup = False
 
     # Return True if there are not labvar with 'name'
-    def CheckCollizionName(self, name):
+    def CheckCollisionName(self, name):
         for labvar in self.kivy_instance.LabVarArr:
             if labvar.name == name:
                 return False
         return True
 
-    def UpdateName(self, name, _clear_expression=True):
+    def UpdateNameButton(self):
+        self.ids.graph_labvar_name_button.text = f"{self.s['NAME']}:{self.s['MODE']}"
+
+    def UpdateName(self, name, _clear_expression=False, _clear_graph=False):
         self.s['NAME'] = name
-        self._UpdateNameButton()
-        self.UpdateVarName(_clear_expression)
-        self.ClearGraph()
-
-    def UpdateVarName(self, _clear_expression=True):
-        if self.s['NAME'].find('*') != -1:
-            self.var = IndirectVariable(client, self.kivy_instance, self.s['MAX_VARIABLE_BUFFER_SIZE'])
-            self.s['IS_INDIRECT'] = True
-            if _clear_expression:
-                self.SetExpression('')
-        else:
-            self.s['IS_INDIRECT'] = False
-            self.var = DirectVariable(client, self.kivy_instance, self.s['MAX_VARIABLE_BUFFER_SIZE'], self.s['NAME'])
-            if _clear_expression:
-                self.SetExpression('')
-
-    def GetName(self):
-        return self.s['NAME']
-
-    def ClearPlot(self):
-        if self.gardenGraph:
-            self.gardenGraph.ClearPlot()
-        if self.avgBuffer:
-            self.avgBuffer.Clear()
+        if _clear_expression:
+            self.s['EXPRESSION'] = ''
+        if _clear_graph:
+            self.ClearGraph()
 
     def ClearGraph(self):
         if self.var:
             self.var.ClearHistory()
-        self.ClearPlot()
+        if self.gardenGraph:
+            self.gardenGraph.ClearPlot()
+        if self.avgBuffer:
+            self.avgBuffer.Clear()
 
     def UnChooseIt(self):
         if self.isChosen:
@@ -537,18 +495,3 @@ class GraphBox(MDBoxLayout):
 
     def UnAccentIt(self):
         self.ids.mdcard_id.md_bg_color = self.kivy_instance.main_app.theme_cls.accent_color
-
-    def _UpdateNameButton(self):
-        self.ids.graph_labvar_name_button.text = f"{self.s['NAME']}:{self.s['MODE']}"
-
-    def _SetMode(self, _mode):
-        self.s['MODE'] = _mode
-        if _mode == 'SPECTRAL':
-            self.gardenGraph.SetMode(_mode)
-            self.s['GRAPH_LABEL_X'] = True
-            self.gardenGraph.x_grid_label = True
-        if _mode == 'NORMAL':
-            self.gardenGraph.SetMode(_mode)
-            self.s['GRAPH_LABEL_X'] = False
-            self.gardenGraph.x_grid_label = False
-        self._UpdateNameButton()
