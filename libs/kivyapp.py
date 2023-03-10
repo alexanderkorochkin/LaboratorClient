@@ -43,7 +43,11 @@ def animated_show_widget_only(wid, method):
 def animate_graph_removal(wid, side, method):
     print(side)
     # animate shrinking widget width
-    anim = Animation(opacity=0, height=0, duration=0.5, t='out_expo')
+    if side == 'vertical':
+        wid.size_hint = wid.size_hint[0], None
+        anim = Animation(opacity=0, size=(wid.size[0], 0), duration=0.5, t='out_expo')
+    elif side == 'horizontal':
+        anim = Animation(opacity=0, duration=0.5, t='out_expo')
     anim.bind(on_complete=method)
     t = wid.gardenGraph._trigger
     ts = wid.gardenGraph._trigger_size
@@ -632,5 +636,6 @@ class KivyApp(MDApp):
 
 KivyApp = KivyApp()
 
-# TODO Научиться делать статистический анализ
+# TODO Вывести статистику в каждом графике
+# TODO Реализовать расчет давлений, плотностей и т.д. через iapws
 # TODO Научиться подключаться к LabView
