@@ -1,15 +1,13 @@
-import math
 import uuid
-from re import split
 
 from kivy.core.window import Window
 from kivy.properties import ObjectProperty
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.label import MDLabel
 from kivymd.uix.snackbar import Snackbar
 
+from libs.utils import *
 from libs.dialogs import DialogGraphSettings
-from libs.gardengraph.init import Graph, LinePlot, BarPlot
+from libs.gardengraph.init import Graph, LinePlot
 from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
 from libs.variables import DirectVariable, IndirectVariable
@@ -34,26 +32,34 @@ class DictCallback(dict):
             self.graph_instance.on_dict(item, value)
 
 
-def color2hex(color):
-    return '#' + ''.join(['{0:02x}'.format(int(x * 255)) for x in color])
+class AVGBuffer:
+    def __init__(self, _graph_instance):
+        self.graph_instance = _graph_instance
+        self.isExecuted = True
+        self.buffer = []
+        self.avg_buffer = []
+        self.lastavg = 0
 
+    def CountAVGHistory(self, value):
+        if len(self.avg_buffer) == msettings.get('MAX_HISTORY_VALUES'):
+            self.avg_buffer = self.avg_buffer[msettings.get('MAX_HISTORY_VALUES') - len(self.avg_buffer) + 1:]
+        self.avg_buffer.append(float(value))
 
-def hex2color(s, opacity=-1.0):
+    def AddValue(self, value):
+        if len(self.buffer) == self.graph_instance.s['GRAPH_BUFFER_AVG_SIZE']:
+            self.buffer = self.buffer[self.graph_instance.s['GRAPH_BUFFER_AVG_SIZE'] - len(self.buffer) + 1:]
+        self.buffer.append(float(value))
 
-    if s.startswith('#'):
-        return hex2color(s[1:], opacity)
+    def GetAVG(self):
+        average = 0
+        if len(self.buffer) != 0:
+            average = round(sum(self.buffer)/len(self.buffer), self.graph_instance.s['GRAPH_ROUND_DIGITS'])
+        self.CountAVGHistory(average)
+        return average
 
-    value = [int(x, 16) / 255.
-             for x in split('([0-9a-f]{2})', s.lower()) if x != '']
-    if opacity > 0:
-        if len(value) == 3:
-            value.append(opacity)
-        if len(value) == 4:
-            value[3] = opacity
-    else:
-        if len(value) == 3:
-            value.append(1.0)
-    return value
+    def Clear(self):
+        self.buffer.clear()
+        self.avg_buffer.clear()
 
 
 class GardenGraph(Graph):
@@ -198,36 +204,6 @@ class GardenGraph(Graph):
         self.isDeleting = True
 
 
-class AVGBuffer:
-    def __init__(self, _graph_instance):
-        self.graph_instance = _graph_instance
-        self.isExecuted = True
-        self.buffer = []
-        self.avg_buffer = []
-        self.lastavg = 0
-
-    def CountAVGHistory(self, value):
-        if len(self.avg_buffer) == msettings.get('MAX_HISTORY_VALUES'):
-            self.avg_buffer = self.avg_buffer[msettings.get('MAX_HISTORY_VALUES') - len(self.avg_buffer) + 1:]
-        self.avg_buffer.append(float(value))
-
-    def AddValue(self, value):
-        if len(self.buffer) == self.graph_instance.s['GRAPH_BUFFER_AVG_SIZE']:
-            self.buffer = self.buffer[self.graph_instance.s['GRAPH_BUFFER_AVG_SIZE'] - len(self.buffer) + 1:]
-        self.buffer.append(float(value))
-
-    def GetAVG(self):
-        average = 0
-        if len(self.buffer) != 0:
-            average = round(sum(self.buffer)/len(self.buffer), self.graph_instance.s['GRAPH_ROUND_DIGITS'])
-        self.CountAVGHistory(average)
-        return average
-
-    def Clear(self):
-        self.buffer.clear()
-        self.avg_buffer.clear()
-
-
 class GraphBox(MDBoxLayout):
 
     graph_main_text_color = ObjectProperty([1, 1, 1, 0.0])
@@ -328,6 +304,8 @@ class GraphBox(MDBoxLayout):
                 self.gardenGraph.tick_color = [0, 0, 0, 0]
                 self.gardenGraph.SetMode(value)
                 self.gardenGraph.x_grid_label = False
+            self.UpdateNameButton()
+        if tag == 'EXPRESSION':
             self.UpdateNameButton()
 
     def Resize(self, d_ori, d_type):
@@ -444,7 +422,10 @@ class GraphBox(MDBoxLayout):
         return True
 
     def UpdateNameButton(self):
-        self.ids.graph_labvar_name_button.text = f"{self.s['NAME']}:{self.s['MODE']}"
+        if self.s['IS_INDIRECT']:
+            self.ids.graph_labvar_name_button.text = f"{self.s['NAME']}:{truncate_string(self.s['EXPRESSION'], 20)}:{self.s['MODE']}"
+        else:
+            self.ids.graph_labvar_name_button.text = f"{self.s['NAME']}:{self.s['MODE']}"
 
     def UpdateName(self, name, _clear_expression=False, _clear_graph=False):
         self.s['NAME'] = name

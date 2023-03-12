@@ -1,5 +1,3 @@
-from kivy.clock import Clock
-
 from libs.settings.settingsJSON import msettings
 from kivy.logger import Logger
 import json

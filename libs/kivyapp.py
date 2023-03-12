@@ -1,6 +1,7 @@
 import logging
 import os
 
+
 from kivy.core.window import Window
 from kivy.uix.behaviors import ButtonBehavior
 from kivymd.app import MDApp
@@ -8,7 +9,6 @@ from kivy.metrics import dp
 from kivymd.uix.button import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.menu import MDDropdownMenu
-from kivy.animation import Animation
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty, OptionProperty, BooleanProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.list import OneLineIconListItem
@@ -19,6 +19,7 @@ from kivy.lang import Builder
 from kivy.factory import Factory
 from kivymd.uix.textfield import MDTextField
 
+from libs.utils import *
 from libs.settings.settingsJSON import *
 from libs.opcua.opcuaclient import client
 from libs.graph import GraphBox
@@ -26,38 +27,6 @@ from libs.dialogs import DialogEndpoint, SnackbarMessage, SnackbarMessageAction,
 from libs.layoutManager import LayoutManager
 
 Logger.setLevel(LOG_LEVELS["debug"])
-
-
-def animated_hide_widget_only(wid, method):
-    anim = Animation(pos=(wid.pos[0], sp(10) - sp(200)), opacity=0, duration=0.2, t='in_quart')
-    anim.bind(on_complete=method)
-    anim.start(wid)
-
-
-def animated_show_widget_only(wid, method):
-    anim = Animation(pos=(wid.pos[0], sp(10)), opacity=1,  duration=0.2, t='out_quart')
-    anim.bind(on_start=method)
-    anim.start(wid)
-
-
-def animate_graph_removal(wid, side, method):
-    print(side)
-    # animate shrinking widget width
-    if side == 'vertical':
-        wid.size_hint = wid.size_hint[0], None
-        anim = Animation(opacity=0, size=(wid.size[0], 0), duration=0.5, t='out_expo')
-    elif side == 'horizontal':
-        anim = Animation(opacity=0, duration=0.5, t='out_expo')
-    anim.bind(on_complete=method)
-    t = wid.gardenGraph._trigger
-    ts = wid.gardenGraph._trigger_size
-    wid.gardenGraph.unbind(center=ts, padding=ts, x_precision=ts, y_precision=ts, plots=ts, x_grid=ts,
-                           y_grid=ts, draw_border=ts)
-    wid.gardenGraph.unbind(xmin=t, xmax=t, xlog=t, x_ticks_major=t, x_ticks_minor=t,
-                           xlabel=t, x_grid_label=t, ymin=t, ymax=t, ylog=t,
-                           y_ticks_major=t, y_ticks_minor=t, ylabel=t, y_grid_label=t,
-                           font_size=t, label_options=t, x_ticks_angle=t)
-    anim.start(wid)
 
 
 class GContainer(MDBoxLayout):
