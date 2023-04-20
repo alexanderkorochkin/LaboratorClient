@@ -1,25 +1,25 @@
 import json
-from kivy.metrics import sp
-
+from kivy.metrics import sp, dp
 
 settings_defaults = {
-            'NAMESPACE': "laboratory1",
             'LAST_IP': "opc.tcp://192.168.1.1:4840",
             'MAX_HISTORY_VALUES': 120,
             'MAX_RECONNECTIONS_NUMBER': 10,
             'RECONNECTION_TIME': 5,
-            'GET_FROM_SERVER': True,
-            'CONFIGURATION_PATH': "databaseconfig.txt",
-            'LAYOUT_FILE': "layout.json",
-            'KIVY_DOUBLETAP_TIME': 0.3,
+            'GRAPHS_LAYOUT_FILE': "graphs_layout.json",
+            'CONTROLS_LAYOUT_FILE': "controls_layout.json",
+            'KIVY_HOLD_TIME': 0.2,
             'KIVY_UPDATE_FUNCTION_TIME': 1,
+            'SAVE_TIMEOUT_TIME': 5,
             'USE_LAYOUT': True,
             'HIDE_LOG_BY_DEFAULT': True,
+            'SHOW_CONTROLS_BY_DEFAULT': True,
+            'THEME': 'Light',
             'COL_HM': 2,
-            'COL_HT': 4,
+            'COL_HT': 2,
             'COL_HD': 4,
             'COL_VM': 1,
-            'COL_VT': 3,
+            'COL_VT': 2,
             'COL_VD': 4,
             'ROW_HM': 2,
             'ROW_HT': 4,
@@ -27,9 +27,20 @@ settings_defaults = {
             'ROW_VM': 3,
             'ROW_VT': 4,
             'ROW_VD': 5,
-            'DIALOG_MINIMUM_HEIGHT_VERTICAL': sp(400),
-            'DIALOG_MAXIMUM_HEIGHT_HORIZONTAL': sp(800),
+            'DIALOG_MINIMUM_HEIGHT_VERTICAL': dp(400),
+            'DIALOG_MAXIMUM_HEIGHT_HORIZONTAL': dp(800),
             }
+
+
+controls_settings_defaults = {
+            'VARIABLE': 'None',
+            'NAME': 'None',
+            'MODE': 'TOGGLE',           # SWITCH (on_release action True/False) or HOLD (on_press - True, on_release - False)
+            'DEFAULT_STATE': False,
+            'ICON_ON': 'electric-switch-closed',
+            'ICON_OFF': 'electric-switch',
+            'HASH': '0',
+}
 
 
 graph_settings_defaults = {
@@ -40,7 +51,7 @@ graph_settings_defaults = {
 
             'GRAPH_ADDITIONAL_SPACE_Y': 1.2,
             'GRAPH_BUFFER_AVG_SIZE': 40,
-            'GRAPH_ROUND_DIGITS': 1,
+            'GRAPH_ROUND_DIGITS': 3,
 
             'SHOW_MAIN_VALUE': True,
             'SHOW_AVG_VALUE': True,
@@ -53,14 +64,14 @@ graph_settings_defaults = {
             'AVG_COLOR': '#FFFFFF',
             'INTIME_GRAPH_COLOR': '#FFFFFF',
 
-            'MAIN_GRAPH_LINE_THICKNESS': 1.2,
-            'AVG_GRAPH_LINE_THICKNESS': 1.2,
-            'INTIME_GRAPH_LINE_THICKNESS': 1,
+            'MAIN_GRAPH_LINE_THICKNESS': dp(1),
+            'AVG_GRAPH_LINE_THICKNESS': dp(1),
+            'INTIME_GRAPH_LINE_THICKNESS': dp(1),
 
             'AVG_GRAPH_OPACITY': 0.8,
 
             'GRAPH_LABEL_X': False,
-            'GRAPH_LABEL_Y': False,
+            'GRAPH_LABEL_Y': True,
 
             'HASH': '0',
             'IS_INDIRECT': False,
@@ -71,12 +82,6 @@ settings_json = json.dumps([
 
     {'type': 'title',
      'title': 'Настройки клиента'},
-
-    {'type': 'string',
-     'title': 'Область имен на сервере',
-     'desc': 'NAMESPACE',
-     'section': 'allSettings',
-     'key': 'NAMESPACE'},
 
     {'type': 'string',
      'title': 'Последний IP',
@@ -97,45 +102,27 @@ settings_json = json.dumps([
      'section': 'allSettings',
      'key': 'RECONNECTION_TIME'},
 
-    {'type': 'bool',
-     'title': 'Получать конфигурацию с сервера',
-     'desc': 'GET_FROM_SERVER',
-     'section': 'allSettings',
-     'key': 'GET_FROM_SERVER'},
-
-    {'type': 'path',
-     'title': 'Путь к файлу конфигурации в локальном режиме',
-     'desc': 'CONFIGURATION_PATH',
-     'section': 'allSettings',
-     'key': 'CONFIGURATION_PATH'},
-
     {'type': 'title',
      'title': 'Настройки интерфейса'},
 
+    {'type': 'options',
+     'title': 'Тема клиента',
+     'desc': 'Выберите между светлой или темной',
+     'section': 'allSettings',
+     'key': 'THEME',
+     'options': ['Dark', 'Light']},
+
     {'type': 'numeric',
-     'title': 'Количество точек по оси X на графиках',
+     'title': 'Количество точек по оси X на графиках (+ число точек для подсчета среднего)',
      'desc': 'MAX_HISTORY_VALUES',
      'section': 'allSettings',
      'key': 'MAX_HISTORY_VALUES'},
-
-    {'type': 'numeric',
-     'title': 'Сжатие графика по оси Y',
-     'desc': 'GRAPH_ADDITIONAL_SPACE_Y',
-     'section': 'GraphSettings',
-     'key': 'GRAPH_ADDITIONAL_SPACE_Y'},
 
     {'type': 'numeric',
      'title': 'Количество значений для подсчета среднего',
      'desc': 'GRAPH_BUFFER_AVG_SIZE',
      'section': 'GraphSettings',
      'key': 'GRAPH_BUFFER_AVG_SIZE'},
-
-    {'type': 'options',
-     'title': 'Округление до N знаков после запятой',
-     'desc': 'GRAPH_ROUND_DIGITS',
-     'section': 'GraphSettings',
-     'key': 'GRAPH_ROUND_DIGITS',
-     'options': ['1', '2', '3']},
 
     {'type': 'numeric',
      'title': 'Толщина линии графика',
@@ -144,7 +131,7 @@ settings_json = json.dumps([
      'key': 'MAIN_GRAPH_LINE_THICKNESS'},
 
     {'type': 'bool',
-     'title': 'Запоминать открытые графики',
+     'title': 'Запоминать открытые графики и кнопки',
      'desc': 'USE_LAYOUT',
      'section': 'allSettings',
      'key': 'USE_LAYOUT'},
@@ -271,6 +258,6 @@ class MConf:
 
 
 ALL_SETTINGS = 'allSettings'
-PADDING = sp(5)
+PADDING = dp(5)
 
 msettings = MConf()

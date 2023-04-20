@@ -1,0 +1,41 @@
+<ControlButton>:
+    md_bg_color: app.theme_cls.bg_light
+    ripple_canvas_after: True
+    ripple_duration_in_fast: 0.5
+    ripple_alpha: 0.0
+    ripple_scale: 1
+    size_hint: None, None
+    height: dp(40)
+    width: control_text.texture_size[0] + control_icon.font_size + dp(27)
+    padding: dp(0), dp(0), dp(0), dp(0)
+    MDBoxLayout:
+        id: control_box
+        padding: dp(9), dp(5), dp(5), dp(5)
+        spacing: dp(7)
+        orientation: 'horizontal'
+        MDIcon:
+            id: control_icon
+            icon: ''
+            font_size: dp(32)
+            text_size: None, None
+            size_hint: None, None
+            size: [self.font_size, self.font_size]
+            pos_hint: {'center_y': 0.5}
+            color: app.theme_cls.text_color
+        MDBoxLayout:
+            MDAnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
+                size_hint: None, 1
+                size: control_text.size
+                Label:
+                    id: control_text
+                    text: root.mode + ': ' + root.text
+                    font_style: 'Body2'
+                    color: app.theme_cls.text_color
+                    text_size: None, root.height
+                    size: self.texture_size
+                    valign: 'center'
+                    pos_hint: {'center_y': 0.5}
+
+

@@ -1,12 +1,12 @@
 <SettingSpacer>:
     size_hint_y: None
     height: 5
-    canvas:
-        Color:
-            rgb: .2, .2, .2
-        Rectangle:
-            pos: self.x, self.center_y
-            size: self.width, 1
+#    canvas:
+#        Color:
+#            rgb: .2, .2, .2, 0
+#        Rectangle:
+#            pos: self.x, self.center_y
+#            size: self.width, 1
 
 <-SettingItem>:
     size_hint: .25, None
@@ -14,7 +14,7 @@
     content: content
     canvas:
         Color:
-            rgba: app.theme_cls.accent_color[0], app.theme_cls.accent_color[1], app.theme_cls.accent_color[2], self.selected_alpha
+            rgba: app.theme_cls.bg_light
         Rectangle:
             pos: self.x, self.y + 1
             size: self.size
@@ -39,7 +39,7 @@
 <SettingBoolean>:
     AnchorLayout:
         anchor_x: 'right'
-        padding_x: sp(20)
+        padding_x: dp(20)
         MDFlatButton:
             text_size: self.size
             markup: True
@@ -57,7 +57,7 @@
 
 <SettingString>:
     MDBoxLayout:
-        padding: 0, 0, sp(20), 0
+        padding: 0, 0, dp(20), 0
         MDLabel:
             text: root.value or ''
             pos: root.pos
@@ -66,7 +66,7 @@
 
 <SettingPath>:
     MDBoxLayout:
-        padding: 0, 0, sp(20), 0
+        padding: 0, 0, dp(20), 0
         MDLabel:
             text: "..." + str(root.value)[-20:] or ''
             pos: root.pos
@@ -103,7 +103,7 @@
 
 <SettingOptions>:
     MDBoxLayout:
-        padding: 0, 0, sp(20), 0
+        padding: 0, 0, dp(20), 0
         MDLabel:
             text: root.value or ''
             pos: root.pos
@@ -114,58 +114,58 @@
     text_size: self.width - 32, None
     size_hint_y: None
     height: max(dp(20), self.texture_size[1] + dp(20))
-    color: (.9, .9, .9, 1)
     font_size: '15sp'
-    canvas:
-        Color:
-            rgba: .15, .15, .15, .5
-        Rectangle:
-            pos: self.x, self.y + 2
-            size: self.width, self.height - 2
-        Color:
-            rgb: .2, .2, .2
-        Rectangle:
-            pos: self.x, self.y - 2
-            size: self.width, 1
+#    canvas.before:
+#        Color:
+#            rgba: app.theme_cls.primary_color
+#        Rectangle:
+#            pos: self.pos
+#            size: self.size
+
 
 <SettingSidebarLabel>:
     size_hint: 1, None
     text_size: self.width - 32, None
     height: self.texture_size[1] + dp(20)
     font_size: '15sp'
-    canvas.before:
-        Color:
-            rgba: 47 / 255., 167 / 255., 212 / 255., int(self.selected)
-        Rectangle:
-            pos: self.pos
-            size: self.size
+#    canvas.before:
+#        Color:
+#            rgba: 47 / 255., 167 / 255., 212 / 255., int(self.selected)
+#        Rectangle:
+#            pos: self.pos
+#            size: self.size
 
 <-SettingsPanel>:
     spacing: 5
-    padding: 5
+    padding: [dp((Window.width - Window.height) / 2) + dp(5), dp(5), dp((Window.width - Window.height) / 2) + dp(5), dp(5)] if Window.width > Window.height else [dp(5), dp(5), dp(5), dp(5)]
+#    size_hint_x: None
+#    width: min(Window.width, dp(1080))
+#    pos_hint_x: None
+#    x: dp(100)
     size_hint_y: None
     height: self.minimum_height
 
     MDLabel:
         size_hint_y: None
         text: root.title
+        halign: 'center'
         text_size: self.width - 32, None
         height: max(50, self.texture_size[1] + 20)
-        color: (.5, .5, .5, 1)
-        font_size: '15sp'
+        color: app.theme_cls.text_color
+        font_size: '20sp'
 
-        canvas.after:
-            Color:
-                rgb: .2, .2, .2
-            Rectangle:
-                pos: self.x, self.y - 2
-                size: self.width, 1
+#        canvas.after:
+#            Color:
+#                rgb: app.theme_cls.bg_normal
+#            Rectangle:
+#                pos: self.x, self.y - 2
+#                size: self.width, 1
 
 <-Settings>:
     orientation: 'horizontal'
-    canvas.before:
+    canvas:
         Color:
-            rgb: 0, 0, 0
+            rgb: app.theme_cls.bg_normal
         Rectangle:
             pos: self.pos
             size: self.size
@@ -218,12 +218,12 @@
         id: menu
         padding: 5
 
-        canvas.after:
-            Color:
-                rgb: .2, .2, .2
-            Rectangle:
-                pos: self.right - 1, self.y
-                size: 1, self.height
+#        canvas.after:
+#            Color:
+#                rgb: .2, .2, .2
+#            Rectangle:
+#                pos: self.right - 1, self.y
+#                size: 1, self.height
 
     Button:
         text: 'Close'
@@ -266,14 +266,14 @@
     _handle_y_size: min(self.bar_width, self.width), self.height * self.vbar[1]
     _handle_x_pos: self.x + self.width * self.hbar[0], (self.y + self.bar_margin) if self.bar_pos_x == 'bottom' else (self.top - self.bar_margin - self.bar_width)
     _handle_x_size: self.width * self.hbar[1], min(self.bar_width, self.height)
-    canvas.after:
-        Color:
-            rgba: self._bar_color if (self.do_scroll_y and self.viewport_size[1] > self.height) else [0, 0, 0, 0]
-        Rectangle:
-            pos: root._handle_y_pos or (0, 0)
-            size: root._handle_y_size or (0, 0)
-        Color:
-            rgba: self._bar_color if (self.do_scroll_x and self.viewport_size[0] > self.width) else [0, 0, 0, 0]
-        Rectangle:
-            pos: root._handle_x_pos or (0, 0)
-            size: root._handle_x_size or (0, 0)
+#    canvas.after:
+#        Color:
+#            rgba: self._bar_color if (self.do_scroll_y and self.viewport_size[1] > self.height) else [0, 0, 0, 0]
+#        Rectangle:
+#            pos: root._handle_y_pos or (0, 0)
+#            size: root._handle_y_size or (0, 0)
+#        Color:
+#            rgba: self._bar_color if (self.do_scroll_x and self.viewport_size[0] > self.width) else [0, 0, 0, 0]
+#        Rectangle:
+#            pos: root._handle_x_pos or (0, 0)
+#            size: root._handle_x_size or (0, 0)

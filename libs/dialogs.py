@@ -1,6 +1,8 @@
 import math
 
+from kivy.animation import Animation
 from kivy.clock import Clock
+from kivy.uix.behaviors import ButtonBehavior
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -21,8 +23,56 @@ from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
 
 
-class SnackbarMod(Snackbar):
+class SnackbarMod(Snackbar, ButtonBehavior):
     dismiss_action = None
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.isTouched = False
+        self.old_coord = None
+        self.distance = 0
+        self.initial_pos = None
+
+        from libs.kivyapp import KivyApp
+
+        self.bg_color = KivyApp.theme_cls.bg_normal
+        self.ids.text_bar.text_color = KivyApp.theme_cls.accent_color
+        self.ids.text_bar.text_style = 'Body2'
+        radius = self.height * 0.2
+        self.radius = [radius, radius, radius, radius]
+        self.elevation = 0
+
+    def on_touch_down(self, touch):
+        if touch.is_mouse_scrolling:
+            return False
+        if not self.collide_point(touch.x, touch.y):
+            return False
+        if not self.disabled:
+            for button in self.buttons:
+                if button.collide_point(touch.x, touch.y):
+                    button.on_touch_down(touch)
+            self.isTouched = True
+            self.old_coord = touch.pos[1]
+            if not self.initial_pos:
+                self.initial_pos = self.pos
+            return True
+
+    def on_touch_move(self, touch, *args):
+        if self.isTouched:
+            new_coord = touch.pos[1]
+            dy = new_coord - self.old_coord
+            if self.initial_pos[1] > self.pos[1] + dy:
+                self.pos[1] += dy
+                self.distance += dy
+                self.old_coord = new_coord
+            if abs(self.distance) > self.height / 1.5:
+                self.isTouched = False
+                anim = Animation(y=-2*self.height, d=0.2)
+                anim.bind(
+                    on_complete=lambda *args: self.dismiss()
+                )
+                anim.start(self)
 
     def on_dismiss(self, *args):
         if self.dismiss_action:
@@ -31,29 +81,46 @@ class SnackbarMod(Snackbar):
 
 
 def SnackbarMessage(text):
+    from libs.kivyapp import KivyApp
 
-    snackbar = Snackbar()
+    snackbar = SnackbarMod()
     snackbar.text = text
-    snackbar.snackbar_x = sp(20)
-    snackbar.snackbar_y = sp(20)
-    snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
-    radius = snackbar.height * 0.1
+    snackbar.bg_color = KivyApp.theme_cls.bg_normal
+    snackbar.ids.text_bar.text_color = KivyApp.theme_cls.accent_color
+    snackbar.ids.text_bar.text_style = 'Body1'
+
+    length_text = len(text)
+    offset = sp(20)
+    size = Window.width - (offset * 2) if Window.width < length_text * 10 + 20 else length_text * 10 + 20
+    snackbar.snackbar_x = (Window.width / 2) - (size / 2)
+    snackbar.snackbar_y = offset + KivyApp.kivy_instance.ids.controls_panel_port.height - dp(5) if KivyApp.d_ori == 'vertical' else offset
+    snackbar.size_hint_x = None
+    snackbar.width = size
+
+    radius = snackbar.height * 0.2
     snackbar.radius = [radius, radius, radius, radius]
-    snackbar.elevation = 0
+    snackbar.elevation = 3
     snackbar.ids.text_bar.halign = 'center'
     snackbar.open()
 
 
 def SnackbarMessageAction(text, accept_button_text, accept_action, cancel_action=None, cancel_button_text='CANCEL'):
+    from libs.kivyapp import KivyApp
 
     snackbar = SnackbarMod()
     snackbar.text = text
-    snackbar.snackbar_x = sp(20)
-    snackbar.snackbar_y = sp(20)
-    snackbar.size_hint_x = (Window.width - (snackbar.snackbar_x * 2)) / Window.width
+
+    length_text = len(text) + len(accept_button_text) + len(cancel_button_text) + 20
+    offset = sp(20)
+    size = Window.width - (offset * 2) if Window.width < length_text * 10 + 20 else length_text * 10 + 20
+    snackbar.snackbar_x = (Window.width / 2) - (size / 2)
+    snackbar.snackbar_y = offset + KivyApp.kivy_instance.ids.controls_panel_port.height - dp(5) if KivyApp.d_ori == 'vertical' else offset
+    snackbar.size_hint_x = None
+    snackbar.width = size
+
     radius = snackbar.height * 0.1
     snackbar.radius = [radius, radius, radius, radius]
-    snackbar.elevation = 0
+    snackbar.elevation = 3
     snackbar.ids.text_bar.halign = 'left'
     snackbar.dismiss_action = cancel_action
 
@@ -92,30 +159,30 @@ class MDDialogFix(MDDialog):
 
     def update_width(self, *args) -> None:
         if self.type == 'custom':
-            if Window.width - sp(48) < self.MINIMAL_WIDTH_VERTICAL:
-                self.width = Window.width - sp(48)
-            elif self.MINIMAL_WIDTH_VERTICAL <= Window.width - sp(48) < self.MAXIMUM_WIDTH_HORIZONTAL:
+            if Window.width - dp(48) < self.MINIMAL_WIDTH_VERTICAL:
+                self.width = Window.width - dp(48)
+            elif self.MINIMAL_WIDTH_VERTICAL <= Window.width - dp(48) < self.MAXIMUM_WIDTH_HORIZONTAL:
                 self.width = self.MINIMAL_WIDTH_VERTICAL
             else:
                 self.width = self.MAXIMUM_WIDTH_HORIZONTAL
         if self.type == 'confirmation':
-            if Window.width - sp(48) < self.MINIMAL_WIDTH_VERTICAL:
-                self.width = Window.width - sp(48)
+            if Window.width - dp(48) < self.MINIMAL_WIDTH_VERTICAL:
+                self.width = Window.width - dp(48)
             else:
                 self.width = self.MINIMAL_WIDTH_VERTICAL
 
     def update_height(self, *args) -> None:
         if self.type == 'custom':
             self._spacer_top = \
-                Window.height - sp(48) - sp(100) \
-                if self.content_cls.ids.content_cls_box.height + sp(50) > Window.height - sp(48) - sp(100) \
-                else self.content_cls.ids.content_cls_box.height + sp(50)
+                Window.height - dp(48) - dp(100) \
+                if self.content_cls.ids.content_cls_box.height + dp(50) > Window.height - dp(48) - dp(100) \
+                else self.content_cls.ids.content_cls_box.height + dp(50)
         if self.type == 'confirmation':
             height = 0
             for item in self.items:
                 height += item.height
-            if height > Window.height - sp(48) - sp(100):
-                self.ids.scroll.height = Window.height - sp(48) - sp(100)
+            if height > Window.height - dp(48) - dp(100):
+                self.ids.scroll.height = Window.height - dp(48) - dp(100)
             else:
                 self.ids.scroll.height = height
 
@@ -193,18 +260,21 @@ class DialogGraphSettingsContent(MDBoxLayout):
     avg_color = StringProperty('#FFFFFF')
     intime_graph_color = StringProperty('#FFFFFF')
 
+    graph_round_digits = NumericProperty(0)
+
     label_x = BooleanProperty(False)
     label_y = BooleanProperty(False)
     expression = StringProperty('')
 
-    def __init__(self, _parent, _dialog, **kwargs):
+    def __init__(self, _parent, **kwargs):
         super().__init__(**kwargs)
         self.m_parent = _parent
-        self.dialog = _dialog
+        self.dialog = self.m_parent.dialog
         self.dialogListLabVar = DialogListLabVar(self)
         self.dialogEnterString = DialogEnterString(self.m_parent.graph_instance, self)
         self.color_picker = None
 
+        self.graph_round_digits = self.m_parent.graph_instance.s['GRAPH_ROUND_DIGITS']
         self.labvar_name = self.m_parent.graph_instance.s['NAME']
         self.mode = self.m_parent.graph_instance.s['MODE']
         self.max_spectral_buffer_size = self.m_parent.graph_instance.s['MAX_SPECTRAL_BUFFER_SIZE']
@@ -230,6 +300,8 @@ class DialogGraphSettingsContent(MDBoxLayout):
             self.expression = value
         if tag == 'MAX_SPECTRAL_BUFFER_SIZE':
             self.max_spectral_buffer_size = int(value)
+        if tag == 'GRAPH_ROUND_DIGITS':
+            self.graph_round_digits = int(value)
         self.m_parent.graph_instance.s[tag] = value
 
     def Toggle(self, tag):
@@ -276,6 +348,7 @@ class DialogGraphSettingsContent(MDBoxLayout):
         self.m_parent.graph_instance.RemoveMe()
 
     def Refresh(self):
+        self.m_parent.Close()
         self.m_parent.graph_instance.ClearGraph()
 
     def save_color(self, instance_color_picker: MDColorPicker, type_color: str, selected_color: Union[list, str]):
@@ -298,28 +371,34 @@ class DialogGraphSettings:
         super().__init__(**kwargs)
         self.graph_instance = _graph_instance
         self.dialog = None
+        self.dialog_cls = None
         self.isDeleting = False
 
-    def Open(self):
-        self.graph_instance.AccentIt()
-        self.dialog = MDDialogFix(
-            title=f"{self.graph_instance.s['NAME']}:{self.graph_instance.s['MODE']}",
-            elevation=0,
-            type="custom",
-            content_cls=DialogGraphSettingsContent(self, self.dialog),
-            on_pre_dismiss=self.PreDismiss,
-            buttons=[
-                MDFlatButton(
-                    text="CLOSE",
-                    theme_text_color="Custom",
-                    text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
-                    on_release=self.Close,
-                )
-            ],
-        )
+    def Open(self, silent=False):
+        if not self.dialog_cls:
+            self.dialog_cls = DialogGraphSettingsContent(self)
+        if not self.dialog:
+            self.dialog = MDDialogFix(
+                title=f"{self.graph_instance.s['NAME']}:{self.graph_instance.s['MODE']}",
+                elevation=0,
+                type="custom",
+                content_cls=self.dialog_cls,
+                on_pre_dismiss=self.PreDismiss,
+                buttons=[
+                    MDFlatButton(
+                        text="CLOSE",
+                        theme_text_color="Custom",
+                        text_color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color,
+                        on_release=self.Close,
+                    )
+                ],
+            )
         self.dialog.update_height()
         self.dialog.update_width()
-        self.dialog.open()
+        if silent:
+            self.dialog.open(animation=False)
+        else:
+            self.dialog.open()
 
     def PreDismiss(self, *args):
         if not self.isDeleting:
@@ -341,6 +420,10 @@ class ChipsContent(MDBoxLayout):
         self.m_parent = _parent
         self.init_text = init_text
         self.hint_text = hint_text
+        self.bind(height=self.on_height)
+
+    def on_height(self, *args):
+        self.m_parent.dialog.update_height()
 
     def ChipReleased(self, instance):
         self.ids.my_text_field.text += f'[{instance.text}]'
@@ -408,7 +491,8 @@ class DialogEnterString:
             else:
                 self.text_field = MDTextField(
                     text=init_text,
-                    hint_text=hint_text)
+                    hint_text=hint_text,
+                )
 
                 self.dialog = MDDialog(
                     title=title,
@@ -439,7 +523,7 @@ class DialogEnterString:
 
     def Enter(self, *args):
         if self.state == 'expression':
-            self.dialog.content_cls.ids.my_text_field.text = self.dialog.content_cls.ids.my_text_field.text.strip().replace(' ', '')
+            self.dialog.content_cls.ids.my_text_field.text = self.dialog.content_cls.ids.my_text_field.text.strip().replace('  ', ' ')
             if self.dialog.content_cls.ids.my_text_field.text != '' and self.graph_instance.CheckCollisionName(self.dialog.content_cls.ids.my_text_field.text):
                 self.m_parent.Set('EXPRESSION', self.dialog.content_cls.ids.my_text_field.text)
                 self.state = None
@@ -456,11 +540,19 @@ class DialogEnterString:
                 self.dialog.dismiss(force=True)
             else:
                 SnackbarMessage("Некорректный ввод!")
+        elif self.state == 'precision':
+            self.text_field.text = self.text_field.text.strip().replace(' ', '')
+            if self.text_field.text != '' and self.text_field.text.isdecimal():
+                self.m_parent.Set('GRAPH_ROUND_DIGITS', int(self.text_field.text))
+                self.state = None
+                self.dialog.dismiss(force=True)
+            else:
+                SnackbarMessage("Некорректный ввод!")
         else:
-            if self.text_field.text.strip().replace(' ', '') != '' and self.graph_instance.CheckCollisionName(self.text_field.text):
+            if self.text_field.text.strip().replace(' ', '') != '':
                 if self.state == 'edit_name':
                     default_name = '*' + self.text_field.text
-                    self.graph_instance.UpdateName(default_name)
+                    self.graph_instance.UpdateName(default_name, _clear_graph=True)
                     self.m_parent.m_parent.labvar_name = default_name
                     self.m_parent.m_parent.dialog.title = f"{default_name}:{self.graph_instance.s['MODE']}"
                     self.state = None
@@ -495,11 +587,10 @@ class DialogListLabVar:
         if not client.isConnected():
             SnackbarMessageAction("Подключитесь к серверу!", 'CONNECT', kivy_instance.Connect)
         else:
-            self.items.clear()
-            self.items.append(ItemConfirm(text='Новое выражение'))
-            for element in kivy_instance.LabVarArr:
-                self.items.append(ItemConfirm(text=element.name))
             if not self.dialog:
+                self.items.append(ItemConfirm(text='Новое выражение'))
+                for name in client.names:
+                    self.items.append(ItemConfirm(text=name))
                 self.dialog = MDDialogFix(
                     elevation=0,
                     type="confirmation",
@@ -519,8 +610,6 @@ class DialogListLabVar:
                         ),
                     ],
                 )
-            else:
-                self.dialog.update_items(self.items)
             self.dialog.update_height()
             self.dialog.update_width()
             self.dialog.open()
@@ -528,10 +617,11 @@ class DialogListLabVar:
     def Select(self, *args):
         active_n = -1
         active_nn = -1
-        for item in self.items:
+        for item in self.dialog.items:
             active_n += 1
             if item.ids.check.active:
                 active_nn = active_n
+                item.ids.check.active = False
                 break
         if active_nn > -1:
             if active_nn > 0:
@@ -539,12 +629,12 @@ class DialogListLabVar:
                 self.m_parent.labvar_name = self.items[active_nn].text
                 self.m_parent.m_parent.dialog.title = f"{self.items[active_nn].text}:{self.m_parent.m_parent.graph_instance.s['MODE']}"
 
-                self.dialog.dismiss(force=True)
+                self.dialog.dismiss()
                 self.m_parent.m_parent.Close()
                 self.m_parent.m_parent.Open()
             else:
                 self.new_dialog.Open('new_var', '', 'Название переменной', 'Название должно быть уникальным')
-                self.dialog.dismiss(force=True)
+                self.dialog.dismiss()
 
     def Close(self, *args):
-        self.dialog.dismiss(force=True)
+        self.dialog.dismiss()

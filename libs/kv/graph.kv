@@ -6,51 +6,101 @@
 <HoldMDButton@HoldBehavior+MDFlatButton>:
 
 
+<MDIconButtonRectangleMy@ButtonBehavior+MDIcon>
+
+
+<RPoint>:
+    canvas:
+        Color:
+            rgba: root.color
+        RoundedRectangle:
+            radius: [self.size[0] / 2, ]
+            size: self.size
+            pos: [self.pos[0] - self.size[0] / 2, self.pos[1] + self.size[0] / 2 + dp(2)]
+
+
 <GraphBox>:
     MDCard:
         id: mdcard_id
-        md_bg_color: app.theme_cls.accent_color
-        radius: [sp(24), sp(24), sp(24), sp(24)]
+        md_bg_color: app.theme_cls.bg_light
+        line_color: [0, 0, 0, 0]
+        line_width: dp(1)
+        radius: [app.main_radius, app.main_radius, app.main_radius, app.main_radius]
         MDRelativeLayout:
             MDRelativeLayout:
                 MDAnchorLayout:
                     id: garden_graph_placer
-                    anchor_x: "center"
-                    anchor_y: "center"
-                    padding: 0, sp(20), 0, sp(28)
+                    padding: 0, dp(5) + dp(35), dp(5), dp(5) * 2
+
             MDRelativeLayout:
-                id: graph_main_text_holder
                 MDAnchorLayout:
                     anchor_x: "right"
-                    anchor_y: "bottom"
-                    padding: sp(5), sp(5), sp(5), sp(5)
-                    MDFillRoundFlatButton:
-                        id: graph_main_text
+                    anchor_y: "top"
+                    padding: dp(5) * 2, dp(5) * 2, dp(5) * 2, dp(5) * 2
+                    MDLabel:
+                        id: graph_current_value
                         text: ''
-                        md_bg_color: root.graph_main_text_color
-                        font_size: sp(18)
+                        markup: True
+                        size_hint_y: None
+                        size: self.size[0], self.texture_size[1]
+                        halign: 'right'
+                        font_style: 'Body1'
+                MDAnchorLayout:
+                    anchor_x: "right"
+                    anchor_y: "top"
+                    padding: dp(5) * 2, dp(5) * 2 + dp(15), dp(5) * 2, dp(5) * 2
+                    MDLabel:
+                        id: graph_avg_value
+                        text: ''
+                        markup: True
+                        size_hint_y: None
+                        size: self.size[0], self.texture_size[1]
+                        halign: 'right'
+                        font_style: 'Body2'
             MDRelativeLayout:
                 MDAnchorLayout:
                     anchor_x: "center"
                     anchor_y: "center"
                     HoldMDButton:
                         size_hint: 1, 1
-                        radius: [sp(24), sp(24), sp(24), sp(24)]
+                        radius: [app.main_radius, app.main_radius, app.main_radius, app.main_radius]
                         on_hold: root.SwitchChooseIt('hold')
                         on_release: root.SwitchChooseIt('release')
+                        ripple_canvas_after: True
+                        ripple_alpha: .0
+                        ripple_scale: 0.0
+                        ripple_color: app.theme_cls.accent_color
             MDRelativeLayout:
                 MDAnchorLayout:
-                    anchor_x: "right"
+                    anchor_x: "left"
                     anchor_y: "top"
-                    padding: sp(5), sp(5), sp(5), sp(5)
-                    MDFillRoundFlatButton:
-                        id: graph_labvar_name_button
-                        size_hint: None, None
-                        size: sp(75), sp(25)
-                        text: 'None'
-                        theme_text_color: "Custom"
-                        font_name: "DejaVuSans.ttf"
-                        font_size: sp(12)
-                        text_color: 1, 1, 1, 1
-                        md_bg_color: 0, 0, 0, 0
+                    padding: [dp(5) * 2, dp(5) * 2 + dp(2), dp(5) * 2, dp(5) * 2]
+                    MDIconButtonRectangleMy:
+                        id: graph_settings_button
+                        icon: "cog-outline"
+                        color: app.theme_cls.accent_color
+#                        pos_hint: {"center_x": .5, "center_y": .5}
                         on_release: root.DialogGraphSettingsOpen()
+                MDAnchorLayout:
+                    anchor_x: "left"
+                    anchor_y: "top"
+                    padding: dp(5) * 2 + dp(30), dp(5) * 2 - dp(6), dp(5) * 2, dp(5) * 2
+                    MDLabel:
+                        id: graph_name
+                        text: 'None'
+                        font_style: 'H6'
+                        markup: True
+                        size_hint_y: None
+                        size: [self.size[0], self.texture_size[1]]
+                MDAnchorLayout:
+                    anchor_x: "left"
+                    anchor_y: "top"
+                    padding: dp(5) * 2 + dp(30), dp(5) * 2 + dp(15), dp(5) * 2, dp(5) * 2
+                    MDLabel:
+                        id: graph_mode
+                        text: 'NORMAL'
+                        font_style: 'Body2'
+                        markup: True
+                        size_hint_y: None
+                        size: [self.size[0], self.texture_size[1]]
+

@@ -60,7 +60,7 @@ from math import log10, floor, ceil
 from kivy import metrics
 from kivy.clock import Clock
 from kivy.event import EventDispatcher
-from kivy.graphics import Fbo
+from kivy.graphics import Fbo, Ellipse
 from kivy.graphics import Mesh, Color, Rectangle, Point
 from kivy.graphics.texture import Texture
 from kivy.lang import Builder
@@ -735,6 +735,13 @@ class Graph(Widget):
         adj_x, adj_y = x - self._plot_area.pos[0], y - self._plot_area.pos[1]
         return 0 <= adj_x <= self._plot_area.size[0] \
             and 0 <= adj_y <= self._plot_area.size[1]
+
+    def get_widget_coord(self, x, y):
+        # Convert data coords to widget coords.
+
+        conv_x = ((self._plot_area.size[0]) * (x - self.xmin) / (self.xmax - self.xmin)) + self._plot_area.pos[0]
+        conv_y = ((self._plot_area.size[1]) * (y - self.ymin) / (self.ymax - self.ymin)) + self._plot_area.pos[1]
+        return [conv_x, conv_y]
 
     def to_data(self, x, y):
         '''Convert widget coords to data coords. Use
@@ -1555,37 +1562,41 @@ class VBar(MeshLinePlot):
 
 
 class ScatterPlot(Plot):
-    """
-    ScatterPlot draws using a standard Point object.
-    The pointsize can be controlled with :attr:`point_size`.
+    _radius = NumericProperty(5)
+    _ellipses = ListProperty([])
 
-    >>> plot = ScatterPlot(color=[1, 0, 0, 1], point_size=5)
-    """
+    def __init__(self, **kwargs):
+        super(ScatterPlot, self).__init__(**kwargs)
 
-    point_size = NumericProperty(1)
-    """The point size of the scatter points. Defaults to 1.
-    """
+    def create_drawings(self, number=0):
+        from kivy.graphics import RenderContext
 
-    def create_drawings(self):
-        from kivy.graphics import Point, RenderContext
+        self._grc = RenderContext(
+            use_parent_modelview=True,
+            use_parent_projection=True)
 
-        self._points_context = RenderContext(
-                use_parent_modelview=True,
-                use_parent_projection=True)
-        with self._points_context:
+        with self._grc:
             self._gcolor = Color(*self.color)
-            self._gpts = Point(points=[], pointsize=self.point_size)
+            self._ellipses = [Ellipse(size=(0, 0))]
 
-        return [self._points_context]
+        return [self._grc]
 
     def draw(self, *args):
         super(ScatterPlot, self).draw(*args)
-        # flatten the list
-        self._gpts.points = list(chain(*self.iterate_points()))
-
-    def on_point_size(self, *largs):
-        if hasattr(self, "_gpts"):
-            self._gpts.pointsize = self.point_size
+        params = self._params
+        funcx = log10 if params['xlog'] else lambda x: x
+        funcy = log10 if params['ylog'] else lambda x: x
+        xmin = funcx(params['xmin'])
+        ymin = funcy(params['ymin'])
+        size = params['size']
+        ratiox = (size[2] - size[0]) / float(funcx(params['xmax']) - xmin)
+        ratioy = (size[3] - size[1]) / float(funcy(params['ymax']) - ymin)
+        for i in range(len(self.points)):
+            x, y = self.points[i]
+            pos = ((funcx(x) - xmin) * ratiox + size[0],
+                   (funcy(y) - ymin) * ratioy + size[1])
+            self._ellipses[i].pos = (pos[0] - self._radius / 2, pos[1] - self._radius / 2)
+            self._ellipses[i].size = (self._radius, self._radius)
 
 
 class PointPlot(Plot):
