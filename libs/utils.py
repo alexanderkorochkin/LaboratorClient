@@ -210,7 +210,7 @@ def hex2color(s, opacity=-1.0):
 def str_to_variable(_str: str):
     if _str in ['True', 'False', 'true', 'false']:
         try:
-            return bool(_str)
+            return _str.lower() == 'true'
         except Exception:
             Logger.debug(f'Utils.str_to_value: Can\'t covert string: {_str} to boolean as excepted!')
     elif '.' in _str:

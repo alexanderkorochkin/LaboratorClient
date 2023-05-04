@@ -254,7 +254,7 @@ class LaboratorClient(MDScreen):
         self.ids.controls_view_port.add_widget(control)
         if settings is None:
             self.show_controls_menu = True
-            msettings.set('allSettings', 'SHOW_CONTROLS_BY_DEFAULT', True)
+            msettings.set('MainSettings', 'SHOW_CONTROLS_BY_DEFAULT', True)
 
             i = 0
             good_id = 0
@@ -340,7 +340,7 @@ class LaboratorClient(MDScreen):
     def SwapShowControlsMenu(self):
         if self.controlsArray:
             self.show_controls_menu = not self.show_controls_menu
-            msettings.set('allSettings', 'SHOW_CONTROLS_BY_DEFAULT', int(self.show_controls_menu))
+            msettings.set('MainSettings', 'SHOW_CONTROLS_BY_DEFAULT', int(self.show_controls_menu))
             self.main_app.update_orientation()
 
             i = 0
@@ -422,7 +422,7 @@ class LaboratorClient(MDScreen):
             self.Disconnect()
 
     def ConnectLow(self, dt):
-        # try:
+        try:
             Logger.debug("LabVarConf: Getting configuration from server...")
             client.Connect(self.endpoint)
             self.ids.btn_connect.disabled = True
@@ -430,18 +430,18 @@ class LaboratorClient(MDScreen):
             self.ids.endpoint_label.disabled = True
             Logger.debug(f"CONNECT: Connected to {self.endpoint}!")
             SnackbarMessage(f"Connected to {self.endpoint}!")
-            msettings.set('allSettings', 'LAST_IP', self.endpoint)
-        # except Exception:
-        #     if not client.isReconnecting():
-        #         self.ids.btn_connect.disabled = False
-        #         self.ids.btn_disconnect.disabled = True
-        #         self.ids.endpoint_label.disabled = False
-        #         SnackbarMessage("Error while connecting... Disconnected!")
-        #         Logger.error("CONNECT: Error while connecting... Disconnected!")
-        #     else:
-        #         SnackbarMessage(f"Connection lost! Error while reconnecting... ({str(client.GetReconnectNumber())})")
-        #         Logger.error(
-        #             "CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
+            msettings.set('MainSettings', 'LAST_IP', self.endpoint)
+        except Exception:
+            if not client.isReconnecting():
+                self.ids.btn_connect.disabled = False
+                self.ids.btn_disconnect.disabled = True
+                self.ids.endpoint_label.disabled = False
+                SnackbarMessage("Error while connecting... Disconnected!")
+                Logger.error("CONNECT: Error while connecting... Disconnected!")
+            else:
+                SnackbarMessage(f"Connection lost! Error while reconnecting... ({str(client.GetReconnectNumber())})")
+                Logger.error(
+                    "CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
 
     def Connect(self, *args):
         self.ids.btn_connect.disabled = True
@@ -463,19 +463,24 @@ class LaboratorClient(MDScreen):
             SnackbarMessage("Error while disconnecting...")
             Logger.info("CONNECT: Error while disconnecting...")
 
+    def UpdateControls(self):
+        for control in self.controlsArray:
+            control.Update()
+
     def Update(self):
         if client.isConnected():
-            # try:
-            client.UpdateValues()
+            try:
+                client.UpdateValues()
+            except Exception:
+                client._isConnected = False
+                client._isReconnecting = True
+                self.ids.btn_disconnect.disabled = False
+                self.ids.btn_connect.disabled = True
+                SnackbarMessage("Connection lost! Trying to reconnect...")
+                Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
+                self.Reconnection(msettings.get('RECONNECTION_TIME'))
             self.main_container.UpdateGraphs()
-        # except Exception:
-        #     client._isConnected = False
-        #     client._isReconnecting = True
-        #     self.ids.btn_disconnect.disabled = False
-        #     self.ids.btn_connect.disabled = True
-        #     SnackbarMessage("Connection lost! Trying to reconnect...")
-        #     Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
-        #     self.Reconnection(msettings.get('RECONNECTION_TIME'))
+            self.UpdateControls()
 
     def PreCacheAll(self):
         for graph in self.main_container.GraphArr:
@@ -600,7 +605,7 @@ class KivyApp(MDApp):
         return self.kivy_instance
 
     def build_config(self, config):
-        config.setdefaults('allSettings', settings_defaults)
+        config.setdefaults('MainSettings', settings_defaults)
         config.setdefaults('GraphSettings', graph_settings_defaults)
         msettings.instance = self.config
 

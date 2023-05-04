@@ -188,11 +188,7 @@ class OPCUAClient(Client):
             if '::' in name:
                 name_parsed = name.split('::')
                 if name_parsed[0] not in updated_vars:
-                    try:
-                        values_str = self.var_nodes[i].get_value()
-                    except Exception:
-                        values_str = None
-                        Logger.debug(f'UpdateValues: Unable to get packed value from server! Name: {name}')
+                    values_str = self.var_nodes[i].get_value()
                     if values_str:
                         self.values_stringed_array.append([name_parsed[0], values_str])
                         result = values_str.split('\n')
@@ -206,6 +202,7 @@ class OPCUAClient(Client):
                             __names = list(map(lambda x: f'{name_parsed[0]}::{x}', _names))
                             for i in range(len(_values)):
                                 _values[i] = str_to_variable(_values[i].replace('\r', ''))
+
                             for i in range(len(__names)):
                                 if __names[i] in self.names:
                                     self.values[self.names.index(__names[i])] = _values[i]
@@ -213,10 +210,7 @@ class OPCUAClient(Client):
                                     Logger.debug(f'UpdateValues: No such variable with name: {__names[i]} in names list!')
                     updated_vars.append(name_parsed[0])
             else:
-                try:
-                    self.values[i] = self.var_nodes[i].get_value()
-                except Exception:
-                    Logger.debug(f'UpdateValues: Unable to get value from server! Name: {name}')
+                self.values[i] = self.var_nodes[i].get_value()
             i += 1
 
     def Connect(self, url):

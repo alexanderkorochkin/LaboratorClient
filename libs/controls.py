@@ -56,12 +56,23 @@ class ControlButton(BaseButton):
         for tag in settings.keys():
             self.apply_setting(tag, settings)
 
+    def Update(self, *args):
+        if self.s['VARIABLE'] != 'None':
+            value = str_to_variable(client.GetValueFromName(self.s['VARIABLE']))
+            if value == 'True' or 'False' or 'true' or 'false':
+                self.control_state = value
+            else:
+                Logger.debug(f'ControlUpdate: Variable {self.s["VARIABLE"]} is not a boolean!')
+
     def on_control_state(self, *args):
         new_state = args[1]
         self.ids.control_icon.icon = self.icon_states[int(new_state)]
         self.md_bg_color = self.bg_states[int(new_state)]
         self.ids.control_icon.color = self.text_states[int(new_state)]
         self.ids.control_text.color = self.text_states[int(new_state)]
+        if client.isConnected():
+            client.SetValueOnServer(self.s['VARIABLE'], new_state)
+            self.main_app.kivy_instance.UpdateControls()
 
     def on_dict(self, tag, value):
         if tag == 'NAME':

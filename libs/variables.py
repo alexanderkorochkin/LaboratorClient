@@ -42,8 +42,8 @@ class DirectVariable:
     def GetHistory(self):
         return self.values_history[-msettings.get('MAX_HISTORY_VALUES'):]
 
-    def GetSpectral(self):
-        return FFTGraph(self.max_history_size, self.values_history)
+    def GetSpectral(self, top):
+        return FFTGraph(self.max_history_size, self.values_history, top)
 
     def ClearHistory(self):
         self.values_history = []

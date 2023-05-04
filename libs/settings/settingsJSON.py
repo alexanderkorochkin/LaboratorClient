@@ -86,20 +86,20 @@ settings_json = json.dumps([
     {'type': 'string',
      'title': 'Последний IP',
      'desc': 'LAST_IP',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'LAST_IP',
      'disabled': True},
 
     {'type': 'numeric',
      'title': 'Максимальное число переподключений',
      'desc': 'MAX_RECONNECTIONS_NUMBER',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'MAX_RECONNECTIONS_NUMBER'},
 
     {'type': 'numeric',
      'title': 'Таймаут переподключения',
      'desc': 'RECONNECTION_TIME',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'RECONNECTION_TIME'},
 
     {'type': 'title',
@@ -108,14 +108,14 @@ settings_json = json.dumps([
     {'type': 'options',
      'title': 'Тема клиента',
      'desc': 'Выберите между светлой или темной',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'THEME',
      'options': ['Dark', 'Light']},
 
     {'type': 'numeric',
      'title': 'Количество точек по оси X на графиках (+ число точек для подсчета среднего)',
      'desc': 'MAX_HISTORY_VALUES',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'MAX_HISTORY_VALUES'},
 
     {'type': 'numeric',
@@ -133,13 +133,13 @@ settings_json = json.dumps([
     {'type': 'bool',
      'title': 'Запоминать открытые графики и кнопки',
      'desc': 'USE_LAYOUT',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'USE_LAYOUT'},
 
     {'type': 'bool',
      'title': 'Скрывать лог при открытии',
      'desc': 'HIDE_LOG_BY_DEFAULT',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'HIDE_LOG_BY_DEFAULT'},
 
     {'type': 'title',
@@ -148,84 +148,84 @@ settings_json = json.dumps([
     {'type': 'options',
      'title': 'COLS for Horizontal:Mobile',
      'desc': 'COL_HM',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'COL_HM',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
      'title': 'COLS for Horizontal:Tablet',
      'desc': 'COL_HT',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'COL_HT',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
      'title': 'COLS for Horizontal:Desktop',
      'desc': 'COL_HD',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'COL_HD',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
      'title': 'COLS for Vertical:Mobile',
      'desc': 'COL_VM',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'COL_VM',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
      'title': 'COLS for Vertical:Tablet',
      'desc': 'COL_VT',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'COL_VT',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
      'title': 'COLS for Vertical:Desktop',
      'desc': 'COL_VD',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'COL_VD',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
      'title': 'ROWS for Horizontal:Mobile',
      'desc': 'ROW_HM',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'ROW_HM',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
      'title': 'ROWS for Horizontal:Tablet',
      'desc': 'ROW_HT',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'ROW_HT',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
      'title': 'ROWS for Horizontal:Desktop',
      'desc': 'ROW_HD',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'ROW_HD',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
      'title': 'ROWS for Vertical:Mobile',
      'desc': 'ROW_VM',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'ROW_VM',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
      'title': 'ROWS for Vertical:Tablet',
      'desc': 'ROW_VT',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'ROW_VT',
      'options': ['1', '2', '3', '4', '5']},
 
     {'type': 'options',
      'title': 'ROWS for Vertical:Desktop',
      'desc': 'ROW_VD',
-     'section': 'allSettings',
+     'section': 'MainSettings',
      'key': 'ROW_VD',
      'options': ['1', '2', '3', '4', '5']},
 
@@ -243,7 +243,7 @@ class MConf:
         except ValueError:
             return False
 
-    def get(self, key, section='allSettings'):
+    def get(self, key, section='MainSettings'):
         if self.isFloatOrNumber(self.instance.get(section, key)):
             if self.instance.get(section, key).find('.') != -1:
                 return float(self.instance.get(section, key))
@@ -257,7 +257,6 @@ class MConf:
         self.instance.write()
 
 
-ALL_SETTINGS = 'allSettings'
 PADDING = dp(5)
 
 msettings = MConf()
