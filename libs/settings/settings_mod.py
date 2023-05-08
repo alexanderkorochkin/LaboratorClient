@@ -1093,7 +1093,7 @@ class Settings(BoxLayout):
                     'No class registered to handle the <%s> type' %
                     setting['type'])
 
-            # create a instance of the class, without the type attribute
+            # create an instance of the class, without the type attribute
             del setting['type']
             str_settings = {}
             for key, item in setting.items():
