@@ -11,7 +11,7 @@ from kivy.factory import Factory
 from kivy.properties import NumericProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.utils import escape_markup
-from iapws import IAPWS97
+from libs.iapws import IAPWS97
 
 from libs.settings.settingsJSON import msettings
 
