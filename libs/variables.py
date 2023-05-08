@@ -18,13 +18,14 @@ class DirectVariable:
 
     def GetValue(self, no_history=False):
         out = self.client.GetValueFromName(self.name)
-        if out != 'ERROR' and 'nf' not in out:
-            out = str_to_variable(out)
-            self.value = float(out)
-            if not no_history:
-                self.WriteHistory(float(out))
-        else:
-            self.value = 'ERROR'
+
+        if 'ERROR' in out:
+            return out
+
+        out = str_to_variable(out)
+        self.value = float(out)
+        if not no_history:
+            self.WriteHistory(float(out))
         return self.value
 
     def WriteHistory(self, _value):
@@ -61,11 +62,12 @@ class IndirectVariable:
 
     def GetValue(self, expression):
         out = GetValueExpr(self.client, expression)
-        if out != 'ERROR':
-            out = str_to_variable(out)
-            self.value = float(out)
-            self.WriteHistory(float(out))
-        return out
+        if 'ERROR' in out:
+            return out
+        out = str_to_variable(out)
+        self.value = float(out)
+        self.WriteHistory(float(out))
+        return self.value
 
     def WriteHistory(self, _value: float):
         if len(self.values_history) < self.max_history_size:

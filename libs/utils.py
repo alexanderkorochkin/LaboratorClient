@@ -11,7 +11,7 @@ from kivy.factory import Factory
 from kivy.properties import NumericProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.utils import escape_markup
-from libs.iapws import IAPWS97
+from iapws import IAPWS97
 
 from libs.settings.settingsJSON import msettings
 
@@ -132,15 +132,13 @@ def GetValueExprRecursive(client, expression: str):
                 substance.msg = "Solved"
                 expression = str(getattr(substance, str(f)))
             except Exception:
-                Logger.debug(f"Utils.GetValueExprRecursive: IAWPS97: Unable to evaluate the expression: {expression}!")
-                return 'ERROR'
+                return f'ERROR: Unable to evaluate the expression: {expression} with IAPWS97!'
 
     # Пытаемся вычислить численное выражение
     try:
         return str(eval(expression))
     except Exception:
-        Logger.debug(f"Utils.GetValueExprRecursive: Cannot evaluate expression: {expression}!")
-        return 'ERROR'
+        return f'ERROR: Cannot evaluate expression: {expression}!'
 
 
 def GetValueExpr(client, expression):
@@ -155,11 +153,9 @@ def GetValueExpr(client, expression):
                 if result:
                     name = str(result.group(0))[1:-1]
                     value = client.GetValueFromName(name)
-                    if value != 'ERROR':
-                        expression = expression.replace(f'[{name}]', str(value))
-                    else:
-                        Logger.debug(f"Utils.GetValueExpr: Error name: {name}!")
-                        return 'ERROR'
+                    if 'ERROR' in value:
+                        return value
+                    expression = expression.replace(f'[{name}]', str(value))
                     isFirst = False
                 else:
                     isWork = False
@@ -169,11 +165,9 @@ def GetValueExpr(client, expression):
                         except Exception:
                             pass
         else:
-            Logger.debug(f"Utils.GetValueExpr: Expression is empty!")
-            return 'ERROR'
+            return f'ERROR: Expression {expression} is empty!'
     else:
-        Logger.debug(f"Utils.GetValueExpr: Expression '{expression}' contains a different number of opening and closing []-brackets!")
-        return 'ERROR'
+        return f"ERROR: Expression '{expression}' contains a different number of opening and closing []-brackets!"
 
     return GetValueExprRecursive(client, expression)
 

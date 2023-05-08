@@ -134,8 +134,7 @@ class OPCUAClient(Client):
         if name in self.names:
             return str(self.values[self.names.index(name)])
         else:
-            Logger.debug(f'GetValueFromName: WARNING! Invalid name: {name}')
-            return 'ERROR'
+            return f'ERROR: Invalid name: {name}'
 
     def SetValueOnServer(self, _name, _value):
         if '::' in _name:
@@ -214,12 +213,9 @@ class OPCUAClient(Client):
             i += 1
 
     def Connect(self, url):
-        try:
-            self.server_url = urlparse(url)
-            self.connect()
-            self._isConnected = True
-        except Exception:
-            Logger.debug(f'OPCUAClient: Connect: Error while connection!')
+        self.server_url = urlparse(url)
+        self.connect()
+        self._isConnected = True
 
         self.names = []
         self.values = []
@@ -227,6 +223,7 @@ class OPCUAClient(Client):
         self.values_stringed_array = []
         self.out = 'SERVER PARSER OUT:\n'
         Logger.debug(self.ParseServerRecursive(self.get_root_node()))
+        return 0
 
     def isConnected(self):
         return self._isConnected

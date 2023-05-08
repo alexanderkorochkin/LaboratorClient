@@ -429,7 +429,7 @@ class GraphBox(MDBoxLayout):
             if not plots_only:
                 if not self.isIndirect():
                     out = self.var.GetValue()
-                    if out != 'ERROR':
+                    if 'ERROR' not in str(out):
                         self.main_value = float(out)
                         if self.isBadExpression:
                             self.isBadExpression = False
@@ -437,9 +437,10 @@ class GraphBox(MDBoxLayout):
                         if not self.isBadExpression:
                             self.isBadExpression = True
                             SnackbarMessage(f"[{self.s['NAME']}]: Ошибка при получении значения с сервера!")
+                            Logger.debug(f'GraphUpdate: WARNING! {out}')
                 else:
                     out = self.var.GetValue(self.s['EXPRESSION'])
-                    if out != 'ERROR':
+                    if 'ERROR' not in str(out):
                         self.main_value = float(out)
                         if self.isBadExpression:
                             self.isBadExpression = False
@@ -447,6 +448,7 @@ class GraphBox(MDBoxLayout):
                         if not self.isBadExpression:
                             self.isBadExpression = True
                             SnackbarMessage(f"[{self.s['NAME']}]: Ошибка при вычислении выражения!")
+                            Logger.debug(f'GraphUpdate: WARNING! {out}')
 
             if not self.isBadExpression:
 

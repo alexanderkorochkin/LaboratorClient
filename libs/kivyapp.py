@@ -407,7 +407,7 @@ class LaboratorClient(MDScreen):
                 if not client.isConnected():
                     client._isReconnecting = True
                     client.Disconnect()
-                    self.Connect()
+                    self.ConnectLow(0)
                     if not client.isConnected():
                         Clock.schedule_once(self.Reconnection, dt)
                         client.ReconnectNumberInc()
@@ -431,6 +431,7 @@ class LaboratorClient(MDScreen):
             Logger.debug(f"CONNECT: Connected to {self.endpoint}!")
             SnackbarMessage(f"Connected to {self.endpoint}!")
             msettings.set('MainSettings', 'LAST_IP', self.endpoint)
+            client.ReconnectNumberZero()
         except Exception:
             if not client.isReconnecting():
                 self.ids.btn_connect.disabled = False
