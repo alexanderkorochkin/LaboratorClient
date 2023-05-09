@@ -4,6 +4,7 @@ charset-normalizer==2.1.1
 cryptography==38.0.1
 docutils==0.19
 idna==3.4
+Pillow==9.2.0
 Kivy==2.1.0
 kivymd==1.1.1
 lxml==4.9.1
