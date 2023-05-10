@@ -223,7 +223,7 @@ class LaboratorClient(MDScreen):
         self.menu = MDDropdownMenu(
             caller=self.ids.menu_button,
             items=self.menu_items,
-            elevation=3,
+            # elevation=3,
             width_mult=5,
         )
 
@@ -303,7 +303,7 @@ class LaboratorClient(MDScreen):
 
         self.dialog = MDDialog(
             title=title,
-            elevation=0,
+            # elevation=0,
             auto_dismiss=False,
             type="custom",
             content_cls=MDTextField(hint_text=hint_text),
@@ -447,7 +447,7 @@ class LaboratorClient(MDScreen):
 
     def Connect(self, *args):
         self.ids.btn_connect.disabled = True
-        Clock.schedule_once(self.ConnectLow, 0)
+        self.ConnectLow(0)
 
     def Disconnect(self):
         client._isReconnecting = False
