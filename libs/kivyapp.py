@@ -11,8 +11,7 @@ from kivymd.uix.button import MDFlatButton, MDFloatingActionButton, MDIconButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import MDLabel
 from kivymd.uix.menu import MDDropdownMenu
-from kivy.properties import NumericProperty, ObjectProperty, StringProperty, OptionProperty, BooleanProperty, \
-    ListProperty
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty, OptionProperty, BooleanProperty, ListProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.list import OneLineIconListItem
 from kivy.clock import Clock
@@ -222,7 +221,7 @@ class LaboratorClient(MDScreen):
         self.menu = MDDropdownMenu(
             caller=self.ids.menu_button,
             items=self.menu_items,
-            elevation=3,
+            # elevation=3,
             width_mult=5,
         )
 
@@ -302,7 +301,7 @@ class LaboratorClient(MDScreen):
 
         self.dialog = MDDialog(
             title=title,
-            elevation=0,
+            # elevation=0,
             auto_dismiss=False,
             type="custom",
             content_cls=MDTextField(hint_text=hint_text),
