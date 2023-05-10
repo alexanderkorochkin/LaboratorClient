@@ -43,10 +43,10 @@ class AndroidPermissions:
             #################################################
             # Customize run time permissions for the app here
             #################################################
-            self.permissions = [Permission.READ_EXTERNAL_STORAGE]
-            if api_version < 29:
-                self.permissions.append(Permission.WRITE_EXTERNAL_STORAGE)
-                #################################################
+            self.permissions = [Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE]
+            # if api_version < 29:
+            #     self.permissions.append(Permission.WRITE_EXTERNAL_STORAGE)
+            #     #################################################
             self.permission_status([], [])
         elif self.start_app:
             self.start_app()
