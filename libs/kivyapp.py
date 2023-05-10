@@ -3,6 +3,7 @@ import os
 
 from kivy.core.clipboard import Clipboard
 
+from kivy.utils import platform
 from kivy.core.window import Window
 from kivy.uix.behaviors import ButtonBehavior
 from kivymd.app import MDApp
@@ -22,6 +23,7 @@ from kivy.factory import Factory
 from kivymd.uix.spinner import MDSpinner
 from kivymd.uix.textfield import MDTextField
 
+from libs.android_permissions import AndroidPermissions
 from libs.controls import ControlButton
 from libs.settings.settings_mod import SettingsWithNoMenu
 from libs.utils import *
@@ -221,7 +223,7 @@ class LaboratorClient(MDScreen):
         self.menu = MDDropdownMenu(
             caller=self.ids.menu_button,
             items=self.menu_items,
-            # elevation=3,
+            elevation=3,
             width_mult=5,
         )
 
@@ -301,7 +303,7 @@ class LaboratorClient(MDScreen):
 
         self.dialog = MDDialog(
             title=title,
-            # elevation=0,
+            elevation=0,
             auto_dismiss=False,
             type="custom",
             content_cls=MDTextField(hint_text=hint_text),
@@ -511,6 +513,7 @@ class KivyApp(MDApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.dont_gc = None
         self.kivy_instance = None
         self.settings_widget = None
         self.dialogEndpoint = None
@@ -536,6 +539,12 @@ class KivyApp(MDApp):
             self.layoutManager.LoadLayout()
         Clock.schedule_once(self.update_orientation, 0)
         Clock.schedule_interval(self.Update, int(msettings.get('KIVY_UPDATE_FUNCTION_TIME')))
+
+        self.dont_gc = AndroidPermissions(self.start_app)
+
+
+    def start_app(self):
+        self.dont_gc = None
 
     @staticmethod
     def LoadKV():

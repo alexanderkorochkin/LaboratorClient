@@ -41,7 +41,7 @@ class SnackbarMod(Snackbar, ButtonBehavior):
         self.ids.text_bar.text_style = 'Body2'
         radius = self.height * 0.2
         self.radius = [radius, radius, radius, radius]
-        # self.elevation = 0
+        self.elevation = 0
 
     def on_touch_down(self, touch):
         if touch.is_mouse_scrolling:
@@ -99,7 +99,7 @@ def SnackbarMessage(text):
 
     radius = snackbar.height * 0.2
     snackbar.radius = [radius, radius, radius, radius]
-    # snackbar.elevation = 3
+    snackbar.elevation = 3
     snackbar.ids.text_bar.halign = 'center'
     snackbar.open()
 
@@ -120,7 +120,7 @@ def SnackbarMessageAction(text, accept_button_text, accept_action, cancel_action
 
     radius = snackbar.height * 0.1
     snackbar.radius = [radius, radius, radius, radius]
-    # snackbar.elevation = 3
+    snackbar.elevation = 3
     snackbar.ids.text_bar.halign = 'left'
     snackbar.dismiss_action = cancel_action
 
@@ -132,7 +132,7 @@ def SnackbarMessageAction(text, accept_button_text, accept_action, cancel_action
         MDRaisedButton(
             text=accept_button_text,
             on_release=on_accept,
-            # elevation=0
+            elevation=0
         ),
         MDFlatButton(
             text=cancel_button_text,
@@ -207,7 +207,7 @@ class DialogEndpoint:
             self.dialog = MDDialog(
                 title="Enter the endpoint",
                 content_cls=DialogEndpointContent(self.main_app.kivy_instance.endpoint),
-                # elevation=0,
+                elevation=0,
                 type="custom",
                 buttons=[
                     MDFlatButton(
@@ -380,7 +380,7 @@ class DialogGraphSettings:
         if not self.dialog:
             self.dialog = MDDialogFix(
                 title=f"{self.graph_instance.s['NAME']}:{self.graph_instance.s['MODE']}",
-                # elevation=0,
+                elevation=0,
                 type="custom",
                 content_cls=self.dialog_cls,
                 on_pre_dismiss=self.PreDismiss,
@@ -468,7 +468,7 @@ class DialogEnterString:
 
                 self.dialog = MDDialog(
                     title=title,
-                    # elevation=0,
+                    elevation=0,
                     auto_dismiss=False,
                     type="custom",
                     content_cls=ChipsContent(self.graph_instance, self, init_text, hint_text),
@@ -496,7 +496,7 @@ class DialogEnterString:
 
                 self.dialog = MDDialog(
                     title=title,
-                    # elevation=0,
+                    elevation=0,
                     auto_dismiss=False,
                     type="custom",
                     content_cls=self.text_field,
@@ -592,7 +592,7 @@ class DialogListLabVar:
                 for name in client.names:
                     self.items.append(ItemConfirm(text=name))
                 self.dialog = MDDialogFix(
-                    # elevation=0,
+                    elevation=0,
                     type="confirmation",
                     items=self.items,
                     buttons=[
