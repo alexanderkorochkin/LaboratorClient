@@ -408,7 +408,7 @@ class LaboratorClient(MDScreen):
                 if not client.isConnected():
                     client._isReconnecting = True
                     client.Disconnect()
-                    self.ConnectLow(0)
+                    self.ConnectLow()
                     if not client.isConnected():
                         Clock.schedule_once(self.Reconnection, dt)
                         client.ReconnectNumberInc()
@@ -422,13 +422,13 @@ class LaboratorClient(MDScreen):
         else:
             self.Disconnect()
 
-    def ConnectLow(self, dt):
+    def ConnectLow(self):
         try:
             Logger.debug("LabVarConf: Getting configuration from server...")
-            client.Connect(self.endpoint)
             self.ids.btn_connect.disabled = True
             self.ids.btn_disconnect.disabled = False
             self.ids.endpoint_label.disabled = True
+            client.Connect(self.endpoint)
             Logger.debug(f"CONNECT: Connected to {self.endpoint}!")
             SnackbarMessage(f"Connected to {self.endpoint}!")
             msettings.set('MainSettings', 'LAST_IP', self.endpoint)
@@ -446,8 +446,7 @@ class LaboratorClient(MDScreen):
                     "CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
 
     def Connect(self, *args):
-        self.ids.btn_connect.disabled = True
-        self.ConnectLow(0)
+        self.ConnectLow()
 
     def Disconnect(self):
         client._isReconnecting = False
