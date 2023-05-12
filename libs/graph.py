@@ -59,8 +59,6 @@ class GardenGraph(Graph):
         self.size_hint = [1, 1]
         self.pos_hint = None, None
         self.isDeleting = False
-        self.y_precision = '% 0.' + str(msettings.get('GRAPH_ROUND_DIGITS')) + 'f'
-        self.x_precision = '% 0.01f'
         self.draw_border = False
         self.padding = '10dp'
 

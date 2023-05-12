@@ -621,7 +621,8 @@ class SettingNumeric(SettingString):
 
 class MDToggleFlatButton(MDFlatButton, MDToggleButton):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(MDFlatButton, self).__init__()
+        super(MDToggleButton, self).__init__(**kwargs)
         self.background_down = MDApp.get_running_app().theme_cls.primary_color
 
 
@@ -668,7 +669,7 @@ class SettingOptions(SettingItem):
         uid = str(self.uid)
         for option in self.options:
             state = 'down' if option == self.value else 'normal'
-            btn = MDToggleFlatButton(text=option, state=state, group=uid)
+            btn = MDFlatButton(text=option)
             btn.bind(on_release=self._set_option)
             content.add_widget(btn)
             btn.size_hint_x = 1
