@@ -142,7 +142,7 @@
                         theme_icon_color: "Custom"
                         icon_color: app.theme_cls.primary_color
                         pos_hint: {"center_x": .5, "center_y": .5} if root.show_menu else {"center_x": 0.5 - 0.5 * (app.d_ori == 'horizontal'), "center_y": 0.5 + 0.5 * (app.d_ori == 'vertical')}
-                        on_release: app.dialogEndpoint.Open()
+                        on_release: app.dialogTextInput.Open('string', 'Endpoint URL', 'SAVE', 'CANCEL', app.setEndpoint, app.kivy_instance.endpoint, 'opc.tcp://IP:PORT')
                     MDIconButton:
                         id: btn_connect
                         icon: "play"
@@ -181,7 +181,7 @@
             theme_text_color: "Custom"
             text_color: app.theme_cls.primary_color
             icon_size: dp(25)
-            pos: [dp(35) - self.size[0] / 2, Window.size[1] - self.size[1] / 2 - top_menu.height + dp(5) - dp(8) * (not root.show_menu)] if app.d_ori == 'vertical' else [-self.size[0] / 2 + top_menu.width + dp(2) * (not root.show_menu), Window.size[1] - self.size[1] / 2 - dp(60)]
+            pos: [(dp(35) - self.size[0] / 2) * (root.show_menu) + (Window.width / 2 - self.size[0] / 2) * (not root.show_menu), Window.height - self.size[1] / 2 - top_menu.height + dp(5) - dp(5) * (not root.show_menu)] if app.d_ori == 'vertical' else [-self.size[0] / 2 + top_menu.width + dp(2) * (not root.show_menu), Window.height - self.size[1] / 2 - dp(60)]
             on_release: root.SwapShowMenu()
     MDRelativeLayout:
         MDAnchorLayout:

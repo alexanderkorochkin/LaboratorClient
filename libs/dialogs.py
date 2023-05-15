@@ -12,15 +12,463 @@ from kivy.core.window import Window
 
 from typing import Union
 
-from kivy.properties import StringProperty, BooleanProperty, NumericProperty
+from kivy.properties import StringProperty, BooleanProperty, NumericProperty, ObjectProperty, OptionProperty
 from kivymd.uix.list.list import OneLineAvatarIconListItem
 
 from kivy.utils import get_hex_from_color
+from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.snackbar import Snackbar
 from kivymd.uix.textfield import MDTextField
 
 from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
+
+
+class MDDialogFix(MDDialog):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(size=self.update_height,
+                    on_maximize=self.update_height,
+                    on_restore=self.update_height,
+                    on_minimize=self.update_height)
+        Window.bind(on_maximize=self.update_width,
+                    on_restore=self.update_width,
+                    on_minimize=self.update_width)
+        self.MINIMAL_WIDTH_VERTICAL = msettings.get('DIALOG_MINIMUM_HEIGHT_VERTICAL')
+        self.MAXIMUM_WIDTH_HORIZONTAL = msettings.get('DIALOG_MAXIMUM_HEIGHT_HORIZONTAL')
+
+    def update_width(self, *args) -> None:
+        if Window.width - dp(48) < self.MINIMAL_WIDTH_VERTICAL:
+            self.width = Window.width - dp(48)
+        elif self.MINIMAL_WIDTH_VERTICAL <= Window.width - dp(48) < self.MAXIMUM_WIDTH_HORIZONTAL:
+            self.width = self.MINIMAL_WIDTH_VERTICAL
+        else:
+            self.width = self.MAXIMUM_WIDTH_HORIZONTAL
+
+    def update_height(self, *args) -> None:
+        self._spacer_top = \
+            Window.height - dp(48) - dp(100) \
+            if self.content_cls.ids.content_cls_box.height + dp(50) > Window.height - dp(48) - dp(100) \
+            else self.content_cls.ids.content_cls_box.height + dp(50)
+
+
+class MDDialogSizer(MDDialog):
+    def __init__(self, app, fixed=False, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(size=self.update_height,
+                    on_maximize=self.update_height,
+                    on_restore=self.update_height,
+                    on_minimize=self.update_height)
+        Window.bind(on_maximize=self.update_width,
+                    on_restore=self.update_width,
+                    on_minimize=self.update_width)
+        self.fixed = fixed
+        self.app = app
+        self.MAXIMUM_WIDTH = dp(500)
+        self.DIALOG_MINIMUM_HEIGHT_VERTICAL = msettings.get('DIALOG_MINIMUM_HEIGHT_VERTICAL')
+        self.DIALOG_MAXIMUM_HEIGHT_HORIZONTAL = msettings.get('DIALOG_MAXIMUM_HEIGHT_HORIZONTAL')
+
+    def update_width(self, *args) -> None:
+        if not self.fixed:
+            if Window.width - dp(48) < self.MAXIMUM_WIDTH:
+                self.width = Window.width - dp(48)
+            elif self.MAXIMUM_WIDTH <= Window.width - dp(48):
+                self.width = self.MAXIMUM_WIDTH
+        else:
+            if Window.width - dp(48) < self.DIALOG_MINIMUM_HEIGHT_VERTICAL:
+                self.width = Window.width - dp(48)
+            elif self.DIALOG_MINIMUM_HEIGHT_VERTICAL <= Window.width - dp(48) < self.DIALOG_MAXIMUM_HEIGHT_HORIZONTAL:
+                self.width = self.DIALOG_MINIMUM_HEIGHT_VERTICAL
+            else:
+                self.width = self.DIALOG_MAXIMUM_HEIGHT_HORIZONTAL
+
+    def update_height(self, *args) -> None:
+        if self.type == 'confirmation':
+            self.ids.container.height = Window.height - dp(48) - dp(100)
+            self.ids.scroll.height = Window.height - dp(48) - dp(100) - dp(100)
+        else:
+            if not self.fixed:
+                self._spacer_top = \
+                    Window.height - dp(48) - dp(100) \
+                    if self.content_cls.height + dp(20) > Window.height - dp(48) - dp(100) \
+                    else self.content_cls.height + dp(20)
+            else:
+                self._spacer_top = \
+                    Window.height - dp(48) - dp(100) \
+                        if self.content_cls.ids.content_cls_box.height + dp(50) > Window.height - dp(48) - dp(100) \
+                        else self.content_cls.ids.content_cls_box.height + dp(50)
+
+
+class LDialogGraphSettingsContent(MDBoxLayout):
+
+    app = ObjectProperty(None)
+
+    labvar_name = StringProperty("None")
+    mode = StringProperty("NORMAL")
+    max_spectral_buffer_size = NumericProperty(0)
+    show_avg_value = BooleanProperty(False)
+    show_main_value = BooleanProperty(False)
+    show_avg_graph = BooleanProperty(False)
+    show_intime_graph = BooleanProperty(False)
+    show_main_graph = BooleanProperty(False)
+    main_graph_color = StringProperty('#FFFFFF')
+    avg_color = StringProperty('#FFFFFF')
+    intime_graph_color = StringProperty('#FFFFFF')
+    graph_round_digits = NumericProperty(0)
+    label_x = BooleanProperty(False)
+    label_y = BooleanProperty(False)
+    expression = StringProperty('')
+
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+        self.app = app
+        self.instance = None
+
+    def Toggle(self, tag):
+        if tag == 'GRAPH_LABEL_X':
+            self.label_x = not self.label_x
+            self.instance.s['GRAPH_LABEL_X'] = self.label_x
+        if tag == 'GRAPH_LABEL_Y':
+            self.label_y = not self.label_y
+            self.instance.s['GRAPH_LABEL_Y'] = self.label_y
+        if tag == 'SHOW_MAIN_VALUE':
+            self.instance.Toggle('SHOW_MAIN_VALUE')
+            self.show_main_value = self.instance.s['SHOW_MAIN_VALUE']
+        if tag == 'SHOW_AVG_VALUE':
+            self.instance.Toggle('SHOW_AVG_VALUE')
+            self.show_avg_value = self.instance.s['SHOW_AVG_VALUE']
+        if tag == 'SHOW_MAIN_GRAPH':
+            self.instance.Toggle('SHOW_MAIN_GRAPH', True)
+            self.instance.gardenGraph.TogglePlot()
+            self.show_main_graph = self.instance.s['SHOW_MAIN_GRAPH']
+        if tag == 'SHOW_AVG_GRAPH':
+            self.instance.Toggle('SHOW_AVG_GRAPH', True)
+            self.instance.gardenGraph.TogglePlot()
+            self.show_avg_graph = self.instance.s['SHOW_AVG_GRAPH']
+        if tag == 'SHOW_INTIME_GRAPH':
+            self.instance.Toggle('SHOW_INTIME_GRAPH', True)
+            self.instance.gardenGraph.TogglePlot()
+            self.show_intime_graph = self.instance.s['SHOW_INTIME_GRAPH']
+        if tag == 'NEXT_MODE':
+            if self.mode == 'NORMAL':
+                self.instance.s['MODE'] = 'SPECTRAL'
+                self.mode = 'SPECTRAL'
+            else:
+                self.instance.s['MODE'] = 'NORMAL'
+                self.mode = 'NORMAL'
+            self.app.dialogGraphSettings.dialog.title = self.mode
+
+    def SelectVariable(self, name):
+        if name == 'Новое выражение':
+            self.app.dialogTextInput.Open('name', 'Название переменной', 'SAVE', 'CANCEL', self.Rename, '', 'Имя должно быть уникальным', self.instance)
+        else:
+            self.ChangeDirectName(name)
+
+    def ChangeDirectName(self, new_name):
+        self.labvar_name = new_name
+        self.app.dialogGraphSettings.dialog.title = self.labvar_name
+        self.instance.s['NAME'] = self.labvar_name
+
+    def SetPrecision(self, precision):
+        self.graph_round_digits = int(precision)
+        self.instance.s['GRAPH_ROUND_DIGITS'] = int(precision)
+
+    def SetSpectralSize(self, size):
+        self.max_spectral_buffer_size = int(size)
+        self.instance.s['MAX_SPECTRAL_BUFFER_SIZE'] = int(size)
+
+    def SetExpression(self, expression):
+        self.expression = expression
+        self.instance.s['EXPRESSION'] = expression
+
+    def Rename(self, new_name):
+        self.labvar_name = '*' + new_name
+        self.app.dialogGraphSettings.dialog.title = self.labvar_name
+        self.instance.s['NAME'] = self.labvar_name
+
+    def RemoveGraph(self):
+        # self.m_parent.isDeleting = True
+        self.app.dialogGraphSettings.Close()
+        self.instance.RemoveMe()
+
+    def ClearGraph(self):
+        self.app.dialogGraphSettings.Close()
+        self.instance.ClearGraph()
+
+    def Rebase(self, instance):
+        self.instance = instance
+        self.graph_round_digits = instance.s['GRAPH_ROUND_DIGITS']
+        self.labvar_name = instance.s['NAME']
+        self.mode = instance.s['MODE']
+        self.max_spectral_buffer_size = instance.s['MAX_SPECTRAL_BUFFER_SIZE']
+        self.show_avg_graph = instance.s['SHOW_AVG_GRAPH']
+        self.show_intime_graph = instance.s['SHOW_INTIME_GRAPH']
+        self.show_main_graph = instance.s['SHOW_MAIN_GRAPH']
+        self.show_main_value = instance.s['SHOW_MAIN_VALUE']
+        self.show_avg_value = instance.s['SHOW_AVG_VALUE']
+        self.main_graph_color = instance.s['MAIN_GRAPH_COLOR']
+        self.avg_color = instance.s['AVG_COLOR']
+        self.intime_graph_color = instance.s['INTIME_GRAPH_COLOR']
+        self.label_x = instance.s['GRAPH_LABEL_X']
+        self.label_y = instance.s['GRAPH_LABEL_Y']
+        self.expression = instance.s['EXPRESSION']
+
+
+class LDialogGraphSettings:
+
+    def __init__(self, main_app):
+        self.dialog = None
+        self.app = main_app
+        self.instance = None
+
+        self._cancel_text = 'CANCEL'
+        self._confirm_action = None
+
+    def PreCache(self):
+        self.RealOpen()
+        self.dialog.dismiss(force=True)
+
+    def RealOpen(self):
+        if not self.dialog:
+            self.dialog = MDDialogSizer(
+                app=self.app,
+                fixed=True,
+                title='title',
+                content_cls=LDialogGraphSettingsContent(self.app),
+                type="custom",
+                buttons=[
+                    MDFlatButton(
+                        text=self._cancel_text,
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.primary_color,
+                        on_release=self.Close,
+                    )
+                ],
+            )
+            self.dialog.MAXIMUM_WIDTH = dp(400)
+        self.dialog.open()
+        self.dialog.update_height()
+
+    # instance is graph class, calling this dialog
+    def Open(self, instance):
+        self.instance = instance
+        self.Rebase(instance)
+        self.RealOpen()
+
+    def Close(self, *args):
+        self.app.layoutManager.SaveLayout()
+        self.dialog.dismiss(force=True)
+
+    def Rebase(self, instance):
+        self.dialog.title = f"{instance.s['NAME']}"
+        self.dialog.content_cls.Rebase(instance)
+
+
+class LDialogEnterString:
+
+    def __init__(self, main_app):
+        self.dialog = None
+        self.app = main_app
+        self.instance = None
+
+        self._type = "string"
+        self._title = 'title'
+        self._confirm_text = 'confirm_text'
+        self._cancel_text = 'cancel_text'
+        self._confirm_action = None
+        self._text = 'text'
+        self._hint_text = 'hint_text'
+
+    def PreCache(self):
+        self.RealOpen()
+        self.dialog.dismiss(force=True)
+
+    def RealOpen(self):
+        if not self.dialog:
+            self.dialog = MDDialogSizer(
+                app=self.app,
+                title=self._title,
+                content_cls=MDTextField(text=self._text, hint_text=self._hint_text),
+                type="custom",
+                buttons=[
+                    MDFlatButton(
+                        text=self._cancel_text,
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.primary_color,
+                        on_release=self.Close,
+                    ),
+                    MDRaisedButton(
+                        text=self._confirm_text,
+                        on_release=self.Confirm,
+                    ),
+                ],
+            )
+            self.dialog.MAXIMUM_WIDTH = dp(400)
+        self.dialog.content_cls._hint_text_font_size = sp(10)
+        self.dialog.open()
+
+    def Open(self, mytype, title, confirm_text, cancel_text, confirm_action, text, hint_text, instance=None):
+        changed = False
+        if instance and mytype == 'name':
+            self.instance = instance
+        if self._type != mytype:
+            self._type = mytype
+            changed = True
+        if self._title != title:
+            self._title = title
+            changed = True
+        if self._confirm_text != confirm_text:
+            self._confirm_text = confirm_text
+            changed = True
+        if self._cancel_text != cancel_text:
+            self._cancel_text = cancel_text
+            changed = True
+        if self._confirm_action != confirm_action:
+            self._confirm_action = confirm_action
+            changed = True
+        if self._text != text:
+            self._text = text
+            changed = True
+        if self._hint_text != hint_text:
+            self._hint_text = hint_text
+            changed = True
+        if changed:
+            self.Rebase()
+        self.RealOpen()
+
+    def Close(self, *args):
+        self.instance = None
+        self.dialog.content_cls.hint_text = self._hint_text
+        self.dialog.dismiss(force=True)
+
+    def CheckCollisionName(self, name):
+        return self.instance.CheckCollisionName(name)
+
+    def Validate(self):
+        validate = True
+        s = self._text
+        if self._type == 'int':
+            if s[0] in ('-', '+'):
+                validate = s[1:].isdigit()
+            else:
+                validate = s.isdigit()
+        elif self._type == 'float':
+            self._text.replace(",", ".")
+            validate = s.replace(".", "").isnumeric()
+        elif self._type == 'bool':
+            validate = s.lower() in ['true', '1']
+        elif self._type == 'name':
+            validate = self.CheckCollisionName(s)
+        return validate
+
+    def Confirm(self, *args):
+        self._text = self.dialog.content_cls.text
+        if self.Validate():
+            self.Close()
+            if self._confirm_action:
+                self._confirm_action(self._text)
+        else:
+            self.dialog.content_cls.hint_text = f'Неверный ввод! Тип данных: {str(self._type)}'
+
+    def Rebase(self):
+        self.dialog.title = self._title
+        self.dialog.buttons[0].text = self._cancel_text
+        self.dialog.buttons[1].text = self._confirm_text
+        self.dialog.content_cls.text = self._text
+        self.dialog.content_cls.hint_text = self._hint_text
+
+
+class LDialogList:
+
+    def __init__(self, main_app, **kwargs):
+        super().__init__(**kwargs)
+        self.dialog = None
+        self.app = main_app
+        self.select_action = None
+        self.items = []
+
+    def PreCache(self):
+        self.RealOpen()
+        self.dialog.dismiss(force=True)
+
+    def RealOpen(self):
+        if not self.dialog:
+
+            self.items = []
+            self.items.append(ItemConfirm(text='Новое выражение'))
+            for name in client.names:
+                self.items.append(ItemConfirm(text=name))
+
+            self.dialog = MDDialogSizer(
+                app=self.app,
+                type="confirmation",
+                items=self.items,
+                buttons=[
+                    MDFlatButton(
+                        text="CANCEL",
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.primary_color,
+                        on_release=self.Close,
+                    ),
+                    MDRaisedButton(
+                        text="SELECT",
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.secondary_text_color,
+                        on_release=self.Select,
+                    ),
+                ],
+            )
+        self.dialog.update_height()
+        self.dialog.update_width()
+        self.dialog.open()
+
+    def Open(self, select_action):
+        self.select_action = select_action
+        self.RealOpen()
+
+    def Select(self, *args):
+        active_n = -1
+        active_nn = -1
+        for item in self.dialog.items:
+            active_n += 1
+            if item.ids.check.active:
+                active_nn = active_n
+                item.ids.check.active = False
+                break
+        if active_nn > -1:
+            if self.select_action:
+                self.select_action(self.items[active_nn].text)
+            self.Close()
+
+    def Close(self, *args):
+        self.select_action = None
+        self.dialog.dismiss()
+
+    def Rebase(self):
+        self.items = []
+        self.items.append(ItemConfirm(text='Новое выражение'))
+        for name in client.names:
+            self.items.append(ItemConfirm(text=name))
+
+        self.dialog = MDDialogSizer(
+            app=self.app,
+            type="confirmation",
+            items=self.items,
+            buttons=[
+                MDFlatButton(
+                    text="CANCEL",
+                    theme_text_color="Custom",
+                    text_color=self.app.theme_cls.primary_color,
+                    on_release=self.Close,
+                ),
+                MDRaisedButton(
+                    text="SELECT",
+                    theme_text_color="Custom",
+                    text_color=self.app.theme_cls.secondary_text_color,
+                    on_release=self.Select,
+                ),
+            ],
+        )
 
 
 class SnackbarMod(Snackbar, ButtonBehavior):
@@ -89,8 +537,8 @@ def SnackbarMessage(text):
     snackbar.ids.text_bar.text_color = KivyApp.theme_cls.accent_color
     snackbar.ids.text_bar.text_style = 'Body1'
 
-    length_text = len(text)
-    offset = sp(20)
+    length_text = len(text) + 20
+    offset = dp(20)
     size = Window.width - (offset * 2) if Window.width < length_text * 10 + 20 else length_text * 10 + 20
     snackbar.snackbar_x = (Window.width / 2) - (size / 2)
     snackbar.snackbar_y = offset + KivyApp.kivy_instance.ids.controls_panel_port.height - dp(5) if KivyApp.d_ori == 'vertical' else offset
@@ -111,14 +559,14 @@ def SnackbarMessageAction(text, accept_button_text, accept_action, cancel_action
     snackbar.text = text
 
     length_text = len(text) + len(accept_button_text) + len(cancel_button_text) + 20
-    offset = sp(20)
+    offset = dp(20)
     size = Window.width - (offset * 2) if Window.width < length_text * 10 + 20 else length_text * 10 + 20
     snackbar.snackbar_x = (Window.width / 2) - (size / 2)
     snackbar.snackbar_y = offset + KivyApp.kivy_instance.ids.controls_panel_port.height - dp(5) if KivyApp.d_ori == 'vertical' else offset
     snackbar.size_hint_x = None
     snackbar.width = size
 
-    radius = snackbar.height * 0.1
+    radius = snackbar.height * 0.2
     snackbar.radius = [radius, radius, radius, radius]
     # snackbar.elevation = 3
     snackbar.ids.text_bar.halign = 'left'
@@ -142,93 +590,6 @@ def SnackbarMessageAction(text, accept_button_text, accept_action, cancel_action
     ]
 
     snackbar.open()
-
-
-class MDDialogFix(MDDialog):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Window.bind(size=self.update_height,
-                    on_maximize=self.update_height,
-                    on_restore=self.update_height,
-                    on_minimize=self.update_height)
-        Window.bind(on_maximize=self.update_width,
-                    on_restore=self.update_width,
-                    on_minimize=self.update_width)
-        self.MINIMAL_WIDTH_VERTICAL = msettings.get('DIALOG_MINIMUM_HEIGHT_VERTICAL')
-        self.MAXIMUM_WIDTH_HORIZONTAL = msettings.get('DIALOG_MAXIMUM_HEIGHT_HORIZONTAL')
-
-    def update_width(self, *args) -> None:
-        if self.type == 'custom':
-            if Window.width - dp(48) < self.MINIMAL_WIDTH_VERTICAL:
-                self.width = Window.width - dp(48)
-            elif self.MINIMAL_WIDTH_VERTICAL <= Window.width - dp(48) < self.MAXIMUM_WIDTH_HORIZONTAL:
-                self.width = self.MINIMAL_WIDTH_VERTICAL
-            else:
-                self.width = self.MAXIMUM_WIDTH_HORIZONTAL
-        if self.type == 'confirmation':
-            if Window.width - dp(48) < self.MINIMAL_WIDTH_VERTICAL:
-                self.width = Window.width - dp(48)
-            else:
-                self.width = self.MINIMAL_WIDTH_VERTICAL
-
-    def update_height(self, *args) -> None:
-        if self.type == 'custom':
-            self._spacer_top = \
-                Window.height - dp(48) - dp(100) \
-                if self.content_cls.ids.content_cls_box.height + dp(50) > Window.height - dp(48) - dp(100) \
-                else self.content_cls.ids.content_cls_box.height + dp(50)
-        if self.type == 'confirmation':
-            height = 0
-            for item in self.items:
-                height += item.height
-            if height > Window.height - dp(48) - dp(100):
-                self.ids.scroll.height = Window.height - dp(48) - dp(100)
-            else:
-                self.ids.scroll.height = height
-
-
-class DialogEndpointContent(MDBoxLayout):
-    endpoint = StringProperty('None')
-
-    def __init__(self, _endpoint, **kwargs):
-        super().__init__(**kwargs)
-        self.endpoint = _endpoint
-
-
-class DialogEndpoint:
-
-    def __init__(self, _main_app, **kwargs):
-        super().__init__(**kwargs)
-        self.main_app = _main_app
-        self.dialog = None
-
-    def Open(self):
-        if not self.dialog:
-            self.dialog = MDDialog(
-                title="Enter the endpoint",
-                content_cls=DialogEndpointContent(self.main_app.kivy_instance.endpoint),
-                type="custom",
-                buttons=[
-                    MDFlatButton(
-                        text="CANCEL",
-                        theme_text_color="Custom",
-                        text_color=self.main_app.theme_cls.primary_color,
-                        on_release=self.Close,
-                    ),
-                    MDRaisedButton(
-                        text="SAVE",
-                        on_release=self.Save,
-                    ),
-                ],
-            )
-        self.dialog.open()
-
-    def Save(self, *args):
-        self.main_app.kivy_instance.endpoint = str(self.dialog.content_cls.ids.dialog_endpoint_text_input.text)
-        self.dialog.dismiss(force=True)
-
-    def Close(self, *args):
-        self.dialog.dismiss(force=True)
 
 
 class ItemConfirm(OneLineAvatarIconListItem):

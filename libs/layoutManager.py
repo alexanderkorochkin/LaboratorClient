@@ -1,3 +1,4 @@
+import threading
 from threading import Thread
 
 from kivy.clock import Clock
@@ -43,36 +44,38 @@ class LayoutManager:
         except Exception:
             Logger.debug('LayoutManager: Failed to open Controls Layout File!')
 
-        if args and args[0] == 'no_cache':
-            Logger.debug('LayoutManager: Pre-caching skipped!')
-        else:
-            self.kivy_instance.PreCacheAll()
+        Clock.schedule_once(self.kivy_instance.main_app.update_orientation, 0)
 
     def SaveLayoutLow(self):
 
         Logger.debug(f"LayoutManager: Saving layout to {msettings.get('GRAPHS_LAYOUT_FILE')}")
-        file_to_delete = open(msettings.get('GRAPHS_LAYOUT_FILE'), 'w')
-        file_to_delete.close()
-        isFirst = True
-        for x in self.kivy_instance.main_container.GraphArr:
-            with open(msettings.get('GRAPHS_LAYOUT_FILE'), 'a') as fp:
-                if isFirst:
-                    isFirst = False
-                else:
-                    fp.write('\n')
-                json.dump(x.s, fp)
 
-        Logger.debug(f"LayoutManager: Saving layout to {msettings.get('CONTROLS_LAYOUT_FILE')}")
-        file_to_delete = open(msettings.get('CONTROLS_LAYOUT_FILE'), 'w')
-        file_to_delete.close()
-        isFirst = True
-        for x in self.kivy_instance.controlsArray:
-            with open(msettings.get('CONTROLS_LAYOUT_FILE'), 'a') as fp:
-                if isFirst:
-                    isFirst = False
-                else:
-                    fp.write('\n')
-                json.dump(x.s, fp)
+        def save_task():
+            file_to_delete = open(msettings.get('GRAPHS_LAYOUT_FILE'), 'w')
+            file_to_delete.close()
+            isFirst = True
+            for x in self.kivy_instance.main_container.GraphArr:
+                with open(msettings.get('GRAPHS_LAYOUT_FILE'), 'a') as fp:
+                    if isFirst:
+                        isFirst = False
+                    else:
+                        fp.write('\n')
+                    json.dump(x.s, fp)
+
+            Logger.debug(f"LayoutManager: Saving layout to {msettings.get('CONTROLS_LAYOUT_FILE')}")
+            file_to_delete = open(msettings.get('CONTROLS_LAYOUT_FILE'), 'w')
+            file_to_delete.close()
+            isFirst = True
+            for x in self.kivy_instance.controlsArray:
+                with open(msettings.get('CONTROLS_LAYOUT_FILE'), 'a') as fp:
+                    if isFirst:
+                        isFirst = False
+                    else:
+                        fp.write('\n')
+                    json.dump(x.s, fp)
+
+        t = threading.Thread(target=save_task)
+        t.start()
 
     def SaveTimeIsGood(self, *args):
         self.save_time_good = True

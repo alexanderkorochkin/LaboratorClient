@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 
 from kivy.core.clipboard import Clipboard
 
@@ -30,7 +31,8 @@ from libs.utils import *
 from libs.settings.settingsJSON import *
 from libs.opcua.opcuaclient import client
 from libs.graph import GraphBox
-from libs.dialogs import DialogEndpoint, SnackbarMessage, SnackbarMessageAction, MDDialogFix
+from libs.dialogs import SnackbarMessage, SnackbarMessageAction, LDialogEnterString, LDialogGraphSettings, \
+    LDialogList
 from libs.layoutManager import LayoutManager
 
 Logger.setLevel(LOG_LEVELS["debug"])
@@ -47,12 +49,50 @@ class GContainer(MDBoxLayout):
         self.kivy_instance = _kivy_instance
         self.GraphArr = []
         self.columns = 1
+        self.target_height = 0
+        self.bind(height=self.ResizeGraphs)
 
-    def ResizeGraphs(self, d_ori, d_type):
+    def ResizeGraphs(self, *args):
+        d_ori = self.kivy_instance.main_app.d_ori
+        d_type = self.kivy_instance.main_app.d_type
+
+        number_graphs = len(self.kivy_instance.main_container.GraphArr)
+        if d_ori == 'horizontal':
+            if number_graphs == 1:
+                self.target_height = self.height
+            elif number_graphs == 2 or number_graphs == 3 or number_graphs == 4:
+                if d_type == 'tablet':
+                    self.target_height = (1 / msettings.get('ROW_HT')) * (
+                                self.height - (msettings.get('ROW_HT') - 1) * PADDING)
+                else:
+                    self.target_height = (1 / 2) * (self.height - 1 * PADDING)
+            else:
+                if d_type == 'desktop':
+                    self.target_height = (1 / msettings.get('ROW_HD')) * (
+                                self.height - (msettings.get('ROW_HD') - 1) * PADDING)
+                elif d_type == 'tablet':
+                    self.target_height = (1 / msettings.get('ROW_HT')) * (
+                                self.height - (msettings.get('ROW_HT') - 1) * PADDING)
+                elif d_type == 'mobile':
+                    self.target_height = (1 / msettings.get('ROW_HM')) * (
+                                self.height - (msettings.get('ROW_HM') - 1) * PADDING)
+        elif d_ori == 'vertical':
+            if d_type == 'desktop':
+                self.target_height = (1 / msettings.get('ROW_VD')) * (
+                            self.height - (msettings.get('ROW_VD') - 1) * PADDING)
+            elif d_type == 'tablet':
+                self.target_height = (1 / msettings.get('ROW_VT')) * (
+                            self.height - (msettings.get('ROW_VT') - 1) * PADDING)
+            elif d_type == 'mobile':
+                self.target_height = (1 / msettings.get('ROW_VM')) * (
+                            self.height - (msettings.get('ROW_VM') - 1) * PADDING)
+
         for graph in self.GraphArr:
-            graph.Resize(d_ori, d_type, self.height)
+            graph.Resize(self.target_height)
 
-    def UpdateColumns(self, d_ori, d_type):
+    def UpdateColumns(self):
+        d_ori = self.kivy_instance.main_app.d_ori
+        d_type = self.kivy_instance.main_app.d_type
         value = 1
         number_graphs = len(self.GraphArr)
         if d_ori == 'horizontal':
@@ -74,8 +114,8 @@ class GContainer(MDBoxLayout):
                 value = msettings.get('COL_VT')
             elif d_type == 'mobile':
                 value = msettings.get('COL_VM')
-        if self.columns != value:
-            self.columns = value
+
+        self.columns = value
 
     def isContainsGraphWithName(self, _labvar_name):
         for graph in self.GraphArr:
@@ -83,9 +123,13 @@ class GContainer(MDBoxLayout):
                 return True
         return False
 
-    def UpdateGraphs(self, plots_only=False):
+    def UpdateThreads(self):
         for graph in self.GraphArr:
-            graph.Update(plots_only)
+            graph.UpdateThread()
+
+    def UpdateGraphs(self):
+        for graph in self.GraphArr:
+            graph.UpdateGraph()
 
     def RefreshAll(self):
         for gr in self.GraphArr:
@@ -97,8 +141,8 @@ class GContainer(MDBoxLayout):
         self.GraphArr.append(graphbox)
         self.gcontainer.add_widget(graphbox)
         if not _settings:
-            self.ResizeGraphs(app.d_ori, app.d_type)
-            self.UpdateColumns(app.d_ori, app.d_type)
+            self.UpdateColumns()
+            self.ResizeGraphs()
         Logger.debug(f"GRAPH: Graph [{graphbox.s['NAME']}] with HASH: {graphbox.s['HASH']} is added!")
         if not _settings:
             if len(self.GraphArr) > msettings.get(
@@ -114,24 +158,21 @@ class GContainer(MDBoxLayout):
 
     def RemoveAll(self):
         for graph in self.GraphArr:
-            self.RemoveGraph(anim=None, graph=graph, do_remove_graph=False)
+            self.RemoveGraphLow(anim=None, graph=graph, do_remove_graph=False)
         self.GraphArr.clear()
+        self.ResizeGraphs()
 
-    def RemoveGraphByHASH(self, _hash):
-        graph = self.GetGraphByHASH(_hash)
-        animate_graph_removal(graph, 'vertical' if (
-                    self.kivy_instance.main_app.d_type == 'mobile' and self.kivy_instance.main_app.d_ori == 'vertical') else 'horizontal',
-                              self.RemoveGraph)
+    def RemoveGraph(self, graph):
+        animate_graph_removal(graph, self.RemoveGraphLow)
 
-    def RemoveGraph(self, anim, graph, do_remove_graph=True):
-        if len(self.GraphArr) > 0:
-            temp = graph
-            self.gcontainer.remove_widget(temp)
-            if do_remove_graph:
-                self.GraphArr.remove(temp)
-            self.ResizeGraphs(self.kivy_instance.main_app.d_ori, self.kivy_instance.main_app.d_type)
-            self.UpdateColumns(self.kivy_instance.main_app.d_ori, self.kivy_instance.main_app.d_type)
-            Logger.debug(f"GRAPH: Graph [{temp.s['NAME']}] with HASH: {temp.s['HASH']} is removed!")
+    def RemoveGraphLow(self, anim, graph, do_remove_graph=True):
+        self.gcontainer.remove_widget(graph)
+        if do_remove_graph:
+            self.GraphArr.remove(graph)
+            self.ResizeGraphs()
+        self.UpdateColumns()
+        Logger.debug(f"GRAPH: Graph [{graph.s['NAME']}] with HASH: {graph.s['HASH']} is removed!")
+        self.kivy_instance.main_app.layoutManager.SaveLayout()
 
 
 class Item(OneLineIconListItem):
@@ -148,6 +189,7 @@ class LaboratorClient(MDScreen):
     selected_badge_icon = StringProperty('numeric-0')
     show_menu = BooleanProperty(True)
     show_controls_menu = BooleanProperty(False)
+    server_connected = BooleanProperty(False)
     controlsArray = []
 
     def __init__(self, _main_app, **kwargs):
@@ -155,6 +197,7 @@ class LaboratorClient(MDScreen):
         self.main_container = GContainer(self)
         self.main_app = _main_app
         self.isFirst = True
+        self.canceled = False
         self.selected = []
         self.show_menu = True
         self.dialog = None
@@ -239,14 +282,20 @@ class LaboratorClient(MDScreen):
     def GetGraphByHASH(self, _hash):
         return self.main_container.GetGraphByHASH(_hash)
 
+    def AddGraphLow(self, *args):
+        self.main_container.AddGraph()
+
     def AddGraph(self, settings=None):
         self.main_container.AddGraph(settings)
         if settings is None:
             self.menu.dismiss()
 
+    def AddGraphsCallback(self, count):
+        for i in range(int(count)):
+            Clock.schedule_once(self.AddGraphLow, 0)
+
     def AddGraphs(self):
-        self.ActionAfterEnterStringDialog('ITERATIVE|DECIMAL', self.AddGraph, 'Введите число графиков',
-                                          'Введите целое число графиков')
+        self.main_app.dialogTextInput.Open('int', 'Создать графики', 'CREATE', 'CANCEL', self.AddGraphsCallback, '0', 'Одновременно можно создать не более 100 шт.')
         self.menu.dismiss()
 
     def AddControls(self, settings=None):
@@ -384,7 +433,7 @@ class LaboratorClient(MDScreen):
 
     def RemoveSelectedGraphs(self):
         for selected_graph in self.selected:
-            self.main_container.RemoveGraph(None, selected_graph)
+            self.main_container.RemoveGraph(selected_graph)
         self.selected = []
         self.number_selected = 0
         SnackbarMessageAction('Отменить удаление', 'UNDO', cancel_button_text='SAVE',
@@ -398,94 +447,93 @@ class LaboratorClient(MDScreen):
             self.ids.controls_view_port.remove_widget(cButton)
         self.controlsArray.clear()
 
-    def RemoveGraphByHASH(self, _hash):
-        self.main_container.RemoveGraphByHASH(_hash)
-        self.main_app.layoutManager.SaveLayout()
+    def CheckConnection(self, silent=True):
+        good = True
 
-    def Reconnection(self, dt):
-        if client.GetReconnectNumber() <= msettings.get('MAX_RECONNECTIONS_NUMBER'):
-            if client.isReconnecting():
-                if not client.isConnected():
-                    client._isReconnecting = True
-                    client.Disconnect()
-                    self.ConnectLow()
-                    if not client.isConnected():
-                        Clock.schedule_once(self.Reconnection, dt)
-                        client.ReconnectNumberInc()
-                    else:
-                        client.ReconnectNumberZero()
-                else:
-                    client._isReconnecting = False
-                    client.ReconnectNumberZero()
-            else:
-                client.ReconnectNumberZero()
+        if client.isConnected():
+            if not silent:
+                Logger.debug(f'CheckConnection: Connected to server: {self.endpoint}!')
         else:
-            self.Disconnect()
+            good = False
+            if not silent:
+                Logger.debug(f'CheckConnection: Unable to connect to server: {self.endpoint}!')
 
-    def ConnectLow(self):
-        try:
-            Logger.debug("LabVarConf: Getting configuration from server...")
+        if client.isParsed():
+            if not silent:
+                Logger.debug(f'CheckConnection: Parsed: {self.endpoint}!')
+        else:
+            good = False
+            if not silent:
+                Logger.debug(f'CheckConnection: Unable to parse server: {self.endpoint}!')
+
+        return good
+
+    def GoodReconnection(self):
+        pass
+
+    def Reconnection(self, out):
+        Logger.debug(out)
+
+    def GoodConnection(self):
+        self.ids.endpoint_label.disabled = True
+        self.ids.btn_connect.disabled = True
+        self.ids.btn_disconnect.disabled = False
+        msettings.set('MainSettings', 'LAST_IP', self.endpoint)
+        Logger.debug(f"CONNECT: Connected to {self.endpoint}!")
+
+    def ConnectionFail(self, out):
+        if not client.isReconnecting():
+            self.ids.btn_connect.disabled = False
+            self.ids.btn_disconnect.disabled = True
+            self.ids.endpoint_label.disabled = False
+            Logger.debug(out)
+        else:
             self.ids.btn_connect.disabled = True
             self.ids.btn_disconnect.disabled = False
             self.ids.endpoint_label.disabled = True
-            client.Connect(self.endpoint)
-            Logger.debug(f"CONNECT: Connected to {self.endpoint}!")
-            SnackbarMessage(f"Connected to {self.endpoint}!")
-            msettings.set('MainSettings', 'LAST_IP', self.endpoint)
-            client.ReconnectNumberZero()
-        except Exception:
-            if not client.isReconnecting():
-                self.ids.btn_connect.disabled = False
-                self.ids.btn_disconnect.disabled = True
-                self.ids.endpoint_label.disabled = False
-                SnackbarMessage("Error while connecting... Disconnected!")
-                Logger.error("CONNECT: Error while connecting... Disconnected!")
-            else:
-                SnackbarMessage(f"Connection lost! Error while reconnecting... ({str(client.GetReconnectNumber())})")
-                Logger.error(
-                    "CONNECT: Connection lost! Error while reconnecting... (" + str(client.GetReconnectNumber()) + ')')
 
-    def Connect(self, *args):
-        self.ConnectLow()
+    def Connect(self):
+        self.ids.btn_connect.disabled = True
+        self.ids.btn_disconnect.disabled = True
+        self.ids.endpoint_label.disabled = True
+        Logger.debug(f"CONNECT: Trying to connect to {self.endpoint}...")
+        client.ConnectMain(self.endpoint)
 
     def Disconnect(self):
-        client._isReconnecting = False
-        try:
-            client.Disconnect()
-            self.ids.btn_disconnect.disabled = True
-            self.ids.btn_connect.disabled = False
-            self.ids.endpoint_label.disabled = False
-            SnackbarMessage(f"Disconnected from {self.endpoint}!")
-            Logger.debug(f"CONNECT: Disconnected from {self.endpoint}!")
-        except Exception:
-            self.ids.btn_disconnect.disabled = False
-            self.ids.btn_connect.disabled = True
-            self.ids.endpoint_label.disabled = True
-            SnackbarMessage("Error while disconnecting...")
-            Logger.info("CONNECT: Error while disconnecting...")
+        client.DisableTimer()
+        self.ids.btn_disconnect.disabled = True
+        self.ids.btn_connect.disabled = False
+        self.ids.endpoint_label.disabled = False
+        client.Disconnect(force=True)
+        SnackbarMessage(f"Disconnected from {self.endpoint}!")
+        Logger.debug(f"CONNECT: Disconnected from {self.endpoint}!")
 
     def UpdateControls(self):
         for control in self.controlsArray:
             control.Update()
 
     def Update(self):
-        if client.isConnected():
-            try:
-                client.UpdateValues()
-            except Exception:
-                client._isConnected = False
-                client._isReconnecting = True
-                self.ids.btn_disconnect.disabled = False
-                self.ids.btn_connect.disabled = True
-                SnackbarMessage("Connection lost! Trying to reconnect...")
-                Logger.debug("UPDATE: Connection lost! Trying to reconnect...")
-                self.Reconnection(msettings.get('RECONNECTION_TIME'))
+        if self.CheckConnection(silent=True):
+
+            if not self.server_connected:
+                self.server_connected = True
+                SnackbarMessage(f"Connected to {self.endpoint}!")
+                self.main_app.dialogList.Rebase()
+
+            t1 = threading.Thread(target=client.UpdateValues)
+            t1.start()
+            t2 = threading.Thread(target=self.main_container.UpdateThreads)
+            t2.start()
             self.main_container.UpdateGraphs()
             self.UpdateControls()
+        else:
+            if self.server_connected:
+                self.server_connected = False
+                SnackbarMessage(f"Connection with {self.endpoint} lost!")
 
-    def PreCacheAll(self):
-        for graph in self.main_container.GraphArr:
-            graph.PreCache()
+        if self.canceled:
+            self.canceled = False
+            self.Disconnect()
 
 
 class FullLogHandler(logging.Handler):
@@ -506,20 +554,31 @@ class FullLogHandler(logging.Handler):
 class KivyApp(MDApp):
     d_type = OptionProperty('mobile', options=('desktop', 'tablet', 'mobile'))
     d_ori = OptionProperty('vertical', options=('vertical', 'horizontal'))
+    d_iori = OptionProperty('horizontal', options=('vertical', 'horizontal'))
     main_radius = NumericProperty(dp(10))
     main_spacing = NumericProperty(dp(5))
     main_padding = NumericProperty(dp(5))
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.ori_time_good = True
         self.dont_gc = None
         self.kivy_instance = None
         self.settings_widget = None
-        self.dialogEndpoint = None
         self.layoutManager = None
         self.title = "Laborator Client"
         self.hiddenWidgets = []
-        self._close_button = None
+
+        self.dialogTextInput = None
+        self.dialogGraphSettings = None
+        self.dialogList = None
+
+        t = Clock.create_trigger(self.d_changed)
+
+        self.bind(d_ori=t, d_type=t)
+
+    def d_changed(self, *args):
+        self.kivy_instance.main_container.UpdateColumns()
 
     def on_stop(self):
         try:
@@ -533,14 +592,24 @@ class KivyApp(MDApp):
 
     def on_start(self):
         self.kivy_instance.Prepare()
-        Logger.debug('LayoutManager: Pre-caching...')
-        if msettings.get('USE_LAYOUT'):
-            self.layoutManager.LoadLayout()
-        Clock.schedule_once(self.update_orientation, 0)
-        Clock.schedule_interval(self.Update, int(msettings.get('KIVY_UPDATE_FUNCTION_TIME')))
-
         self.dont_gc = AndroidPermissions(self.start_app)
 
+        if platform == "android":
+            from jnius import autoclass
+
+            PythonActivity = autoclass("org.kivy.android.PythonActivity")
+            ActivityInfo = autoclass("android.content.pm.ActivityInfo")
+            activity = PythonActivity.mActivity
+            # set orientation according to user's preference
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER)
+
+        if msettings.get('USE_LAYOUT'):
+            self.layoutManager.LoadLayout()
+
+        Logger.debug('LayoutManager: Pre-caching...')
+        self.PreCache()
+
+        Clock.schedule_interval(self.Update, int(msettings.get('KIVY_UPDATE_FUNCTION_TIME')))
 
     def start_app(self):
         self.dont_gc = None
@@ -550,11 +619,20 @@ class KivyApp(MDApp):
         for filename in os.listdir(os.path.join("libs", "kv")):
             Builder.load_file(os.path.join("libs", "kv", filename))
 
+    def update_ori_is_good(self, *args):
+        self.ori_time_good = True
+
     def update_orientation(self, *args):
-        Clock.schedule_once(self.update_orientation_low, 0)
+        if self.ori_time_good:
+            self.ori_time_good = False
+            self.update_orientation_low(*args)
+            Clock.schedule_once(self.update_ori_is_good, 0.2)
 
     def update_orientation_low(self, *args):
-        width, height = Window.size
+        if len(args) > 1:
+            width, height = args[1]
+        else:
+            width, height = self.root_window.size
         if width < dp(500) or height < dp(500):
             device_type = "mobile"
         elif width < dp(1100) and height < dp(1100):
@@ -564,22 +642,14 @@ class KivyApp(MDApp):
 
         if width > height:
             device_orientation = 'horizontal'
+            inverted_device_orientation = 'vertical'
         else:
             device_orientation = 'vertical'
+            inverted_device_orientation = 'horizontal'
 
         self.d_ori = device_orientation
         self.d_type = device_type
-
-        # Logger.debug(f'ORIENTATION: Changed orientation to: {self.d_type}:{self.d_ori}')
-
-        self.kivy_instance.main_container.UpdateColumns(self.d_ori, self.d_type)
-        self.kivy_instance.main_container.ResizeGraphs(self.d_ori, self.d_type)
-        if client.isConnected():
-            self.kivy_instance.main_container.UpdateGraphs(plots_only=True)
-
-        win = self._app_window
-        if self._close_button in win.children:
-            self._close_button.pos = [dp(5), win.height - dp(53)]
+        self.d_iori = inverted_device_orientation
 
     def build(self):
         self.theme_cls.theme_style = msettings.get("THEME")
@@ -589,12 +659,13 @@ class KivyApp(MDApp):
             self.theme_cls.set_colors("Orange", "300", "50", "800", "Gray", "600", "50", "800")
         self.LoadKV()
         self.kivy_instance = LaboratorClient(self)
+        client.kivy_instance = self.kivy_instance
 
         Window.bind(size=self.update_orientation,
-                    on_maximize=self.update_orientation,
-                    on_restore=self.update_orientation,
+                    # on_maximize=self.update_orientation,
+                    # on_restore=self.update_orientation,
                     on_rotate=self.update_orientation,
-                    on_minimize=self.update_orientation
+                    # on_minimize=self.update_orientation
                     )
 
         Logger.addHandler(FullLogHandler(self, self.kivy_instance.ids.log_label, logging.DEBUG))
@@ -604,7 +675,9 @@ class KivyApp(MDApp):
         else:
             self.hide_widget(self.kivy_instance.ids.view_port)
 
-        self.dialogEndpoint = DialogEndpoint(self)
+        self.dialogTextInput = LDialogEnterString(self)
+        self.dialogGraphSettings = LDialogGraphSettings(self)
+        self.dialogList = LDialogList(self)
         self.layoutManager = LayoutManager(self.kivy_instance)
 
         if self._app_settings is None:
@@ -708,19 +781,16 @@ class KivyApp(MDApp):
             return
         if settings in win.children:
             win.remove_widget(settings)
-            win.remove_widget(self._close_button)
             return True
         return False
 
     def display_settings(self, settings):
         win = self._app_window
-        self._close_button = MDIconButton(pos=[dp(5), win.height - dp(53)], md_bg_color=self.theme_cls.accent_color, icon='arrow-left', on_release=self.close_settings)
         if not win:
             raise Exception('No windows are set on the application, you cannot'
                             ' open settings yet.')
         if settings not in win.children:
             win.add_widget(settings)
-            win.add_widget(self._close_button)
             return True
         return False
 
@@ -732,8 +802,16 @@ class KivyApp(MDApp):
         self.kivy_instance.menu.dismiss()
         self.open_settings()
 
+    def setEndpoint(self, string):
+        self.kivy_instance.endpoint = string
+
     def copy(self, _str: str):
         Clipboard.copy(_str)
+
+    def PreCache(self):
+        self.dialogTextInput.PreCache()
+        self.dialogGraphSettings.PreCache()
+        self.dialogList.PreCache()
 
 
 KivyApp = KivyApp()

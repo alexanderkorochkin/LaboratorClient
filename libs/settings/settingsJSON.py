@@ -2,10 +2,10 @@ import json
 from kivy.metrics import sp, dp
 
 settings_defaults = {
-            'LAST_IP': "opc.tcp://192.168.1.1:4840",
+            'LAST_IP': "opc.tcp://192.168.1.67:4840",
             'MAX_HISTORY_VALUES': 120,
-            'MAX_RECONNECTIONS_NUMBER': 10,
-            'RECONNECTION_TIME': 5,
+            'MAX_RECONNECTIONS_NUMBER': 20,
+            'RECONNECTION_TIME': 10,
             'GRAPHS_LAYOUT_FILE': "graphs_layout.json",
             'CONTROLS_LAYOUT_FILE': "controls_layout.json",
             'KIVY_HOLD_TIME': 0.2,
@@ -14,17 +14,17 @@ settings_defaults = {
             'USE_LAYOUT': True,
             'HIDE_LOG_BY_DEFAULT': True,
             'SHOW_CONTROLS_BY_DEFAULT': True,
-            'THEME': 'Light',
+            'THEME': 'Dark',
             'COL_HM': 2,
             'COL_HT': 2,
             'COL_HD': 4,
             'COL_VM': 1,
             'COL_VT': 2,
             'COL_VD': 4,
-            'ROW_HM': 2,
+            'ROW_HM': 4,
             'ROW_HT': 4,
             'ROW_HD': 4,
-            'ROW_VM': 3,
+            'ROW_VM': 4,
             'ROW_VT': 4,
             'ROW_VD': 5,
             'DIALOG_MINIMUM_HEIGHT_VERTICAL': dp(400),
@@ -50,7 +50,6 @@ graph_settings_defaults = {
             'MAX_SPECTRAL_BUFFER_SIZE': 128,
 
             'GRAPH_ADDITIONAL_SPACE_Y': 1.2,
-            'GRAPH_BUFFER_AVG_SIZE': 40,
             'GRAPH_ROUND_DIGITS': 3,
 
             'SHOW_MAIN_VALUE': True,
@@ -113,16 +112,10 @@ settings_json = json.dumps([
      'options': ['Dark', 'Light']},
 
     {'type': 'numeric',
-     'title': 'Количество точек по оси X на графиках (+ число точек для подсчета среднего)',
+     'title': 'Количество точек по оси X (также число точек для подсчета среднего)',
      'desc': 'MAX_HISTORY_VALUES',
      'section': 'MainSettings',
      'key': 'MAX_HISTORY_VALUES'},
-
-    {'type': 'numeric',
-     'title': 'Количество значений для подсчета среднего',
-     'desc': 'GRAPH_BUFFER_AVG_SIZE',
-     'section': 'GraphSettings',
-     'key': 'GRAPH_BUFFER_AVG_SIZE'},
 
     {'type': 'numeric',
      'title': 'Толщина линии графика',

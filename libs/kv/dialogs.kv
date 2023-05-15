@@ -1,14 +1,6 @@
 #:import msettings libs.settings.settingsJSON.msettings
 #:import truncate_string libs.utils.truncate_string
 
-<DialogEndpointContent>
-    orientation: "vertical"
-    adaptive_height: True
-    MDTextField:
-        id: dialog_endpoint_text_input
-        hint_text: "OPCUA Server URL"
-        text: root.endpoint
-
 
 <ItemConfirm>
     on_release: root.set_icon(check)
@@ -29,7 +21,233 @@
         max_height: dp(200)
 
 
-<DialogGraphSettingsContent>
+#<DialogGraphSettingsContent>
+#    orientation: "vertical"
+#    size_hint_y: 1
+#    MDScrollView:
+#        do_scroll_x: False
+#        do_scroll_y: True
+#        size_hint_y: 1
+#        MDBoxLayout:
+#            id: content_cls_box
+#            adaptive_height: True
+#            orientation: 'vertical' if not Window.width - dp(48) >= msettings.get('DIALOG_MAXIMUM_HEIGHT_HORIZONTAL') else 'horizontal'
+#            spacing: dp(10)
+#            padding: [dp(0), dp(5), dp(0), dp(5)]
+#            MDBoxLayout:
+#                id: first_second_cell
+#                orientation: 'vertical'
+#                adaptive_height: True
+#                size_hint_x: 1
+#                spacing: dp(10)
+#                MDBoxLayout:
+#                    id: first_cell
+#                    orientation: 'vertical'
+#                    adaptive_height: True
+#                    size_hint_x: 1
+#                    spacing: dp(10)
+#                    MDBoxLayout:
+#                        orientation: "horizontal"
+#                        adaptive_height: True
+#                        size_hint_x: 1
+#                        MDFlatButton:
+#                            id: variable_list
+#                            text: "Переменная: " + truncate_string(root.labvar_name, 20, screen_brackets=True)
+#                            size_hint_x: 1
+#                            theme_text_color: "Custom"
+#                            text_color: app.theme_cls.text_color
+#                            line_color: app.theme_cls.primary_color
+#                            font_size: sp(14)
+#                            on_release: root.dialogListLabVar.Open()
+#                        MDIconButton:
+#                            size_hint: None, 1
+#                            size: "48dp", "48dp"
+#                            icon: 'pencil' if '*' in root.labvar_name else 'content-copy'
+#                            theme_icon_color: "Custom"
+#                            icon_color: app.theme_cls.primary_color
+#                            on_release: root.dialogEnterString.Open('edit_name', root.labvar_name, 'Введите новое имя', '', _need_connection=False) if '*' in root.labvar_name else app.copy(root.labvar_name)
+#                    MDBoxLayout:
+#                        id: expression_settings
+#                        orientation: "vertical"
+#                        adaptive_height: True
+#                        MDFlatButton:
+#                            id: expression_button
+#                            text: "Выражение: " + truncate_string(root.expression, 35, screen_brackets=True) if '*' in root.labvar_name else 'Встроенная переменная'
+#                            size_hint_x: 1
+#                            markup: True
+#                            theme_text_color: "Custom"
+#                            text_color: app.theme_cls.text_color
+#                            line_color: app.theme_cls.primary_color
+#                            font_size: sp(14)
+#                            disabled: False if '*' in root.labvar_name else True
+#                            on_release: root.dialogEnterString.Open('expression', root.expression, 'Введите выражение', 'выражение')
+#                    MDFlatButton:
+#                        id: change_mode_button
+#                        text: "Текущий режим: " + root.mode
+#                        size_hint_x: 1
+#                        theme_text_color: "Custom"
+#                        text_color: app.theme_cls.text_color
+#                        line_color: app.theme_cls.primary_color
+#                        font_size: sp(14)
+#                        on_release: root.Toggle('NEXT_MODE')
+#                MDBoxLayout:
+#                    id: second_cell
+#                    orientation: 'vertical'
+#                    adaptive_height: True
+#                    size_hint_x: 1
+#                    spacing: dp(10)
+#                    MDBoxLayout:
+#                        id: axes_settings
+#                        orientation: "horizontal"
+#                        size_hint_x: 1
+#                        adaptive_height: True
+#                        spacing: dp(10)
+#                        # padding: dp(10), dp(10), dp(10), dp(10)
+#                        MDFlatButton:
+#                            id: toggle_x_button
+#                            text: "Откл. ось X" if root.label_x else "Вкл. ось X"
+#                            size_hint_x: 1
+#                            theme_text_color: "Custom"
+#                            text_color: app.theme_cls.text_color
+#                            line_color: app.theme_cls.primary_color
+#                            font_size: sp(14)
+#                            disabled: False if root.mode == 'SPECTRAL' else True
+#                            on_release: root.Toggle('GRAPH_LABEL_X')
+#                        MDFlatButton:
+#                            id: toggle_y_button
+#                            text: "Откл. ось Y" if root.label_y else "Вкл. ось Y"
+#                            size_hint_x: 1
+#                            theme_text_color: "Custom"
+#                            text_color: app.theme_cls.text_color
+#                            line_color: app.theme_cls.primary_color
+#                            font_size: sp(14)
+#                            on_release: root.Toggle('GRAPH_LABEL_Y')
+#                    MDFlatButton:
+#                        id: clear_graph
+#                        text: "Очистить график"
+#                        size_hint_x: 1
+#                        theme_text_color: "Custom"
+#                        text_color: app.theme_cls.text_color
+#                        line_color: app.theme_cls.primary_color
+#                        font_size: sp(14)
+#                        on_release: root.Refresh()
+#                    MDFlatButton:
+#                        id: delete_graph
+#                        text: "Удалить плитку"
+#                        size_hint_x: 1
+#                        theme_text_color: "Custom"
+#                        text_color: app.theme_cls.text_color
+#                        line_color: app.theme_cls.error_color
+#                        font_size: sp(14)
+#                        on_release: root.removeIt()
+#            MDBoxLayout:
+#                id: third_cell
+#                orientation: 'vertical'
+#                size_hint_x: 1
+#                adaptive_height: True
+#                spacing: dp(10)
+#                MDBoxLayout:
+#                    orientation: "horizontal"
+#                    adaptive_height: True
+#                    MDFlatButton:
+#                        text: "Размер спектрального буффера: " + str(root.max_spectral_buffer_size) if root.mode == 'SPECTRAL' else 'Спектральный буфер не доступен'
+#                        size_hint_x: 1
+#                        halign: 'center'
+#                        theme_text_color: "Custom"
+#                        text_color: app.theme_cls.text_color
+#                        font_size: sp(14)
+#                        disabled: False if root.mode == 'SPECTRAL' else True
+#                        on_release: root.dialogEnterString.Open('spectral_size', str(root.max_spectral_buffer_size), 'Введите размер спектрального буффера', '')
+#                MDBoxLayout:
+#                    orientation: "horizontal"
+#                    adaptive_height: True
+#                    MDFlatButton:
+#                        text: "Округление: " + str(root.graph_round_digits)
+#                        size_hint_x: 1
+#                        halign: 'center'
+#                        theme_text_color: "Custom"
+#                        text_color: app.theme_cls.text_color
+#                        font_size: sp(14)
+#                        on_release: root.dialogEnterString.Open('precision', str(root.graph_round_digits), 'Введите число знаков после запятой', '')
+#                MDBoxLayout:
+#                    orientation: "horizontal"
+#                    size_hint_x: 1
+#                    adaptive_height: True
+#                    MDCheckbox:
+#                        on_release: root.Toggle('SHOW_AVG_VALUE')
+#                        size_hint: None, 1
+#                        size: "48dp", "48dp"
+#                        disabled: True if root.mode == 'SPECTRAL' else False
+#                        active: root.show_avg_value
+#                    MDFlatButton:
+#                        text: "Показывать среднее значение"
+#                        size_hint_x: 1
+#                        halign: 'left'
+#                        theme_text_color: "Custom"
+#                        text_color: app.theme_cls.text_color
+#                        font_size: sp(14)
+#                        disabled: True if root.mode == 'SPECTRAL' else False
+#                        on_release: root.Toggle('SHOW_AVG_VALUE')
+#                MDBoxLayout:
+#                    orientation: "horizontal"
+#                    size_hint_x: 1
+#                    adaptive_height: True
+#                    MDCheckbox:
+#                        on_release: root.Toggle('SHOW_MAIN_GRAPH')
+#                        size_hint: None, 1
+#                        size: "48dp", "48dp"
+#                        disabled: True if root.mode == 'SPECTRAL' else False
+#                        active: root.show_main_graph
+#                    MDFlatButton:
+#                        text: "Основной график"
+#                        size_hint_x: 1
+#                        theme_text_color: "Custom"
+#                        halign: 'left'
+#                        text_color: app.theme_cls.text_color
+#                        font_size: sp(14)
+#                        disabled: True if root.mode == 'SPECTRAL' else False
+#                        on_release: root.Toggle('SHOW_MAIN_GRAPH')
+#                MDBoxLayout:
+#                    orientation: "horizontal"
+#                    size_hint_x: 1
+#                    adaptive_height: True
+#                    MDCheckbox:
+#                        on_release: root.Toggle('SHOW_AVG_GRAPH')
+#                        size_hint: None, 1
+#                        size: "48dp", "48dp"
+#                        disabled: True if root.mode == 'SPECTRAL' else False
+#                        active: root.show_avg_graph
+#                    MDFlatButton:
+#                        text: "График среднего значения"
+#                        size_hint_x: 1
+#                        halign: 'left'
+#                        theme_text_color: "Custom"
+#                        text_color: app.theme_cls.text_color
+#                        font_size: sp(14)
+#                        disabled: True if root.mode == 'SPECTRAL' else False
+#                        on_release: root.Toggle('SHOW_AVG_GRAPH')
+#                MDBoxLayout:
+#                    orientation: "horizontal"
+#                    size_hint_x: 1
+#                    adaptive_height: True
+#                    MDCheckbox:
+#                        on_release: root.Toggle('SHOW_INTIME_GRAPH')
+#                        size_hint: None, 1
+#                        size: "48dp", "48dp"
+#                        disabled: True if root.mode == 'SPECTRAL' else False
+#                        active: root.show_intime_graph
+#                    MDFlatButton:
+#                        text: "Линия текущего значения"
+#                        size_hint_x: 1
+#                        halign: 'left'
+#                        theme_text_color: "Custom"
+#                        text_color: app.theme_cls.text_color
+#                        font_size: sp(14)
+#                        disabled: True if root.mode == 'SPECTRAL' else False
+#                        on_release: root.Toggle('SHOW_INTIME_GRAPH')
+
+
+<LDialogGraphSettingsContent>
     orientation: "vertical"
     size_hint_y: 1
     MDScrollView:
@@ -66,14 +284,14 @@
                             text_color: app.theme_cls.text_color
                             line_color: app.theme_cls.primary_color
                             font_size: sp(14)
-                            on_release: root.dialogListLabVar.Open()
+                            on_release: app.dialogList.Open(root.SelectVariable)
                         MDIconButton:
                             size_hint: None, 1
                             size: "48dp", "48dp"
                             icon: 'pencil' if '*' in root.labvar_name else 'content-copy'
                             theme_icon_color: "Custom"
                             icon_color: app.theme_cls.primary_color
-                            on_release: root.dialogEnterString.Open('edit_name', root.labvar_name, 'Введите новое имя', '', _need_connection=False) if '*' in root.labvar_name else app.copy(root.labvar_name)
+                            on_release: app.dialogTextInput.Open('name', 'Переименовать', 'SAVE', 'CANCEL', root.Rename, root.labvar_name[1:], 'Имя должно быть уникальным', root.instance) if '*' in root.labvar_name else app.copy(root.labvar_name)
                     MDBoxLayout:
                         id: expression_settings
                         orientation: "vertical"
@@ -88,7 +306,7 @@
                             line_color: app.theme_cls.primary_color
                             font_size: sp(14)
                             disabled: False if '*' in root.labvar_name else True
-                            on_release: root.dialogEnterString.Open('expression', root.expression, 'Введите выражение', 'выражение')
+                            on_release: app.dialogTextInput.Open('string', 'Изменение выражения', 'SAVE', 'CANCEL', root.SetExpression, root.expression, '')
                     MDFlatButton:
                         id: change_mode_button
                         text: "Текущий режим: " + root.mode
@@ -119,7 +337,6 @@
                             text_color: app.theme_cls.text_color
                             line_color: app.theme_cls.primary_color
                             font_size: sp(14)
-                            disabled: False if root.mode == 'SPECTRAL' else True
                             on_release: root.Toggle('GRAPH_LABEL_X')
                         MDFlatButton:
                             id: toggle_y_button
@@ -138,7 +355,7 @@
                         text_color: app.theme_cls.text_color
                         line_color: app.theme_cls.primary_color
                         font_size: sp(14)
-                        on_release: root.Refresh()
+                        on_release: root.ClearGraph()
                     MDFlatButton:
                         id: delete_graph
                         text: "Удалить плитку"
@@ -147,7 +364,7 @@
                         text_color: app.theme_cls.text_color
                         line_color: app.theme_cls.error_color
                         font_size: sp(14)
-                        on_release: root.removeIt()
+                        on_release: root.RemoveGraph()
             MDBoxLayout:
                 id: third_cell
                 orientation: 'vertical'
@@ -165,7 +382,7 @@
                         text_color: app.theme_cls.text_color
                         font_size: sp(14)
                         disabled: False if root.mode == 'SPECTRAL' else True
-                        on_release: root.dialogEnterString.Open('spectral_size', str(root.max_spectral_buffer_size), 'Введите размер спектрального буффера', '')
+                        on_release: app.dialogTextInput.Open('int', 'Размер спектрального буффера', 'SAVE', 'CANCEL', root.SetSpectralSize, str(root.max_spectral_buffer_size), 'Желательно число кратное степени двойки')
                 MDBoxLayout:
                     orientation: "horizontal"
                     adaptive_height: True
@@ -176,25 +393,7 @@
                         theme_text_color: "Custom"
                         text_color: app.theme_cls.text_color
                         font_size: sp(14)
-                        on_release: root.dialogEnterString.Open('precision', str(root.graph_round_digits), 'Введите число знаков после запятой', '')
-#                MDBoxLayout:
-#                    orientation: "horizontal"
-#                    adaptive_height: True
-#                    MDCheckbox:
-#                        on_release: root.Toggle('SHOW_MAIN_VALUE')
-#                        size_hint: None, 1
-#                        size: "48dp", "48dp"
-#                        disabled: True if root.mode == 'SPECTRAL' else False
-#                        active: root.show_main_value
-#                    MDFlatButton:
-#                        text: "Показывать текущее значение"
-#                        size_hint_x: 1
-#                        halign: 'left'
-#                        theme_text_color: "Custom"
-#                        text_color: app.theme_cls.text_color
-#                        font_size: sp(14)
-#                        disabled: True if root.mode == 'SPECTRAL' else False
-#                        on_release: root.Toggle('SHOW_MAIN_VALUE')
+                        on_release: app.dialogTextInput.Open('int', 'Число знаков после запятой', 'SAVE', 'CANCEL', root.SetPrecision, str(root.graph_round_digits), '')
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_x: 1
@@ -233,13 +432,6 @@
                         font_size: sp(14)
                         disabled: True if root.mode == 'SPECTRAL' else False
                         on_release: root.Toggle('SHOW_MAIN_GRAPH')
-#                    MDIconButton:
-#                        size_hint: None, 1
-#                        size: "48dp", "48dp"
-#                        icon: 'palette'
-#                        theme_icon_color: "Custom"
-#                        icon_color: root.main_graph_color
-#                        on_release: root.Toggle('MAIN_GRAPH_COLOR')
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_x: 1
@@ -259,14 +451,6 @@
                         font_size: sp(14)
                         disabled: True if root.mode == 'SPECTRAL' else False
                         on_release: root.Toggle('SHOW_AVG_GRAPH')
-#                    MDIconButton:
-#                        size_hint: None, 1
-#                        size: "48dp", "48dp"
-#                        icon: 'palette'
-#                        theme_icon_color: "Custom"
-#                        icon_color: root.avg_color
-#                        disabled: True if root.mode == 'SPECTRAL' else False
-#                        on_release: root.Toggle('AVG_COLOR')
                 MDBoxLayout:
                     orientation: "horizontal"
                     size_hint_x: 1

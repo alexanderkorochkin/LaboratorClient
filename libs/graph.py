@@ -21,29 +21,30 @@ from libs.variables import DirectVariable, IndirectVariable
 class AVGBuffer:
     def __init__(self, _graph_instance):
         self.graph_instance = _graph_instance
-        self.isExecuted = True
         self.buffer = []
         self.avg_buffer = []
-        self.lastavg = 0
 
-    def CountAVGHistory(self, value):
+    def writeHistory(self, value):
         if len(self.avg_buffer) == msettings.get('MAX_HISTORY_VALUES'):
             self.avg_buffer = self.avg_buffer[msettings.get('MAX_HISTORY_VALUES') - len(self.avg_buffer) + 1:]
         self.avg_buffer.append(float(value))
 
-    def AddValue(self, value):
-        if len(self.buffer) == self.graph_instance.s['GRAPH_BUFFER_AVG_SIZE']:
-            self.buffer = self.buffer[self.graph_instance.s['GRAPH_BUFFER_AVG_SIZE'] - len(self.buffer) + 1:]
+    def addValue(self, value):
+        if len(self.buffer) == msettings.get('MAX_HISTORY_VALUES'):
+            self.buffer = self.buffer[msettings.get('MAX_HISTORY_VALUES') - len(self.buffer) + 1:]
         self.buffer.append(float(value))
 
-    def GetAVG(self):
+    def getBuffer(self):
+        return self.avg_buffer
+
+    def getAverage(self):
         average = 0
         if len(self.buffer) != 0:
             average = sum(self.buffer)/len(self.buffer)
-        self.CountAVGHistory(average)
+        self.writeHistory(average)
         return average
 
-    def Clear(self):
+    def clear(self):
         self.buffer.clear()
         self.avg_buffer.clear()
 
@@ -148,7 +149,7 @@ class GardenGraph(Graph):
 
     def UpdatePlot(self, plot_name, arr: list):
 
-        if not self.isDeleting:
+        if not self.isDeleting and len(arr) > 0:
 
             self.y_precision = '% 0.' + str(self.graph_instance.s['GRAPH_ROUND_DIGITS']) + 'f'
             self.x_precision = '% 0.' + str(1) + 'f' if self.graph_instance.kivy_instance.main_app.d_type != 'desktop' or len(self.graph_instance.kivy_instance.main_container.GraphArr) > 4 else '% 0.' + str(2) + 'f'
@@ -184,24 +185,10 @@ class GardenGraph(Graph):
                     self.ymin = _yarr[0] - 1
                     self.y_ticks_major = (self.ymax - self.ymin) / y_ticks
 
-                # if not self.point_value_indicator:
-                #     self.point_value_indicator = RPoint(size=[8, 8], size_hint=[None, None], color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color, pos_hint=[None, None])
-                # else:
-                #     if self.point_value_indicator not in self._plot_area.children:
-                #         self._.add_widget(self.point_value_indicator)
-                #     self.point_value_indicator.pos = self.get_widget_coord(temp_points[-1][0], temp_points[-1][1])
-
                 self.add_plot(self.point_plot)
                 self.point_plot.points = [(temp_points[-1][0], temp_points[-1][1])]
 
-                # if self.point_value_indicator_disabled:
-                #     self.point_value_indicator_disabled = False
-
             elif plot_name == 'SPECTRAL':
-
-                # if not self.point_value_indicator_disabled and self.point_value_indicator:
-                #     self._plot_area.remove_widget(self.point_value_indicator)
-                #     self.point_value_indicator_disabled = True
 
                 self.remove_plot(self.point_plot)
 
@@ -286,7 +273,7 @@ class GraphBox(MDBoxLayout):
 
         self.kivy_instance = _kivy_instance
         self.avgBuffer = AVGBuffer(self)
-        self.dialogGraphSettings = DialogGraphSettings(self)
+        # self.dialogGraphSettings = DialogGraphSettings(self)
 
         self.MODES = ['NORMAL', 'SPECTRAL']
 
@@ -358,36 +345,8 @@ class GraphBox(MDBoxLayout):
         if tag == 'EXPRESSION':
             self.UpdateNameButton()
 
-    def PreCache(self):
-        if not self.precached:
-            self.precached = True
-            self.dialogGraphSettings.Open()
-            self.dialogGraphSettings.dialog.dismiss(force=True)
-
-    def Resize(self, d_ori, d_type, container_height):
-        number_graphs = len(self.kivy_instance.main_container.GraphArr)
-        if d_ori == 'horizontal':
-            if number_graphs == 1:
-                self.height = container_height
-            elif number_graphs == 2 or number_graphs == 3 or number_graphs == 4:
-                if d_type == 'tablet':
-                    self.height = (1 / msettings.get('ROW_HT')) * (container_height - (msettings.get('ROW_HT') - 1) * PADDING)
-                else:
-                    self.height = (1 / 2) * (container_height - 1 * PADDING)
-            else:
-                if d_type == 'desktop':
-                    self.height = (1 / msettings.get('ROW_HD')) * (container_height - (msettings.get('ROW_HD') - 1) * PADDING)
-                elif d_type == 'tablet':
-                    self.height = (1 / msettings.get('ROW_HT')) * (container_height - (msettings.get('ROW_HT') - 1) * PADDING)
-                elif d_type == 'mobile':
-                    self.height = (1 / msettings.get('ROW_HM')) * (container_height - (msettings.get('ROW_HM') - 1) * PADDING)
-        elif d_ori == 'vertical':
-            if d_type == 'desktop':
-                self.height = (1 / msettings.get('ROW_VD')) * (container_height - (msettings.get('ROW_VD') - 1) * PADDING)
-            elif d_type == 'tablet':
-                self.height = (1 / msettings.get('ROW_VT')) * (container_height - (msettings.get('ROW_VT') - 1) * PADDING)
-            elif d_type == 'mobile':
-                self.height = (1 / msettings.get('ROW_VM')) * (container_height - (msettings.get('ROW_VM') - 1) * PADDING)
+    def Resize(self, target_height):
+        self.height = target_height
 
     def Toggle(self, setting: str, do_clear=False):
         self.s[setting] = not self.s[setting]
@@ -403,56 +362,41 @@ class GraphBox(MDBoxLayout):
 
     def RemoveMe(self):
         self.gardenGraph.isDeleting = True
-        self.kivy_instance.main_container.RemoveGraphByHASH(self.s['HASH'])
-
-    def NextMode(self):
-        i = 0
-        good_i = -1
-        for mode in self.MODES:
-            if mode == self.s['MODE']:
-                good_i = i
-            i += 1
-        if good_i == len(self.MODES) - 1:
-            good_i = 0
-        else:
-            good_i += 1
-        self.s['MODE'] = self.MODES[good_i]
-        return self.s['MODE']
+        self.kivy_instance.main_container.RemoveGraph(self)
 
     def isIndirect(self):
         return self.s['IS_INDIRECT']
 
-    def Update(self, plots_only=False):
+    def UpdateThread(self):
         if self.s['NAME'] != 'None':
-            if not plots_only:
-                if not self.isIndirect():
-                    out = self.var.GetValue()
-                    if 'ERROR' not in str(out):
-                        self.main_value = float(out)
-                        if self.isBadExpression:
-                            self.isBadExpression = False
-                    else:
-                        if not self.isBadExpression:
-                            self.isBadExpression = True
-                            SnackbarMessage(f"[{self.s['NAME']}]: Ошибка при получении значения с сервера!")
-                            Logger.debug(f'GraphUpdate: WARNING! {out}')
+            if not self.isIndirect():
+                out = self.var.GetValue()
+                if 'ERROR' not in str(out):
+                    self.main_value = float(out)
+                    if self.isBadExpression:
+                        self.isBadExpression = False
                 else:
-                    out = self.var.GetValue(self.s['EXPRESSION'])
-                    if 'ERROR' not in str(out):
-                        self.main_value = float(out)
-                        if self.isBadExpression:
-                            self.isBadExpression = False
-                    else:
-                        if not self.isBadExpression:
-                            self.isBadExpression = True
-                            SnackbarMessage(f"[{self.s['NAME']}]: Ошибка при вычислении выражения!")
-                            Logger.debug(f'GraphUpdate: WARNING! {out}')
+                    if not self.isBadExpression:
+                        self.isBadExpression = True
+                        Logger.debug(f'GraphUpdate: WARNING! {out}')
+            else:
+                out = self.var.GetValue(self.s['EXPRESSION'])
+                if 'ERROR' not in str(out):
+                    self.main_value = float(out)
+                    if self.isBadExpression:
+                        self.isBadExpression = False
+                else:
+                    if not self.isBadExpression:
+                        self.isBadExpression = True
+                        Logger.debug(f'GraphUpdate: WARNING! {out}')
 
             if not self.isBadExpression:
+                self.avgBuffer.addValue(self.main_value)
+                self.avg_value = self.avgBuffer.getAverage()
 
-                self.avgBuffer.AddValue(self.main_value)
-                self.avg_value = self.avgBuffer.GetAVG()
-
+    def UpdateGraph(self):
+        if self.s['NAME'] != 'None':
+            if not self.isBadExpression:
                 if self.s['MODE'] == 'NORMAL':
                     if self.s['SHOW_MAIN_VALUE']:
                         self.ids.graph_current_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.primary_color) + "]" + str(round(self.main_value, self.s['GRAPH_ROUND_DIGITS'])) + "[/color]"
@@ -462,7 +406,7 @@ class GraphBox(MDBoxLayout):
                         self.ids.graph_avg_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.accent_color) + f"]AVG{msettings.get('MAX_HISTORY_VALUES')}: " + str(round(self.avg_value, self.s['GRAPH_ROUND_DIGITS'])) + "[/color]"
                     else:
                         self.ids.graph_avg_value.text = ''
-                    self.gardenGraph.UpdatePlot('AVG', self.avgBuffer.avg_buffer)
+                    self.gardenGraph.UpdatePlot('AVG', self.avgBuffer.getBuffer())
                     self.gardenGraph.UpdatePlot('MAIN', self.var.GetHistory())
                 elif self.s['MODE'] == 'SPECTRAL':
                     spectral, maxes, avg, sigma = self.var.GetSpectral(2)
@@ -475,7 +419,6 @@ class GraphBox(MDBoxLayout):
                     self.ids.graph_avg_value.text += f'μ (avg, мат. ожидание) = {round_to(avg, self.s["GRAPH_ROUND_DIGITS"])}' + end
                     self.ids.graph_avg_value.text += f'σ (ср. кв. откл.) = {round_to(sigma, self.s["GRAPH_ROUND_DIGITS"])}'
                     self.ids.graph_avg_value.text += "[/color]"
-
             else:
                 self.ids.graph_current_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.error_color) + "]" + 'ERROR!' + "[/color]"
                 self.ids.graph_avg_value.text = ''
@@ -506,7 +449,7 @@ class GraphBox(MDBoxLayout):
         if self.gardenGraph:
             self.gardenGraph.ClearPlot()
         if self.avgBuffer:
-            self.avgBuffer.Clear()
+            self.avgBuffer.clear()
 
     def UnChooseIt(self):
         if self.isChosen:

@@ -15,6 +15,20 @@ from libs.iapws import IAPWS97
 
 from libs.settings.settingsJSON import msettings
 
+from functools import wraps
+import time
+
+def timeit(func):
+    @wraps(func)
+    def timeit_wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        total_time = (end_time - start_time) * 1000
+        print(f'Function {func.__name__}{args} {kwargs} Took {total_time:.2f}ms')
+        return result
+    return timeit_wrapper
+
 
 class DictCallback(dict):
 
@@ -74,9 +88,9 @@ IAPWS97_PARAMS = ['T', 'P', 'g', 'a', 'v', 'rho', 'h', 'u', 's', 'cp', 'cv', 'Z'
          'kappas', 'alfap', 'betap', 'joule', 'deltat', 'v0', 'u0', 'h0', 's0', 'a0', 'g0', 'cp0', 'cv0', 'w0',
          'gamma0', 'w', 'mu', 'nu', 'k', 'alfa', 'sigma', 'epsilon', 'n', 'Prandt', 'Pr', 'Tr', 'Hvap', 'Svap']
 
-
 def GetValueExprRecursive(client, expression: str):
     # Находим все функции IAPWS в expression и заменяем их рекурсивно
+    expression = expression.replace(' ', '')
     if (expression.count('{') == expression.count('}')) and expression.count('{') > 0:
         functions = []
         function = ''
@@ -140,10 +154,8 @@ def GetValueExprRecursive(client, expression: str):
     except Exception:
         return f'ERROR: Cannot evaluate expression: {expression}!'
 
-
 def GetValueExpr(client, expression):
     expression = expression.replace('  ', ' ')
-    expression = expression.replace(' ', '')
     if expression.count('[') == expression.count(']'):
         if expression.count('[') >= 0 and len(expression) != 0:
             isWork = True
@@ -170,7 +182,6 @@ def GetValueExpr(client, expression):
         return f"ERROR: Expression '{expression}' contains a different number of opening and closing []-brackets!"
 
     return GetValueExprRecursive(client, expression)
-
 
 def round_to(num, digits=2):
     if num == 0: return 0
@@ -200,7 +211,6 @@ def hex2color(s, opacity=-1.0):
             value.append(1.0)
     return value
 
-
 def str_to_variable(_str: str):
     if _str in ['True', 'False', 'true', 'false']:
         try:
@@ -219,7 +229,6 @@ def str_to_variable(_str: str):
             Logger.debug(f'Utils: str_to_value: Can\'t covert string: {_str} to int as excepted!')
     Logger.debug(f'Utils.str_to_value: Can\'t detect string: {_str} as int, float or bool!')
     return 0
-
 
 def truncate_string(string, N, screen_brackets=False):
     out = string
@@ -251,13 +260,9 @@ def animated_show_widget_only(wid, method):
     anim.start(wid)
 
 
-def animate_graph_removal(wid, side, method):
+def animate_graph_removal(wid, method):
     # animate shrinking widget width
-    if side == 'vertical':
-        wid.size_hint = wid.size_hint[0], None
-        anim = Animation(opacity=0, size=(wid.size[0], 0), duration=0.5, t='out_expo')
-    elif side == 'horizontal':
-        anim = Animation(opacity=0, duration=0.5, t='out_expo')
+    anim = Animation(opacity=0, duration=0.5, t='out_expo')
     anim.bind(on_complete=method)
     t = wid.gardenGraph._trigger
     ts = wid.gardenGraph._trigger_size
