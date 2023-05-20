@@ -5,14 +5,13 @@ settings_defaults = {
             'LAST_IP': "opc.tcp://192.168.1.67:4840",
             'MAX_HISTORY_VALUES': 120,
             'MAX_RECONNECTIONS_NUMBER': 20,
-            'RECONNECTION_TIME': 10,
+            'RECONNECTION_TIME': 5,
             'GRAPHS_LAYOUT_FILE': "graphs_layout.json",
             'CONTROLS_LAYOUT_FILE': "controls_layout.json",
             'KIVY_HOLD_TIME': 0.2,
             'KIVY_UPDATE_FUNCTION_TIME': 1,
             'SAVE_TIMEOUT_TIME': 5,
             'USE_LAYOUT': True,
-            'HIDE_LOG_BY_DEFAULT': True,
             'SHOW_CONTROLS_BY_DEFAULT': True,
             'THEME': 'Dark',
             'COL_HM': 2,
@@ -46,8 +45,10 @@ controls_settings_defaults = {
 graph_settings_defaults = {
             'NAME': 'None',
             'MODE': 'NORMAL',
+            'TARGET_VALUE': 0.,
 
-            'MAX_SPECTRAL_BUFFER_SIZE': 128,
+            'SPECTRAL_BUFFER_SIZE': 128,
+            'AVG_BUFFER_SIZE': 60,
 
             'GRAPH_ADDITIONAL_SPACE_Y': 1.2,
             'GRAPH_ROUND_DIGITS': 3,
@@ -58,6 +59,7 @@ graph_settings_defaults = {
             'SHOW_MAIN_GRAPH': True,
             'SHOW_AVG_GRAPH': True,
             'SHOW_INTIME_GRAPH': True,
+            'SHOW_TARGET_VALUE': False,
 
             'MAIN_GRAPH_COLOR': '#ffb74d',
             'AVG_COLOR': '#FFFFFF',
@@ -74,7 +76,7 @@ graph_settings_defaults = {
 
             'HASH': '0',
             'IS_INDIRECT': False,
-            'EXPRESSION': 'Empty'
+            'EXPRESSION': ''
             }
 
 settings_json = json.dumps([
@@ -128,12 +130,6 @@ settings_json = json.dumps([
      'desc': 'USE_LAYOUT',
      'section': 'MainSettings',
      'key': 'USE_LAYOUT'},
-
-    {'type': 'bool',
-     'title': 'Скрывать лог при открытии',
-     'desc': 'HIDE_LOG_BY_DEFAULT',
-     'section': 'MainSettings',
-     'key': 'HIDE_LOG_BY_DEFAULT'},
 
     {'type': 'title',
      'title': 'Настройки сетки графиков'},

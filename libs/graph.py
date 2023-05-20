@@ -1,3 +1,4 @@
+import threading
 import uuid
 from threading import Thread
 
@@ -7,11 +8,9 @@ from kivy.uix.widget import Widget
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.label import MDIcon
-from kivymd.uix.snackbar import Snackbar
 from kivymd.uix.widget import MDWidget
 
 from libs.utils import *
-from libs.dialogs import DialogGraphSettings, SnackbarMessage
 from libs.gardengraph.init import Graph, LinePlot, SmoothLinePlot, PointPlot, ScatterPlot
 from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
@@ -19,20 +18,23 @@ from libs.variables import DirectVariable, IndirectVariable
 
 
 class AVGBuffer:
-    def __init__(self, _graph_instance):
-        self.graph_instance = _graph_instance
+    def __init__(self, _instance):
+        self.instance = _instance
         self.buffer = []
         self.avg_buffer = []
 
     def writeHistory(self, value):
-        if len(self.avg_buffer) == msettings.get('MAX_HISTORY_VALUES'):
-            self.avg_buffer = self.avg_buffer[msettings.get('MAX_HISTORY_VALUES') - len(self.avg_buffer) + 1:]
         self.avg_buffer.append(float(value))
+        if len(self.avg_buffer) > msettings.get('MAX_HISTORY_VALUES'):
+            self.avg_buffer = self.avg_buffer[-msettings.get('MAX_HISTORY_VALUES'):]
 
     def addValue(self, value):
-        if len(self.buffer) == msettings.get('MAX_HISTORY_VALUES'):
-            self.buffer = self.buffer[msettings.get('MAX_HISTORY_VALUES') - len(self.buffer) + 1:]
         self.buffer.append(float(value))
+        if len(self.buffer) > self.instance.s['AVG_BUFFER_SIZE']:
+            self.buffer = self.buffer[-self.instance.s['AVG_BUFFER_SIZE']:]
+
+    def getLenAVG(self):
+        return len(self.buffer)
 
     def getBuffer(self):
         return self.avg_buffer
@@ -66,14 +68,17 @@ class GardenGraph(Graph):
         self.point_value_indicator = None
         self.point_value_indicator_disabled = True
 
-        self.plot = LinePlot()
-        self.plot.points = []
-
         self.avg_plot = LinePlot()
         self.avg_plot.points = []
 
         self.intime_plot = LinePlot()
         self.intime_plot.points = []
+
+        self.target_value_plot = LinePlot()
+        self.target_value_plot.points = []
+
+        self.plot = LinePlot()
+        self.plot.points = []
 
         self.spectral_plot = LinePlot()
         self.spectral_plot.points = []
@@ -81,71 +86,70 @@ class GardenGraph(Graph):
         self.point_plot = ScatterPlot()
         self.point_plot.points = []
 
-    def SetMode(self, mode):
-        if mode == 'SPECTRAL':
-            self.remove_plot(self.plot)
-            self.remove_plot(self.avg_plot)
-            self.remove_plot(self.intime_plot)
-            self.remove_plot(self.point_plot)
-            self.UpdatePlotColor('SPECTRAL')
-        elif mode == 'NORMAL':
-            self.remove_plot(self.spectral_plot)
+    def UpdatePlotSettings(self, plot_name='ALL', recombine=True):
+        mode = self.graph_instance.s['MODE']
+        if mode == 'NORMAL':
             self.xmax = msettings.get('MAX_HISTORY_VALUES') + 1
-            self.UpdatePlotColor('AVG')
-            self.UpdatePlotColor('INTIME')
-            self.UpdatePlotColor('MAIN')
-            self.UpdatePlotColor('POINT')
-
-    def TogglePlot(self):
-        if self.graph_instance.s['MODE'] == 'NORMAL':
-            if self.graph_instance.s['SHOW_AVG_GRAPH']:
+        if plot_name == 'ALL' or 'AVG':
+            if mode == 'NORMAL' and self.graph_instance.s['SHOW_AVG_GRAPH']:
+                if recombine:
+                    self.remove_plot(self.avg_plot)
+                    points_temp = self.avg_plot.points
+                    self.avg_plot = LinePlot(color=self.graph_instance.kivy_instance.main_app.theme_cls.accent_light, line_width=self.graph_instance.s['AVG_GRAPH_LINE_THICKNESS'])
+                    self.avg_plot.points = points_temp
                 self.add_plot(self.avg_plot)
             else:
                 self.remove_plot(self.avg_plot)
-            if self.graph_instance.s['SHOW_INTIME_GRAPH']:
+        if plot_name == 'ALL' or 'INTIME':
+            if mode == 'NORMAL' and self.graph_instance.s['SHOW_INTIME_GRAPH']:
+                if recombine:
+                    self.remove_plot(self.intime_plot)
+                    points_temp = self.intime_plot.points
+                    self.intime_plot = LinePlot(color=self.graph_instance.kivy_instance.main_app.theme_cls.accent_color, line_width=self.graph_instance.s['INTIME_GRAPH_LINE_THICKNESS'])
+                    self.intime_plot.points = points_temp
                 self.add_plot(self.intime_plot)
             else:
                 self.remove_plot(self.intime_plot)
-            if self.graph_instance.s['SHOW_MAIN_GRAPH']:
+        if plot_name == 'ALL' or 'TARGET':
+            if mode == 'NORMAL' and self.graph_instance.s['SHOW_TARGET_VALUE']:
+                if recombine:
+                    self.remove_plot(self.target_value_plot)
+                    points_temp = self.target_value_plot.points
+                    self.target_value_plot = LinePlot(color=(0, 1, 0, 0.8), line_width=1)
+                    self.target_value_plot.points = points_temp
+                self.add_plot(self.target_value_plot)
+            else:
+                self.remove_plot(self.target_value_plot)
+        if plot_name == 'ALL' or 'MAIN':
+            if mode == 'NORMAL' and self.graph_instance.s['SHOW_MAIN_GRAPH']:
+                if recombine:
+                    self.remove_plot(self.plot)
+                    points_temp = self.plot.points
+                    self.plot = LinePlot(color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color, line_width=self.graph_instance.s['MAIN_GRAPH_LINE_THICKNESS'])
+                    self.plot.points = points_temp
                 self.add_plot(self.plot)
             else:
                 self.remove_plot(self.plot)
-
-    def UpdatePlotColor(self, plot_name="ALL"):
-        if plot_name == 'ALL' or 'AVG' and self.graph_instance.s['MODE'] == 'NORMAL':
-            if self.graph_instance.s['SHOW_AVG_GRAPH']:
-                self.remove_plot(self.avg_plot)
-                points_temp = self.avg_plot.points
-                self.avg_plot = LinePlot(color=self.graph_instance.kivy_instance.main_app.theme_cls.accent_light, line_width=self.graph_instance.s['AVG_GRAPH_LINE_THICKNESS'])
-                self.avg_plot.points = points_temp
-                self.add_plot(self.avg_plot)
-        if plot_name == 'ALL' or 'INTIME' and self.graph_instance.s['MODE'] == 'NORMAL':
-            if self.graph_instance.s['SHOW_INTIME_GRAPH']:
-                self.remove_plot(self.intime_plot)
-                points_temp = self.intime_plot.points
-                self.intime_plot = LinePlot(color=self.graph_instance.kivy_instance.main_app.theme_cls.accent_color, line_width=self.graph_instance.s['INTIME_GRAPH_LINE_THICKNESS'])
-                self.intime_plot.points = points_temp
-                self.add_plot(self.intime_plot)
-        if plot_name == 'ALL' or 'MAIN' and self.graph_instance.s['MODE'] == 'NORMAL':
-            if self.graph_instance.s['SHOW_MAIN_GRAPH']:
-                self.remove_plot(self.plot)
-                points_temp = self.plot.points
-                self.plot = LinePlot(color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color, line_width=self.graph_instance.s['MAIN_GRAPH_LINE_THICKNESS'])
-                self.plot.points = points_temp
-                self.add_plot(self.plot)
-        if plot_name == 'ALL' or 'POINT' and self.graph_instance.s['MODE'] == 'NORMAL':
-            self.remove_plot(self.point_plot)
-            points_temp = self.point_plot.points
-            self.point_plot = ScatterPlot(color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color, _radius=8)
-            self.point_plot.points = points_temp
-            self.add_plot(self.point_plot)
+        if plot_name == 'ALL' or 'POINT':
+            if mode == 'NORMAL':
+                if recombine:
+                    self.remove_plot(self.point_plot)
+                    points_temp = self.target_value_plot.points
+                    self.point_plot = ScatterPlot(color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color, _radius=dp(8))
+                    self.target_value_plot.points = points_temp
+                self.add_plot(self.point_plot)
+            else:
+                self.remove_plot(self.point_plot)
         if plot_name == 'ALL' or 'SPECTRAL':
-            if self.graph_instance.s['MODE'] == 'SPECTRAL':
-                self.remove_plot(self.spectral_plot)
-                points_temp = self.spectral_plot.points
-                self.spectral_plot = LinePlot(color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color, line_width=self.graph_instance.s['MAIN_GRAPH_LINE_THICKNESS'])
-                self.spectral_plot.points = points_temp
+            if mode == 'SPECTRAL':
+                if recombine:
+                    self.remove_plot(self.spectral_plot)
+                    points_temp = self.spectral_plot.points
+                    self.spectral_plot = LinePlot(color=self.graph_instance.kivy_instance.main_app.theme_cls.primary_color, line_width=self.graph_instance.s['MAIN_GRAPH_LINE_THICKNESS'])
+                    self.spectral_plot.points = points_temp
                 self.add_plot(self.spectral_plot)
+            else:
+                self.remove_plot(self.spectral_plot)
 
     def UpdatePlot(self, plot_name, arr: list):
 
@@ -210,16 +214,16 @@ class GardenGraph(Graph):
                     self.ymin = 0
                     self.y_ticks_major = (self.ymax - self.ymin) / y_ticks
 
-    def ClearPlot(self, _plot='ALL'):
-        self.plot.points = []
-        self.avg_plot.points = []
+    def ClearPlot(self):
         self.intime_plot.points = []
-        self.spectral_plot.points = []
-
+        self.avg_plot.points = []
+        self.plot.points = []
         if self.point_value_indicator:
             self.point_value_indicator.opacity = 0
             self.point_value_indicator = []
             self.point_value_indicator_disabled = True
+        self.spectral_plot.points = []
+
 
         self.ymax = 1
         self.ymin = 0
@@ -237,12 +241,15 @@ class GraphBox(MDBoxLayout):
         self.WasHold = False
         self.main_value = 0.
         self.avg_value = 0.
+        self.target_value = 0.
         self.size_hint = [1, None]
         self.isBadExpression = False
         self.isStartup = True
         self.isChosen = False
         self.accented = False
         self.precached = False
+
+        self.modes = ['NORMAL', 'SPECTRAL']
 
         self.var = None
         self.gardenGraph = GardenGraph(border_color=[1, 1, 1, 0],
@@ -273,9 +280,6 @@ class GraphBox(MDBoxLayout):
 
         self.kivy_instance = _kivy_instance
         self.avgBuffer = AVGBuffer(self)
-        # self.dialogGraphSettings = DialogGraphSettings(self)
-
-        self.MODES = ['NORMAL', 'SPECTRAL']
 
         self.s = DictCallback(graph_settings_defaults.copy(), cls=self, callback=self.on_dict, log=False)
 
@@ -293,8 +297,7 @@ class GraphBox(MDBoxLayout):
         self.s.log = True
 
         self.ids.garden_graph_placer.add_widget(self.gardenGraph)
-        self.gardenGraph.TogglePlot()
-        self.gardenGraph.UpdatePlotColor()
+        self.gardenGraph.UpdatePlotSettings()
 
     def apply_setting(self, tag, settings):
         try:
@@ -329,21 +332,29 @@ class GraphBox(MDBoxLayout):
             self.UpdateNameButton()
         if tag == 'IS_INDIRECT':
             if value:
-                self.var = IndirectVariable(client, self.kivy_instance, self.s['MAX_SPECTRAL_BUFFER_SIZE'])
+                self.var = IndirectVariable(client, self.kivy_instance, self)
             else:
-                self.var = DirectVariable(client, self.kivy_instance, self.s['MAX_SPECTRAL_BUFFER_SIZE'], self.s['NAME'])
+                self.var = DirectVariable(client, self.kivy_instance, self, self.s['NAME'])
         if tag == 'MODE':
             if value == 'SPECTRAL':
                 self.gardenGraph.tick_color = self.kivy_instance.main_app.theme_cls.accent_color
-                self.gardenGraph.SetMode(value)
                 self.gardenGraph.x_grid_label = self.s['GRAPH_LABEL_X']
             if value == 'NORMAL':
                 self.gardenGraph.tick_color = [0, 0, 0, 0]
-                self.gardenGraph.SetMode(value)
                 self.gardenGraph.x_grid_label = False
             self.UpdateNameButton()
+            self.gardenGraph.UpdatePlotSettings()
         if tag == 'EXPRESSION':
             self.UpdateNameButton()
+        if tag == 'TARGET_VALUE':
+            temp = []
+            for i in range(msettings.get('MAX_HISTORY_VALUES')):
+                temp.append((i, value))
+            self.gardenGraph.target_value_plot.points = temp
+            self.target_value = value
+        if tag == 'SHOW_TARGET_VALUE':
+            self.target_value = self.s['TARGET_VALUE']
+            self.gardenGraph.UpdatePlotSettings('TARGET')
 
     def Resize(self, target_height):
         self.height = target_height
@@ -399,19 +410,28 @@ class GraphBox(MDBoxLayout):
             if not self.isBadExpression:
                 if self.s['MODE'] == 'NORMAL':
                     if self.s['SHOW_MAIN_VALUE']:
-                        self.ids.graph_current_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.primary_color) + "]" + str(round(self.main_value, self.s['GRAPH_ROUND_DIGITS'])) + "[/color]"
+                        if self.s['SHOW_TARGET_VALUE']:
+                            if self.main_value > self.target_value:
+                                sign = '>'
+                            elif self.main_value < self.target_value:
+                                sign = '<'
+                            else:
+                                sign = '='
+                            self.ids.graph_current_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.primary_color) + "]" + str(round(self.main_value, self.s['GRAPH_ROUND_DIGITS'])) + " " + sign + " " + str(self.target_value) + "[/color]"
+                        else:
+                            self.ids.graph_current_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.primary_color) + "]" + str(round(self.main_value, self.s['GRAPH_ROUND_DIGITS'])) + "[/color]"
                     else:
                         self.ids.graph_current_value.text = ''
                     if self.s['SHOW_AVG_VALUE']:
-                        self.ids.graph_avg_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.accent_color) + f"]AVG{msettings.get('MAX_HISTORY_VALUES')}: " + str(round(self.avg_value, self.s['GRAPH_ROUND_DIGITS'])) + "[/color]"
+                        self.ids.graph_avg_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.accent_color) + f"]AVG{self.avgBuffer.getLenAVG()}: " + str(round(self.avg_value, self.s['GRAPH_ROUND_DIGITS'])) + "[/color]"
                     else:
                         self.ids.graph_avg_value.text = ''
                     self.gardenGraph.UpdatePlot('AVG', self.avgBuffer.getBuffer())
                     self.gardenGraph.UpdatePlot('MAIN', self.var.GetHistory())
                 elif self.s['MODE'] == 'SPECTRAL':
-                    spectral, maxes, avg, sigma = self.var.GetSpectral(2)
+                    size, spectral, maxes, avg, sigma = self.var.GetSpectral(2)
                     self.gardenGraph.UpdatePlot('SPECTRAL', spectral)
-                    self.ids.graph_current_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.primary_color) + "]N: " + str(len(self.var.values_history)) + "[/color]"
+                    self.ids.graph_current_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.primary_color) + "]N: " + str(size) + "[/color]"
                     self.ids.graph_avg_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.accent_color) + "]"
                     end = '\n'
                     for i in range(len(maxes)):
@@ -443,13 +463,16 @@ class GraphBox(MDBoxLayout):
         if _clear_graph:
             self.ClearGraph()
 
-    def ClearGraph(self):
+    def ClearGraphLow(self):
         if self.var:
             self.var.ClearHistory()
         if self.gardenGraph:
             self.gardenGraph.ClearPlot()
         if self.avgBuffer:
             self.avgBuffer.clear()
+
+    def ClearGraph(self):
+        threading.Thread(target=self.ClearGraphLow).start()
 
     def UnChooseIt(self):
         if self.isChosen:
@@ -495,4 +518,11 @@ class GraphBox(MDBoxLayout):
         anim.start(self.ids.mdcard_id)
         anim = Animation(padding=[0, 0, 0, 0], duration=0.1)
         anim.start(self)
+
+    def ToggleMode(self):
+        current_mode_index = self.modes.index(self.s['MODE'])
+        new_mode_index = current_mode_index + 1 if current_mode_index < len(self.modes) - 1 else 0
+        new_mode = self.modes[new_mode_index]
+        self.s['MODE'] = new_mode
+        return new_mode
 

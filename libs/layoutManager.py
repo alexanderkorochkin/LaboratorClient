@@ -9,6 +9,8 @@ from libs.settings.settingsJSON import msettings
 from kivy.logger import Logger
 import json
 
+from libs.utils import schedule
+
 
 class LayoutManager:
 
@@ -40,17 +42,17 @@ class LayoutManager:
                 arr = fp.readlines()
                 for line in arr:
                     if line != '':
-                        self.kivy_instance.AddControls(json.loads(line))
+                        self.kivy_instance.AddControl(json.loads(line))
         except Exception:
             Logger.debug('LayoutManager: Failed to open Controls Layout File!')
 
         Clock.schedule_once(self.kivy_instance.main_app.update_orientation, 0)
+        schedule(self.kivy_instance.main_container.UpdateColumns, 1)
+        schedule(self.kivy_instance.main_container.ResizeGraphs, 2)
 
     def SaveLayoutLow(self):
-
-        Logger.debug(f"LayoutManager: Saving layout to {msettings.get('GRAPHS_LAYOUT_FILE')}")
-
         def save_task():
+            Logger.debug(f"LayoutManager: Saving layout to {msettings.get('GRAPHS_LAYOUT_FILE')}")
             file_to_delete = open(msettings.get('GRAPHS_LAYOUT_FILE'), 'w')
             file_to_delete.close()
             isFirst = True

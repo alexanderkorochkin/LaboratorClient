@@ -1,4 +1,5 @@
 import threading
+from time import sleep
 
 import opcua
 from kivy import Logger
@@ -24,6 +25,10 @@ class OPCUAClient(Client):
         self._isParsed = False
         self._isConnected = False
         self._isReconnecting = False
+        self._isAbort = False
+        self.connectWorker = None
+        self.disconnectWorker = None
+        self.reconnectWorker = None
         self._reconnect_number = 0
         self.timer = None
         self._isErr = False
@@ -185,7 +190,7 @@ class OPCUAClient(Client):
                 Logger.debug(f'SetValue: No such variable with name: {_name} in names list!')
 
     def UpdateValues(self):
-        if self._isConnected and self._isParsed:
+        if self._isConnected and self._isParsed and not self._isReconnecting and not self._isAbort:
             i = 0
             updated_vars = []
             self.values_stringed_array = []
@@ -194,6 +199,10 @@ class OPCUAClient(Client):
             values = self.values
 
             for name in names:
+
+                if self._isAbort:
+                    return
+
                 if '::' in name:
                     name_parsed = name.split('::')
                     if name_parsed[0] not in updated_vars:
@@ -218,33 +227,37 @@ class OPCUAClient(Client):
                                             Logger.debug(
                                                 f'UpdateValues: No such variable with name: {_names[i]} in names list!')
                         except Exception:
-                            self.kivy_instance.ConnectionFail(f'UpdateValues: Connection lost!')
-                            self.Reconnect()
-                            return 0
+                            if self._isConnected and not self._isAbort:
+                                self.kivy_instance.ConnectionFail(f'UpdateValues: Connection lost!', reconnecting=True)
+                                self.ConnectionLost()
+                            return
                         updated_vars.append(name_parsed[0])
                 else:
                     try:
                         values[i] = self.var_nodes[i].get_value()
                     except Exception:
-                        self.kivy_instance.ConnectionFail(f'UpdateValues: Connection lost!')
-                        self.Reconnect()
-                        return 0
+                        if self._isConnected and not self._isAbort:
+                            self.kivy_instance.ConnectionFail(f'UpdateValues: Connection lost!', reconnecting=True)
+                            self.ConnectionLost()
+                        return
                 i += 1
 
             self.values = values
             self.names = names
 
-    def ConnectLow(self):
+    def ConnectLow(self, join=False):
+        print(self._isReconnecting, self._isAbort)
         try:
-            self.connect()
-            self._isConnected = True
+            if not self._isAbort:
+                self.connect()
+                self._isConnected = True
         except Exception:
-            self.kivy_instance.ConnectionFail('CONNECT: Failed to connect!')
-            self.Disconnect()
-            self.BadReconnection()
+            if not self._isReconnecting and not self._isAbort:
+                self.kivy_instance.ConnectionFail('CONNECT: Failed to connect!')
+                self.Disconnect(join)
 
-    def ParseLow(self):
-        if self._isConnected:
+    def ParseLow(self, join=False):
+        if self._isConnected and not self._isAbort:
             try:
                 self.names = []
                 self.values = []
@@ -255,55 +268,71 @@ class OPCUAClient(Client):
                 Logger.debug(self.out)
                 if len(self.names) > 0:
                     self._isParsed = True
+                    self._isReconnecting = False
                     self.kivy_instance.GoodConnection()
-                    self.GoodReconnection()
                 else:
-                    self.Disconnect()
-                    self.kivy_instance.ConnectionFail('ParseLow: Empty server!')
+                    if not self._isReconnecting:
+                        self.kivy_instance.ConnectionFail('ParseLow: Empty server!')
+                        self.Disconnect(join)
             except Exception:
-                self.Disconnect()
-                self.kivy_instance.ConnectionFail('ParseLow: Error while parsing server!')
+                if not self._isReconnecting:
+                    self.kivy_instance.ConnectionFail('ParseLow: Error while parsing server!')
+                    self.Disconnect(join)
 
-    def DisableTimer(self):
-        if self.timer:
-            self.timer.cancel()
-            self.timer = None
+    # def Reconnect(self):
+    #     self.Disconnect()
+    #     self._isConnected = False
+    #     self._isReconnecting = True
+    #     self._reconnect_number += 1
+    #     if self._reconnect_number <= msettings.get('MAX_RECONNECTIONS_NUMBER'):
+    #         self.ReconnectLow()
+    #     else:
+    #         self.kivy_instance.Reconnection(f'RECONNECT: Canceling...')
+    #         self.kivy_instance.canceled = True
 
-    def BadReconnection(self):
-        if self._isReconnecting:
-            self.timer = threading.Timer(msettings.get('RECONNECTION_TIME'), self.Reconnect)
-            self.timer.start()
+    def Reconnection(self, i=1):
+        if not self._isAbort:
+            if i <= msettings.get('MAX_RECONNECTIONS_NUMBER'):
+                self.Disconnect(join=True)
+                self._reconnect_number = i
+                Logger.debug(f'CONNECT: Reconnection {i}...')
+                self.Connect(join=True)
+                if self._isReconnecting:
+                    if i == msettings.get('MAX_RECONNECTIONS_NUMBER'):
+                        timeout = 0
+                    else:
+                        timeout = msettings.get('MAX_RECONNECTIONS_NUMBER')
+                    self.reconnectWorker = threading.Timer(timeout, self.Reconnection, args=(self._reconnect_number + 1,)).start()
+            else:
+                self._isAbort = True
+                if self.reconnectWorker:
+                    self.reconnectWorker.cancel()
+                if self.connectWorker:
+                    self.connectWorker.cancel()
+                self.Disconnect(join=True)
+                self.kivy_instance.SetServerState('disconnected')
+                self._isReconnecting = False
+                self.reconnectWorker = None
 
-    def GoodReconnection(self):
-        if self._isReconnecting:
-            self._isReconnecting = False
-            self._reconnect_number = 0
+    def ConnectionLost(self):
+        if not self._isReconnecting:
+            self._isReconnecting = True
+            self._isConnected = False
+            if not self.reconnectWorker:
+                self.reconnectWorker = threading.Timer(msettings.get('RECONNECTION_TIME'), self.Reconnection).start()
 
-    def ReconnectLow(self):
-        self.kivy_instance.Reconnection(f'RECONNECT: Reconnect try {self._reconnect_number}...')
-        self.ConnectMain()
+    def ConnectAndParse(self, join=False):
+        self.ConnectLow(join)
+        self.ParseLow(join)
+        self.connectWorker = None
 
-
-    def Reconnect(self):
-        self._isConnected = False
-        self._isReconnecting = True
-        self.Disconnect()
-        self._reconnect_number += 1
-        if self._reconnect_number <= msettings.get('MAX_RECONNECTIONS_NUMBER'):
-            self.ReconnectLow()
-        else:
-            self.kivy_instance.Reconnection(f'RECONNECT: Canceling...')
-            self.kivy_instance.canceled = True
-
-    def ConnectAndParse(self):
-        self.ConnectLow()
-        self.ParseLow()
-
-    def ConnectMain(self, url=None):
+    def Connect(self, url=None, join=False):
         if url:
             self.server_url = urlparse(url)
-        t = threading.Thread(target=self.ConnectAndParse)
-        t.start()
+        self.connectWorker = threading.Thread(target=self.ConnectAndParse, args=(join,)).start()
+        if join:
+            if self.connectWorker:
+                self.connectWorker.join()
 
     def isParsed(self):
         return self._isParsed
@@ -314,36 +343,35 @@ class OPCUAClient(Client):
     def isReconnecting(self):
         return self._isReconnecting
 
-    def Disconnect(self, join=False, force=False):
-        d = threading.Thread(target=self.DisconnectLow, args=(force,))
-        d.start()
+    def Disconnect(self, force=False, join=False):
+        self.disconnectWorker = threading.Thread(target=self.DisconnectLow, args=(force,)).start()
         if join:
-            d.join()
+            if self.disconnectWorker:
+                self.disconnectWorker.join()
 
     def DisconnectLow(self, force=False):
+        self.names = []
+        self.values = []
+        self.var_nodes = []
+        self.values_stringed_array = []
+        self._isConnected = False
+        self._isParsed = False
+        self._reconnect_number = 0
         try:
             self.disconnect()
-            self.names = []
-            self.values = []
-            self.var_nodes = []
-            self.values_stringed_array = []
-            self._isConnected = False
-            if self._isReconnecting and not force:
-                self._isReconnecting = True
-            else:
-                self._isReconnecting = False
-            self._isParsed = False
         except Exception:
-            self.names = []
-            self.values = []
-            self.var_nodes = []
-            self.values_stringed_array = []
-            self._isConnected = False
-            if self._isReconnecting and not force:
-                self._isReconnecting = True
-            else:
-                self._isReconnecting = False
-            self._isParsed = False
+            pass
+        if force:
+            self._isAbort = True
+            if self.connectWorker:
+                self.connectWorker.cancel()
+                self.connectWorker = None
+            if self.reconnectWorker:
+                self.reconnectWorker.cancel()
+                self.reconnectWorker = None
+            self._isReconnecting = False
+            self.kivy_instance.SetServerState('disconnected')
+        self.disconnectWorker = None
 
 
 client = OPCUAClient()

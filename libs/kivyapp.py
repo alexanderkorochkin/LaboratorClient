@@ -13,7 +13,8 @@ from kivymd.uix.button import MDFlatButton, MDFloatingActionButton, MDIconButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.label import MDLabel
 from kivymd.uix.menu import MDDropdownMenu
-from kivy.properties import NumericProperty, ObjectProperty, StringProperty, OptionProperty, BooleanProperty, ListProperty
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty, OptionProperty, BooleanProperty, \
+    ListProperty, partial
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.list import OneLineIconListItem
 from kivy.clock import Clock
@@ -31,8 +32,7 @@ from libs.utils import *
 from libs.settings.settingsJSON import *
 from libs.opcua.opcuaclient import client
 from libs.graph import GraphBox
-from libs.dialogs import SnackbarMessage, SnackbarMessageAction, LDialogEnterString, LDialogGraphSettings, \
-    LDialogList
+from libs.dialogs import LDialogEnterString, LDialogGraphSettings, LDialogList, LDialogMenu
 from libs.layoutManager import LayoutManager
 
 Logger.setLevel(LOG_LEVELS["debug"])
@@ -52,7 +52,7 @@ class GContainer(MDBoxLayout):
         self.target_height = 0
         self.bind(height=self.ResizeGraphs)
 
-    def ResizeGraphs(self, *args):
+    def ResizeGraphsLow(self):
         d_ori = self.kivy_instance.main_app.d_ori
         d_type = self.kivy_instance.main_app.d_type
 
@@ -63,34 +63,37 @@ class GContainer(MDBoxLayout):
             elif number_graphs == 2 or number_graphs == 3 or number_graphs == 4:
                 if d_type == 'tablet':
                     self.target_height = (1 / msettings.get('ROW_HT')) * (
-                                self.height - (msettings.get('ROW_HT') - 1) * PADDING)
+                            self.height - (msettings.get('ROW_HT') - 1) * PADDING)
                 else:
                     self.target_height = (1 / 2) * (self.height - 1 * PADDING)
             else:
                 if d_type == 'desktop':
                     self.target_height = (1 / msettings.get('ROW_HD')) * (
-                                self.height - (msettings.get('ROW_HD') - 1) * PADDING)
+                            self.height - (msettings.get('ROW_HD') - 1) * PADDING)
                 elif d_type == 'tablet':
                     self.target_height = (1 / msettings.get('ROW_HT')) * (
-                                self.height - (msettings.get('ROW_HT') - 1) * PADDING)
+                            self.height - (msettings.get('ROW_HT') - 1) * PADDING)
                 elif d_type == 'mobile':
                     self.target_height = (1 / msettings.get('ROW_HM')) * (
-                                self.height - (msettings.get('ROW_HM') - 1) * PADDING)
+                            self.height - (msettings.get('ROW_HM') - 1) * PADDING)
         elif d_ori == 'vertical':
             if d_type == 'desktop':
                 self.target_height = (1 / msettings.get('ROW_VD')) * (
-                            self.height - (msettings.get('ROW_VD') - 1) * PADDING)
+                        self.height - (msettings.get('ROW_VD') - 1) * PADDING)
             elif d_type == 'tablet':
                 self.target_height = (1 / msettings.get('ROW_VT')) * (
-                            self.height - (msettings.get('ROW_VT') - 1) * PADDING)
+                        self.height - (msettings.get('ROW_VT') - 1) * PADDING)
             elif d_type == 'mobile':
                 self.target_height = (1 / msettings.get('ROW_VM')) * (
-                            self.height - (msettings.get('ROW_VM') - 1) * PADDING)
+                        self.height - (msettings.get('ROW_VM') - 1) * PADDING)
 
         for graph in self.GraphArr:
             graph.Resize(self.target_height)
 
-    def UpdateColumns(self):
+    def ResizeGraphs(self, *args):
+        threading.Thread(target=self.ResizeGraphsLow).start()
+
+    def UpdateColumns(self, *args):
         d_ori = self.kivy_instance.main_app.d_ori
         d_type = self.kivy_instance.main_app.d_type
         value = 1
@@ -135,20 +138,12 @@ class GContainer(MDBoxLayout):
         for gr in self.GraphArr:
             gr.ClearGraph()
 
-    def AddGraph(self, _settings=None):
-        graphbox = GraphBox(self.kivy_instance, settings=_settings)
-        app = self.kivy_instance.main_app
+    def AddGraph(self, settings=None, *args):
+        graphbox = GraphBox(self.kivy_instance, settings=settings)
+
         self.GraphArr.append(graphbox)
         self.gcontainer.add_widget(graphbox)
-        if not _settings:
-            self.UpdateColumns()
-            self.ResizeGraphs()
         Logger.debug(f"GRAPH: Graph [{graphbox.s['NAME']}] with HASH: {graphbox.s['HASH']} is added!")
-        if not _settings:
-            if len(self.GraphArr) > msettings.get(
-                    'COL_' + str.capitalize(app.d_ori[0]) + str.capitalize(app.d_type[0])) * msettings.get(
-                    'ROW_' + str.capitalize(app.d_ori[0]) + str.capitalize(app.d_type[0])):
-                self.ids.scroll_view.scroll_to(graphbox)
 
     def GetGraphByHASH(self, _hash):
         for x in self.GraphArr:
@@ -175,14 +170,6 @@ class GContainer(MDBoxLayout):
         self.kivy_instance.main_app.layoutManager.SaveLayout()
 
 
-class Item(OneLineIconListItem):
-    left_icon = StringProperty()
-
-
-class CircularButton(ButtonBehavior, MDLabel):
-    pass
-
-
 class LaboratorClient(MDScreen):
     endpoint = StringProperty()
     number_selected = NumericProperty(0)
@@ -194,6 +181,7 @@ class LaboratorClient(MDScreen):
 
     def __init__(self, _main_app, **kwargs):
         super().__init__(**kwargs)
+        self.addThread = None
         self.main_container = GContainer(self)
         self.main_app = _main_app
         self.isFirst = True
@@ -203,72 +191,6 @@ class LaboratorClient(MDScreen):
         self.dialog = None
 
         self.controlsArray = []
-
-        self.menu_items = [
-            {
-                "text": 'Добавить график',
-                "viewclass": "Item",
-                "height": dp(48),
-                "left_icon": 'plus-box',
-                "font_style": 'Body1',
-                "on_release": self.AddGraph,
-            },
-            {
-                "text": 'Добавить несколько графиков',
-                "viewclass": "Item",
-                "height": dp(48),
-                "left_icon": 'plus-box-multiple',
-                "font_style": 'Body1',
-                "on_release": self.AddGraphs,
-            },
-            {
-                "text": 'Добавить кнопку',
-                "viewclass": "Item",
-                "height": dp(48),
-                "left_icon": 'card-plus',
-                "font_style": 'Body1',
-                "on_release": self.AddControls,
-            },
-            {
-                "text": 'Обновить графики',
-                "viewclass": "Item",
-                "height": dp(48),
-                "left_icon": 'refresh',
-                "font_style": 'Body1',
-                "on_release": self.RefreshAll,
-            },
-            {
-                "text": 'Показать лог' if msettings.get('HIDE_LOG_BY_DEFAULT') else 'Скрыть лог',
-                "viewclass": "Item",
-                "height": dp(48),
-                "left_icon": 'math-log',
-                "font_style": 'Body1',
-                "on_release": self.main_app.toggle_log,
-            },
-            {
-                "text": 'Показывать кнопки',
-                "viewclass": "Item",
-                "height": dp(48),
-                "left_icon": 'ticket',
-                "font_style": 'Body1',
-                "on_release": self.SwapShowControlsMenu,
-            },
-            {
-                "text": 'Настройки',
-                "viewclass": "Item",
-                "height": dp(48),
-                "left_icon": 'cog-outline',
-                "font_style": 'Body1',
-                "on_release": self.open_main_settings,
-            }
-        ]
-
-        self.menu = MDDropdownMenu(
-            caller=self.ids.menu_button,
-            items=self.menu_items,
-            # elevation=3,
-            width_mult=5,
-        )
 
     def open_main_settings(self):
         self.main_app.open_main_settings()
@@ -282,104 +204,49 @@ class LaboratorClient(MDScreen):
     def GetGraphByHASH(self, _hash):
         return self.main_container.GetGraphByHASH(_hash)
 
-    def AddGraphLow(self, *args):
-        self.main_container.AddGraph()
+    def AddGraphManual(self, *args):
+        schedule(partial(self.main_container.AddGraph, None), 1)
+        schedule(self.main_container.UpdateColumns, 2)
+        schedule(self.main_container.ResizeGraphs, 3)
+        self.ScrollToLastGraph()
 
     def AddGraph(self, settings=None):
         self.main_container.AddGraph(settings)
-        if settings is None:
-            self.menu.dismiss()
+
+    def ScrollToLastGraph(self):
+        app = self.main_app
+        if len(self.main_container.GraphArr) > msettings.get(
+                'COL_' + str.capitalize(app.d_ori[0]) + str.capitalize(app.d_type[0])) * msettings.get(
+            'ROW_' + str.capitalize(app.d_ori[0]) + str.capitalize(app.d_type[0])):
+            self.main_container.ids.scroll_view.scroll_to(self.main_container.GraphArr[-1])
+
+    def AddGraphsCallbackLow(self, count, *args):
+        if count > 0:
+            for i in range(count):
+                schedule(self.AddGraphManual, 2 * i)
 
     def AddGraphsCallback(self, count):
-        for i in range(int(count)):
-            Clock.schedule_once(self.AddGraphLow, 0)
+        Clock.schedule_once(partial(self.AddGraphsCallbackLow, int(count)), 0.2)
 
-    def AddGraphs(self):
-        self.main_app.dialogTextInput.Open('int', 'Создать графики', 'CREATE', 'CANCEL', self.AddGraphsCallback, '0', 'Одновременно можно создать не более 100 шт.')
-        self.menu.dismiss()
+    def AddGraphs(self, *args):
+        self.main_app.dialogTextInput.Open('int', 'Создать графики', 'CREATE', 'CANCEL', self.AddGraphsCallback, '1', 'Одновременно можно создать не более 100 шт.')
 
-    def AddControls(self, settings=None):
+    def AddControl(self, settings=None, *args):
         control = ControlButton(self.main_app, settings)
         self.controlsArray.append(control)
         self.ids.controls_view_port.add_widget(control)
         if settings is None:
             self.show_controls_menu = True
             msettings.set('MainSettings', 'SHOW_CONTROLS_BY_DEFAULT', True)
-
-            i = 0
-            good_id = 0
-            name = 'кнопки'
-            for item in self.menu.items:
-                if name in item['text']:
-                    good_id = i
-                i += 1
-            self.menu.items[good_id]['text'] = 'Скрывать ' + name
-
-            self.menu.dismiss()
-            self.main_app.update_orientation()
-            self.main_app.layoutManager.SaveLayout()
+            Clock.schedule_once(self.main_app.layoutManager.SaveLayout, 0.5)
         else:
             self.show_controls_menu = bool(msettings.get('SHOW_CONTROLS_BY_DEFAULT'))
 
-            i = 0
-            good_id = 0
-            name = 'кнопки'
-            for item in self.menu.items:
-                if name in item['text']:
-                    good_id = i
-                i += 1
-            if self.show_controls_menu:
-                self.menu.items[good_id]['text'] = 'Скрывать ' + name
-            else:
-                self.menu.items[good_id]['text'] = 'Показывать ' + name
-
-    def ActionAfterEnterStringDialog(self, mode, action, title, hint_text):
-
-        def Cancel(*args):
-            self.dialog.dismiss(force=True)
-            self.dialog = None
-
-        def Enter(*args):
-            if 'ITERATIVE' in mode:
-                if 'DECIMAL' in mode:
-                    if self.dialog.content_cls.text.isdecimal():
-                        for i in range(int(self.dialog.content_cls.text)):
-                            action()
-                        self.dialog.dismiss(force=True)
-                        self.dialog = None
-                    else:
-                        SnackbarMessage('Некорректный ввод!')
-
-        self.dialog = MDDialog(
-            title=title,
-            # elevation=0,
-            auto_dismiss=False,
-            type="custom",
-            content_cls=MDTextField(hint_text=hint_text),
-            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    theme_text_color="Custom",
-                    text_color=self.main_app.theme_cls.primary_color,
-                    on_release=Cancel,
-                ),
-                MDFlatButton(
-                    text="ENTER",
-                    theme_text_color="Custom",
-                    text_color=self.main_app.theme_cls.primary_color,
-                    on_release=Enter,
-                )
-            ]
-        )
-        self.dialog.open()
-
     def RefreshAll(self):
         self.main_container.RefreshAll()
-        self.menu.dismiss()
 
     def SwapShowMenu(self):
         self.show_menu = not self.show_menu
-        self.main_app.update_orientation()
 
     def isControls(self):
         if self.controlsArray:
@@ -391,21 +258,6 @@ class LaboratorClient(MDScreen):
         if self.controlsArray:
             self.show_controls_menu = not self.show_controls_menu
             msettings.set('MainSettings', 'SHOW_CONTROLS_BY_DEFAULT', int(self.show_controls_menu))
-            self.main_app.update_orientation()
-
-            i = 0
-            good_id = 0
-            name = 'кнопки'
-            for item in self.menu.items:
-                if name in item['text']:
-                    good_id = i
-                i += 1
-            if self.menu.items[good_id]['text'] == 'Показывать ' + name:
-                self.menu.items[good_id]['text'] = 'Скрывать ' + name
-            else:
-                self.menu.items[good_id]['text'] = 'Показывать ' + name
-
-        self.menu.dismiss()
 
     def GetNumberSelected(self):
         return len(self.selected)
@@ -436,9 +288,6 @@ class LaboratorClient(MDScreen):
             self.main_container.RemoveGraph(selected_graph)
         self.selected = []
         self.number_selected = 0
-        SnackbarMessageAction('Отменить удаление', 'UNDO', cancel_button_text='SAVE',
-                              accept_action=self.main_app.layoutManager.ReloadLayout,
-                              cancel_action=self.main_app.layoutManager.SaveLayout)
         animated_hide_widget_only(self.ids.selection_controls, self.main_app.hide_widget_only_anim)
 
     def RemoveAll(self):
@@ -447,93 +296,74 @@ class LaboratorClient(MDScreen):
             self.ids.controls_view_port.remove_widget(cButton)
         self.controlsArray.clear()
 
-    def CheckConnection(self, silent=True):
-        good = True
-
-        if client.isConnected():
-            if not silent:
-                Logger.debug(f'CheckConnection: Connected to server: {self.endpoint}!')
-        else:
-            good = False
-            if not silent:
-                Logger.debug(f'CheckConnection: Unable to connect to server: {self.endpoint}!')
-
-        if client.isParsed():
-            if not silent:
-                Logger.debug(f'CheckConnection: Parsed: {self.endpoint}!')
-        else:
-            good = False
-            if not silent:
-                Logger.debug(f'CheckConnection: Unable to parse server: {self.endpoint}!')
-
-        return good
-
-    def GoodReconnection(self):
-        pass
-
-    def Reconnection(self, out):
-        Logger.debug(out)
+    def CheckConnection(self):
+        return client.isParsed() and client.isConnected() and not client.isReconnecting()
 
     def GoodConnection(self):
-        self.ids.endpoint_label.disabled = True
-        self.ids.btn_connect.disabled = True
-        self.ids.btn_disconnect.disabled = False
         msettings.set('MainSettings', 'LAST_IP', self.endpoint)
         Logger.debug(f"CONNECT: Connected to {self.endpoint}!")
 
-    def ConnectionFail(self, out):
-        if not client.isReconnecting():
-            self.ids.btn_connect.disabled = False
-            self.ids.btn_disconnect.disabled = True
-            self.ids.endpoint_label.disabled = False
+    def ConnectionFail(self, out, reconnecting=False):
+        if reconnecting:
+            self.SetServerState('reconnecting')
             Logger.debug(out)
         else:
-            self.ids.btn_connect.disabled = True
-            self.ids.btn_disconnect.disabled = False
-            self.ids.endpoint_label.disabled = True
+            self.SetServerState('disconnected')
+            Logger.debug(out)
 
     def Connect(self):
-        self.ids.btn_connect.disabled = True
-        self.ids.btn_disconnect.disabled = True
-        self.ids.endpoint_label.disabled = True
+        client._isAbort = False
+        client._isReconnecting = False
         Logger.debug(f"CONNECT: Trying to connect to {self.endpoint}...")
-        client.ConnectMain(self.endpoint)
+        self.SetServerState('blocked')
+        client.Connect(self.endpoint)
 
     def Disconnect(self):
-        client.DisableTimer()
-        self.ids.btn_disconnect.disabled = True
-        self.ids.btn_connect.disabled = False
-        self.ids.endpoint_label.disabled = False
+        self.SetServerState('blocked')
         client.Disconnect(force=True)
-        SnackbarMessage(f"Disconnected from {self.endpoint}!")
-        Logger.debug(f"CONNECT: Disconnected from {self.endpoint}!")
+
+    def SetServerState(self, state):
+        if state == 'blocked':
+            self.ids.endpoint_label.disabled = True
+            self.ids.btn_connect.disabled = True
+            self.ids.btn_disconnect.disabled = True
+            self.ids.indicator.color = 'white'
+        elif state == 'connected':
+            self.ids.endpoint_label.disabled = True
+            self.ids.btn_connect.disabled = True
+            self.ids.btn_disconnect.disabled = False
+            self.ids.indicator.color = 'green'
+        elif state == 'disconnected':
+            self.ids.endpoint_label.disabled = False
+            self.ids.btn_connect.disabled = False
+            self.ids.btn_disconnect.disabled = True
+            self.ids.indicator.color = 'red'
+            Logger.debug(f"CONNECT: Disconnected from {self.endpoint}!")
+        elif state == 'reconnecting':
+            self.ids.endpoint_label.disabled = True
+            self.ids.btn_connect.disabled = True
+            self.ids.btn_disconnect.disabled = False
+            self.ids.indicator.color = 'orange'
 
     def UpdateControls(self):
         for control in self.controlsArray:
             control.Update()
 
     def Update(self):
-        if self.CheckConnection(silent=True):
+        if self.CheckConnection():
 
             if not self.server_connected:
                 self.server_connected = True
-                SnackbarMessage(f"Connected to {self.endpoint}!")
                 self.main_app.dialogList.Rebase()
+                self.SetServerState('connected')
 
-            t1 = threading.Thread(target=client.UpdateValues)
-            t1.start()
-            t2 = threading.Thread(target=self.main_container.UpdateThreads)
-            t2.start()
+            threading.Thread(target=client.UpdateValues).start()
+            threading.Thread(target=self.main_container.UpdateThreads).start()
             self.main_container.UpdateGraphs()
             self.UpdateControls()
         else:
             if self.server_connected:
                 self.server_connected = False
-                SnackbarMessage(f"Connection with {self.endpoint} lost!")
-
-        if self.canceled:
-            self.canceled = False
-            self.Disconnect()
 
 
 class FullLogHandler(logging.Handler):
@@ -572,6 +402,7 @@ class KivyApp(MDApp):
         self.dialogTextInput = None
         self.dialogGraphSettings = None
         self.dialogList = None
+        self.dialogMenu = None
 
         t = Clock.create_trigger(self.d_changed)
 
@@ -607,7 +438,7 @@ class KivyApp(MDApp):
             self.layoutManager.LoadLayout()
 
         Logger.debug('LayoutManager: Pre-caching...')
-        self.PreCache()
+        Clock.schedule_once(self.PreCache, 0)
 
         Clock.schedule_interval(self.Update, int(msettings.get('KIVY_UPDATE_FUNCTION_TIME')))
 
@@ -625,7 +456,7 @@ class KivyApp(MDApp):
     def update_orientation(self, *args):
         if self.ori_time_good:
             self.ori_time_good = False
-            self.update_orientation_low(*args)
+            Clock.schedule_once(self.update_orientation_low)
             Clock.schedule_once(self.update_ori_is_good, 0.2)
 
     def update_orientation_low(self, *args):
@@ -638,7 +469,10 @@ class KivyApp(MDApp):
         elif width < dp(1100) and height < dp(1100):
             device_type = "tablet"
         else:
-            device_type = "desktop"
+            if platform != 'android' and platform != 'ios':
+                device_type = "desktop"
+            else:
+                device_type = 'mobile'
 
         if width > height:
             device_orientation = 'horizontal'
@@ -652,6 +486,9 @@ class KivyApp(MDApp):
         self.d_iori = inverted_device_orientation
 
     def build(self):
+
+        Factory.register('OpacityScrollEffectSmooth', module='libs.effects.opacityscrollsmooth')
+
         self.theme_cls.theme_style = msettings.get("THEME")
         if msettings.get("THEME") == 'Light':
             self.theme_cls.set_colors("Purple", "300", "50", "800", "Gray", "600", "50", "800")
@@ -670,14 +507,12 @@ class KivyApp(MDApp):
 
         Logger.addHandler(FullLogHandler(self, self.kivy_instance.ids.log_label, logging.DEBUG))
 
-        if msettings.get("HIDE_LOG_BY_DEFAULT"):
-            self.hide_widget(self.kivy_instance.ids.log_box)
-        else:
-            self.hide_widget(self.kivy_instance.ids.view_port)
+        self.hide_widget(self.kivy_instance.ids.log_box)
 
         self.dialogTextInput = LDialogEnterString(self)
         self.dialogGraphSettings = LDialogGraphSettings(self)
         self.dialogList = LDialogList(self)
+        self.dialogMenu = LDialogMenu(self)
         self.layoutManager = LayoutManager(self.kivy_instance)
 
         if self._app_settings is None:
@@ -693,23 +528,8 @@ class KivyApp(MDApp):
     def on_config_change(self, config, section, key, value):
         Logger.debug(f'{section}: {key} is {value}')
 
-        if key == 'THEME':
-            SnackbarMessage('Тема изменится после перезагрузки приложения')
-
     def toggle_log(self):
         self.hide_widget(self.kivy_instance.ids.log_box)
-        i = 0
-        log_id = 0
-        for item in self.kivy_instance.menu.items:
-            if 'лог' in item['text']:
-                log_id = i
-            i += 1
-        if self.kivy_instance.menu.items[log_id]['text'] == 'Показать лог':
-            self.kivy_instance.menu.items[log_id]['text'] = 'Скрыть лог'
-            self.kivy_instance.ids.log_scroll.scroll_y = 0
-        else:
-            self.kivy_instance.menu.items[log_id]['text'] = 'Показать лог'
-        self.kivy_instance.menu.dismiss()
 
     # Swaps visibility of widgets. Wid1 are hiding permanently.(self.ids.log_box, self.ids.view_port)
     def swap_widgets_visibility(self, wid1, wid2):
@@ -795,12 +615,7 @@ class KivyApp(MDApp):
         return False
 
     def menu_open(self, instance):
-        self.kivy_instance.menu.caller = instance
-        self.kivy_instance.menu.open()
-
-    def open_main_settings(self):
-        self.kivy_instance.menu.dismiss()
-        self.open_settings()
+        self.dialogMenu.Open()
 
     def setEndpoint(self, string):
         self.kivy_instance.endpoint = string
@@ -808,10 +623,11 @@ class KivyApp(MDApp):
     def copy(self, _str: str):
         Clipboard.copy(_str)
 
-    def PreCache(self):
+    def PreCache(self, *args):
         self.dialogTextInput.PreCache()
         self.dialogGraphSettings.PreCache()
         self.dialogList.PreCache()
+        self.dialogMenu.PreCache()
 
 
 KivyApp = KivyApp()

@@ -11,15 +11,14 @@ from libs.settings.settingsJSON import msettings
 from timeit import default_timer as timer
 
 class DirectVariable:
-    def __init__(self, _client, _kivy, _max_history_size, _name, _id=0):
-        self.id = _id
-        self.name = _name
+    def __init__(self, _client, _kivy, _instance, _name):
+        self.client = _client
         self.kivy_instance = _kivy
+        self.instance = _instance
+        self.name = _name
         self.value = 0
         self.values_history = []
         self.spectral_values = []
-        self.max_history_size = _max_history_size
-        self.client = _client
 
     def GetValue(self, no_history=False):
 
@@ -37,7 +36,13 @@ class DirectVariable:
         return self.value
 
     def WriteHistory(self, _value):
-        if len(self.values_history) < self.max_history_size:
+
+        if self.instance.s['SPECTRAL_BUFFER_SIZE'] < msettings.get('MAX_HISTORY_VALUES'):
+            history_size = msettings.get('MAX_HISTORY_VALUES')
+        else:
+            history_size = self.instance.s['SPECTRAL_BUFFER_SIZE']
+
+        if len(self.values_history) < history_size:
             self.values_history.append([len(self.values_history), _value])
         else:
             for i in range(len(self.values_history)):
@@ -52,7 +57,7 @@ class DirectVariable:
         return self.values_history[-msettings.get('MAX_HISTORY_VALUES'):]
 
     def GetSpectral(self, top):
-        return FFTGraph(self.max_history_size, self.values_history, top)
+        return FFTGraph(self.instance.s['SPECTRAL_BUFFER_SIZE'], self.values_history, top)
 
     def ClearHistory(self):
         self.values_history = []
@@ -60,13 +65,13 @@ class DirectVariable:
 
 
 class IndirectVariable:
-    def __init__(self, _client, _kivy, _max_history_size):
+    def __init__(self, _client, _kivy, _instance):
+        self.client = _client
+        self.kivy_instance = _kivy
+        self.instance = _instance
         self.value = 0
         self.values_history = []
         self.spectral_values = []
-        self.max_history_size = _max_history_size
-        self.client = _client
-        self.kivy_instance = _kivy
 
     def GetValue(self, expression):
 
@@ -82,7 +87,12 @@ class IndirectVariable:
         return self.value
 
     def WriteHistory(self, _value: float):
-        if len(self.values_history) < self.max_history_size:
+        if self.instance.s['SPECTRAL_BUFFER_SIZE'] < msettings.get('MAX_HISTORY_VALUES'):
+            history_size = msettings.get('MAX_HISTORY_VALUES')
+        else:
+            history_size = self.instance.s['SPECTRAL_BUFFER_SIZE']
+
+        if len(self.values_history) < history_size:
             self.values_history.append([len(self.values_history), _value])
         else:
             for i in range(len(self.values_history)):
@@ -97,7 +107,7 @@ class IndirectVariable:
         return self.values_history[-msettings.get('MAX_HISTORY_VALUES'):]
 
     def GetSpectral(self, top):
-        return FFTGraph(self.max_history_size, self.values_history, top)
+        return FFTGraph(self.instance.s['SPECTRAL_BUFFER_SIZE'], self.values_history, top)
 
     def ClearHistory(self):
         self.values_history = []
@@ -108,6 +118,11 @@ def FFTGraph(samplerate: int, values: list, top: int):
     SAMPLE_RATE = samplerate
     N = SAMPLE_RATE
     TIME_STEP = 1 / SAMPLE_RATE
+
+    if len(values) > samplerate:
+        values = values[-samplerate:]
+
+    size = len(values)
 
     sig = []
     if values:
@@ -153,4 +168,4 @@ def FFTGraph(samplerate: int, values: list, top: int):
 
     sigma = np.sqrt(disp)
 
-    return [out, maxes, avg, sigma]
+    return [size, out, maxes, avg, sigma]
