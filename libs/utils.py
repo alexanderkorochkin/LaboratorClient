@@ -240,15 +240,18 @@ def str_to_variable(_str: str):
     Logger.debug(f'Utils.str_to_value: Can\'t detect string: {_str} as int, float or bool!')
     return 0
 
-def truncate_string(string, N, screen_brackets=False):
+def truncate_string(string, N, screen_brackets=False, no_space=True):
     out = string
     if len(string) > N:
         substring = string[0: N]
-        last_alpha = 0
-        for i in range(N - 1, 0, -1):
-            if string[i - 1].isalpha() and not string[i].isalpha():
-                last_alpha = i
-                break
+        if not no_space:
+            last_alpha = 0
+            for i in range(N - 1, 0, -1):
+                if string[i - 1].isalpha() and not string[i].isalpha():
+                    last_alpha = i
+                    break
+        else:
+            last_alpha = N
         out = substring[0: last_alpha] + "…"
 
     if screen_brackets:
@@ -267,6 +270,13 @@ def animated_hide_widget_only(wid, method):
 def animated_show_widget_only(wid, method):
     anim = Animation(opacity=1,  duration=0.2, t='out_quart')
     anim.bind(on_start=method)
+    anim.start(wid)
+
+
+def animate_control_removal(wid, method):
+    # animate shrinking widget width
+    anim = Animation(opacity=0, duration=0.5, t='out_expo')
+    anim.bind(on_complete=method)
     anim.start(wid)
 
 

@@ -1,8 +1,10 @@
 import threading
+import time
 from time import sleep
 
 import opcua
 from kivy import Logger
+from kivy.clock import Clock
 from opcua import Client, ua
 from urllib.parse import urlparse
 
@@ -22,6 +24,8 @@ class OPCUAClient(Client):
 
     def __init__(self, url="opc.tcp://127.1.1.0"):
         super().__init__(url)
+        self.isWaitingSettingValue = None
+        self.isUpdatingValues = None
         self._isParsed = False
         self._isConnected = False
         self._isReconnecting = False
@@ -44,6 +48,10 @@ class OPCUAClient(Client):
         self.values_stringed_array = []
         self.server_mode = None
         self.out = 'SERVER PARSER OUT:\n'
+        self.update_time = None
+
+        self._name_bckp = None
+        self._value_bckp = None
 
     def ParseServerRecursive(self, incoming_node, level=0, ignore_server_node=True, ignore_types_node=True, ignore_views_node=True):
 
@@ -147,50 +155,61 @@ class OPCUAClient(Client):
             return f'ERROR: Invalid name: {name}'
 
     def SetValueOnServer(self, _name, _value):
-        if '::' in _name:
-            if _name in self.names:
-                out_value = ''
-                for var_name, str_value in self.values_stringed_array:
-                    if var_name == _name.split('::')[0]:
-                        result = str_value.split('\n')
-                        _names = result[0].split('\t')
-                        _values = result[1].split('\t')
-
-                        for i in range(len(_names)):
-                            if _names[i] == _name.split('::')[1]:
-                                _values[i] = _value
-
-                        for i in range(len(_names)):
-                            if i == len(_names) - 1:
-                                out_value += str(_names[i])
-                            else:
-                                out_value += str(_names[i]) + '\t'
-                        out_value += '\n'
-                        for i in range(len(_values)):
-                            if i == len(_values) - 1:
-                                out_value += str(_values[i])
-                            else:
-                                out_value += str(_values[i]) + '\t'
-                try:
-                    self.values[self.names.index(_name)] = _value
-                    self.var_nodes[self.names.index(_name)].set_value(out_value)
-                except Exception:
-                    Logger.debug(f'SetValue: Error occurred while setting packed value on server!')
-
-            else:
-                Logger.debug(f'SetValue: No such variable with name: {_name} in names list!')
+        if self.isUpdatingValues:
+            self.isWaitingSettingValue = True
+            self._name_bckp = _name
+            self._value_bckp = _value
         else:
-            if _name in self.names:
-                try:
-                    self.values[self.names.index(_name)] = _value
-                    self.var_nodes[self.names.index(_name)].set_value(_value)
-                except Exception:
-                    Logger.debug(f'SetValue: Error occurred while setting value on server!')
+            if '::' in _name:
+                if _name in self.names:
+                    out_value = ''
+                    for var_name, str_value in self.values_stringed_array:
+                        if var_name == _name.split('::')[0]:
+                            result = str_value.split('\n')
+                            _names = result[0].split('\t')
+                            _values = result[1].split('\t')
+
+                            for i in range(len(_names)):
+                                if _names[i] == _name.split('::')[1]:
+                                    _values[i] = _value
+
+                            for i in range(len(_names)):
+                                if i == len(_names) - 1:
+                                    out_value += str(_names[i])
+                                else:
+                                    out_value += str(_names[i]) + '\t'
+                            out_value += '\n'
+                            for i in range(len(_values)):
+                                if i == len(_values) - 1:
+                                    out_value += str(_values[i])
+                                else:
+                                    out_value += str(_values[i]) + '\t'
+                    try:
+                        if out_value != '':
+                            self.values[self.names.index(_name)] = _value
+                            self.var_nodes[self.names.index(_name)].set_value(out_value)
+                    except Exception:
+                        Logger.debug(f'SetValue: Error occurred while setting packed value on server!')
+
+                else:
+                    Logger.debug(f'SetValue: No such variable with name: {_name} in names list!')
             else:
-                Logger.debug(f'SetValue: No such variable with name: {_name} in names list!')
+                if _name in self.names:
+                    try:
+                        self.values[self.names.index(_name)] = _value
+                        self.var_nodes[self.names.index(_name)].set_value(_value)
+                    except Exception:
+                        Logger.debug(f'SetValue: Error occurred while setting value on server!')
+                else:
+                    Logger.debug(f'SetValue: No such variable with name: {_name} in names list!')
+            self._name_bckp = None
+            self._value_bckp = None
 
     def UpdateValues(self):
+        if not self._isParsed:
+            self.ParseLow()
         if self._isConnected and self._isParsed and not self._isReconnecting and not self._isAbort:
+            self.isUpdatingValues = True
             i = 0
             updated_vars = []
             self.values_stringed_array = []
@@ -224,8 +243,7 @@ class OPCUAClient(Client):
                                         if _names[i] in names:
                                             values[names.index(_names[i])] = _values[i]
                                         else:
-                                            Logger.debug(
-                                                f'UpdateValues: No such variable with name: {_names[i]} in names list!')
+                                            Logger.debug(f'UpdateValues: No such variable with name: {_names[i]} in names list!')
                         except Exception:
                             if self._isConnected and not self._isAbort:
                                 self.kivy_instance.ConnectionFail(f'UpdateValues: Connection lost!', reconnecting=True)
@@ -244,6 +262,12 @@ class OPCUAClient(Client):
 
             self.values = values
             self.names = names
+            self.update_time = Clock.get_time()
+            self.isUpdatingValues = False
+            if self.isWaitingSettingValue:
+                self.SetValueOnServer(self._name_bckp, self._value_bckp)
+                self.isWaitingSettingValue = False
+        self.kivy_instance.updateValuesThread = None
 
     def ConnectLow(self, join=False):
         print(self._isReconnecting, self._isAbort)
@@ -251,6 +275,11 @@ class OPCUAClient(Client):
             if not self._isAbort:
                 self.connect()
                 self._isConnected = True
+                self._isReconnecting = False
+                if self.reconnectWorker:
+                    self.reconnectWorker.cancel()
+                    self.reconnectWorker = None
+                self.kivy_instance.GoodConnection()
         except Exception:
             if not self._isReconnecting and not self._isAbort:
                 self.kivy_instance.ConnectionFail('CONNECT: Failed to connect!')
@@ -268,30 +297,17 @@ class OPCUAClient(Client):
                 Logger.debug(self.out)
                 if len(self.names) > 0:
                     self._isParsed = True
-                    self._isReconnecting = False
-                    self.kivy_instance.GoodConnection()
                 else:
+                    self.kivy_instance.ConnectionFail('ParseLow: Empty server!')
                     if not self._isReconnecting:
-                        self.kivy_instance.ConnectionFail('ParseLow: Empty server!')
                         self.Disconnect(join)
             except Exception:
                 if not self._isReconnecting:
                     self.kivy_instance.ConnectionFail('ParseLow: Error while parsing server!')
                     self.Disconnect(join)
 
-    # def Reconnect(self):
-    #     self.Disconnect()
-    #     self._isConnected = False
-    #     self._isReconnecting = True
-    #     self._reconnect_number += 1
-    #     if self._reconnect_number <= msettings.get('MAX_RECONNECTIONS_NUMBER'):
-    #         self.ReconnectLow()
-    #     else:
-    #         self.kivy_instance.Reconnection(f'RECONNECT: Canceling...')
-    #         self.kivy_instance.canceled = True
-
     def Reconnection(self, i=1):
-        if not self._isAbort:
+        if not self._isAbort and not self._isConnected:
             if i <= msettings.get('MAX_RECONNECTIONS_NUMBER'):
                 self.Disconnect(join=True)
                 self._reconnect_number = i
@@ -315,15 +331,20 @@ class OPCUAClient(Client):
                 self.reconnectWorker = None
 
     def ConnectionLost(self):
-        if not self._isReconnecting:
-            self._isReconnecting = True
-            self._isConnected = False
-            if not self.reconnectWorker:
-                self.reconnectWorker = threading.Timer(msettings.get('RECONNECTION_TIME'), self.Reconnection).start()
+        if msettings.get('DO_RECONNECTION'):
+            if not self._isReconnecting:
+                self._isReconnecting = True
+                self._isConnected = False
+                if not self.reconnectWorker:
+                    self.reconnectWorker = threading.Timer(msettings.get('RECONNECTION_TIME'), self.Reconnection).start()
+        else:
+            self._isAbort = True
+            self.Disconnect()
+            self.kivy_instance.SetServerState('disconnected')
+            self._isReconnecting = False
 
     def ConnectAndParse(self, join=False):
         self.ConnectLow(join)
-        self.ParseLow(join)
         self.connectWorker = None
 
     def Connect(self, url=None, join=False):

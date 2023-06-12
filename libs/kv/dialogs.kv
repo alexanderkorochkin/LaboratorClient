@@ -331,3 +331,116 @@
                     line_color: app.theme_cls.error_color
                     font_size: sp(14)
                     on_release: root.RemoveGraph()
+
+
+<LDialogControlSettingsContent>:
+    orientation: "vertical"
+    size_hint_y: 1
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        always_overscroll: False
+        effect_cls: Factory.OpacityScrollEffectSmooth
+        size_hint_y: 1
+        MDBoxLayout:
+            id: content_cls_box
+            adaptive_height: True
+            orientation: 'vertical'
+            spacing: dp(10)
+            padding: [dp(0), dp(5), dp(0), dp(5)]
+            MDBoxLayout:
+                id: main_cell
+                orientation: 'vertical'
+                adaptive_height: True
+                size_hint_x: 1
+                pos_hint: {'top': 1}
+                spacing: dp(10)
+                MDBoxLayout:
+                    orientation: "vertical"
+                    adaptive_height: True
+                    size_hint_x: 1
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        adaptive_height: True
+                        size_hint_x: 1
+                        MDFlatButton:
+                            id: variable_list
+                            text: truncate_string("Переменная: " + root.labvar_name, 25, screen_brackets=True)
+                            size_hint_x: 1
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.text_color
+                            line_color: app.theme_cls.primary_color
+                            font_size: sp(14)
+                            on_release: app.dialogListShort.Open(root.ChangeLabvarName)
+                    MDBoxLayout:
+                        id: display_name_settings
+                        orientation: "vertical"
+                        adaptive_height: True
+                        height: display_name_settings_all.height
+                        padding: [0, dp(10), 0, 0]
+                        MDBoxLayout:
+                            id: display_name_settings_all
+                            orientation: "vertical"
+                            adaptive_height: True
+                            height: display_name_button.height
+                            MDFlatButton:
+                                id: display_name_button
+                                text: truncate_string("Название: " + root.display_name, 25)
+                                size_hint_x: 1
+                                markup: True
+                                theme_text_color: "Custom"
+                                text_color: app.theme_cls.text_color
+                                line_color: app.theme_cls.primary_color
+                                font_size: sp(14)
+                                on_release: app.dialogTextInput.Open('string', 'Название кнопки', 'SAVE', 'CANCEL', root.ChangeDisplayName, str(root.display_name), '')
+                    MDBoxLayout:
+                        id: icon_on_settings
+                        orientation: "horizontal"
+                        size_hint_x: 1
+                        adaptive_height: True
+                        padding: [0, dp(10), 0, 0]
+                        MDIconButton:
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [ON]', 'SAVE', 'CANCEL', root.SetIconOn, str(root.icon_on), 'More on https://pictogrammers.com/library/mdi/')
+                            size_hint: None, 1
+                            size: "48dp", "48dp"
+                            icon: root.icon_on
+                        MDFlatButton:
+                            text: "Иконка ON: " + root.icon_on
+                            ripple_scale: 0
+                            ripple_opacity: 0
+                            size_hint_x: 1
+                            halign: 'left'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.text_color
+                            font_size: sp(14)
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [ON]', 'SAVE', 'CANCEL', root.SetIconOn, str(root.icon_on), 'More on https://pictogrammers.com/library/mdi/')
+                    MDBoxLayout:
+                        id: icon_off_settings
+                        orientation: "horizontal"
+                        size_hint_x: 1
+                        padding: [0, 0, 0, dp(10)]
+                        adaptive_height: True
+                        MDIconButton:
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [OFF]', 'SAVE', 'CANCEL', root.SetIconOff, str(root.icon_off), 'More on https://pictogrammers.com/library/mdi/')
+                            size_hint: None, 1
+                            size: "48dp", "48dp"
+                            icon: root.icon_off
+                        MDFlatButton:
+                            text: "Иконка OFF: " + root.icon_off
+                            ripple_scale: 0
+                            ripple_opacity: 0
+                            size_hint_x: 1
+                            halign: 'left'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.text_color
+                            font_size: sp(14)
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [OFF]', 'SAVE', 'CANCEL', root.SetIconOff, str(root.icon_off), 'More on https://pictogrammers.com/library/mdi/')
+                    MDFlatButton:
+                        id: delete_control
+                        text: "Удалить кнопку"
+                        size_hint_x: 1
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.text_color
+                        line_color: app.theme_cls.error_color
+                        font_size: sp(14)
+                        on_release: root.RemoveControl()

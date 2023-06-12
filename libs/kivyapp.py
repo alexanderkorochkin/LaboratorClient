@@ -1,6 +1,7 @@
 import logging
 import os
 import threading
+import uuid
 
 from kivy.core.clipboard import Clipboard
 
@@ -32,7 +33,8 @@ from libs.utils import *
 from libs.settings.settingsJSON import *
 from libs.opcua.opcuaclient import client
 from libs.graph import GraphBox
-from libs.dialogs import LDialogEnterString, LDialogGraphSettings, LDialogList, LDialogMenu
+from libs.dialogs import LDialogEnterString, LDialogGraphSettings, LDialogList, LDialogMenu, LDialogControlSettings, \
+    LDialogListShort
 from libs.layoutManager import LayoutManager
 
 Logger.setLevel(LOG_LEVELS["debug"])
@@ -129,14 +131,15 @@ class GContainer(MDBoxLayout):
     def UpdateThreads(self):
         for graph in self.GraphArr:
             graph.UpdateThread()
+        self.kivy_instance.updateThreadsThread = None
 
     def UpdateGraphs(self):
         for graph in self.GraphArr:
             graph.UpdateGraph()
 
-    def RefreshAll(self):
+    def RefreshAll(self, *args):
         for gr in self.GraphArr:
-            gr.ClearGraph()
+            gr.doClear = True
 
     def AddGraph(self, settings=None, *args):
         graphbox = GraphBox(self.kivy_instance, settings=settings)
@@ -181,6 +184,8 @@ class LaboratorClient(MDScreen):
 
     def __init__(self, _main_app, **kwargs):
         super().__init__(**kwargs)
+        self.updateThreadsThread = None
+        self.updateValuesThread = None
         self.addThread = None
         self.main_container = GContainer(self)
         self.main_app = _main_app
@@ -191,6 +196,8 @@ class LaboratorClient(MDScreen):
         self.dialog = None
 
         self.controlsArray = []
+
+        self.doUpdateControls = True
 
     def open_main_settings(self):
         self.main_app.open_main_settings()
@@ -205,9 +212,9 @@ class LaboratorClient(MDScreen):
         return self.main_container.GetGraphByHASH(_hash)
 
     def AddGraphManual(self, *args):
-        schedule(partial(self.main_container.AddGraph, None), 1)
-        schedule(self.main_container.UpdateColumns, 2)
-        schedule(self.main_container.ResizeGraphs, 3)
+        self.main_container.AddGraph()
+        self.main_container.UpdateColumns()
+        self.main_container.ResizeGraphs()
         self.ScrollToLastGraph()
 
     def AddGraph(self, settings=None):
@@ -231,6 +238,16 @@ class LaboratorClient(MDScreen):
     def AddGraphs(self, *args):
         self.main_app.dialogTextInput.Open('int', 'Создать графики', 'CREATE', 'CANCEL', self.AddGraphsCallback, '1', 'Одновременно можно создать не более 100 шт.')
 
+    def RemoveControlLow(self, anim, control, do_remove_control=True):
+        self.ids.controls_view_port.remove_widget(control)
+        if do_remove_control:
+            self.controlsArray.remove(control)
+        Logger.debug(f"CONTROLS: Control [{control.s['DISPLAY_NAME']}] with HASH: {control.s['HASH']} is removed!")
+        self.main_app.layoutManager.SaveLayout()
+
+    def RemoveControl(self, control):
+        animate_control_removal(control, self.RemoveControlLow)
+
     def AddControl(self, settings=None, *args):
         control = ControlButton(self.main_app, settings)
         self.controlsArray.append(control)
@@ -242,7 +259,7 @@ class LaboratorClient(MDScreen):
         else:
             self.show_controls_menu = bool(msettings.get('SHOW_CONTROLS_BY_DEFAULT'))
 
-    def RefreshAll(self):
+    def RefreshAll(self, *args):
         self.main_container.RefreshAll()
 
     def SwapShowMenu(self):
@@ -297,7 +314,7 @@ class LaboratorClient(MDScreen):
         self.controlsArray.clear()
 
     def CheckConnection(self):
-        return client.isParsed() and client.isConnected() and not client.isReconnecting()
+        return client.isConnected() and not client.isReconnecting()
 
     def GoodConnection(self):
         msettings.set('MainSettings', 'LAST_IP', self.endpoint)
@@ -351,16 +368,18 @@ class LaboratorClient(MDScreen):
 
     def Update(self):
         if self.CheckConnection():
-
             if not self.server_connected:
                 self.server_connected = True
-                self.main_app.dialogList.Rebase()
+                Clock.schedule_once(self.main_app.dialogList.Rebase, 0.5)
+                Clock.schedule_once(self.main_app.dialogListShort.Rebase, 0.5)
                 self.SetServerState('connected')
-
-            threading.Thread(target=client.UpdateValues).start()
-            threading.Thread(target=self.main_container.UpdateThreads).start()
+            if not self.updateValuesThread:
+                self.updateValuesThread = threading.Thread(target=client.UpdateValues).start()
+            if not self.updateThreadsThread:
+                self.updateThreadsThread = threading.Thread(target=self.main_container.UpdateThreads).start()
             self.main_container.UpdateGraphs()
-            self.UpdateControls()
+            if self.doUpdateControls:
+                self.UpdateControls()
         else:
             if self.server_connected:
                 self.server_connected = False
@@ -401,7 +420,9 @@ class KivyApp(MDApp):
 
         self.dialogTextInput = None
         self.dialogGraphSettings = None
+        self.dialogControlSettings = None
         self.dialogList = None
+        self.dialogListShort = None
         self.dialogMenu = None
 
         t = Clock.create_trigger(self.d_changed)
@@ -499,10 +520,7 @@ class KivyApp(MDApp):
         client.kivy_instance = self.kivy_instance
 
         Window.bind(size=self.update_orientation,
-                    # on_maximize=self.update_orientation,
-                    # on_restore=self.update_orientation,
                     on_rotate=self.update_orientation,
-                    # on_minimize=self.update_orientation
                     )
 
         Logger.addHandler(FullLogHandler(self, self.kivy_instance.ids.log_label, logging.DEBUG))
@@ -511,7 +529,9 @@ class KivyApp(MDApp):
 
         self.dialogTextInput = LDialogEnterString(self)
         self.dialogGraphSettings = LDialogGraphSettings(self)
+        self.dialogControlSettings = LDialogControlSettings(self)
         self.dialogList = LDialogList(self)
+        self.dialogListShort = LDialogListShort(self)
         self.dialogMenu = LDialogMenu(self)
         self.layoutManager = LayoutManager(self.kivy_instance)
 
@@ -626,7 +646,9 @@ class KivyApp(MDApp):
     def PreCache(self, *args):
         self.dialogTextInput.PreCache()
         self.dialogGraphSettings.PreCache()
+        self.dialogControlSettings.PreCache()
         self.dialogList.PreCache()
+        self.dialogListShort.PreCache()
         self.dialogMenu.PreCache()
 
 

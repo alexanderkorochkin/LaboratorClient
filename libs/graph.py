@@ -115,7 +115,7 @@ class GardenGraph(Graph):
                 if recombine:
                     self.remove_plot(self.target_value_plot)
                     points_temp = self.target_value_plot.points
-                    self.target_value_plot = LinePlot(color=(0, 1, 0, 0.8), line_width=1)
+                    self.target_value_plot = LinePlot(color=(0, 1, 0, 0.5), line_width=dp(1))
                     self.target_value_plot.points = points_temp
                 self.add_plot(self.target_value_plot)
             else:
@@ -248,6 +248,7 @@ class GraphBox(MDBoxLayout):
         self.isChosen = False
         self.accented = False
         self.precached = False
+        self.doClear = False
 
         self.modes = ['NORMAL', 'SPECTRAL']
 
@@ -364,12 +365,12 @@ class GraphBox(MDBoxLayout):
         if do_clear:
             self.ClearGraph()
 
-    def DialogGraphSettingsOpen(self):
-        self.kivy_instance.UnselectAll(excepted=self)
-        self.isChosen = False
-        if not self.accented:
-            self.AccentIt()
-        self.dialogGraphSettings.Open()
+    # def DialogGraphSettingsOpen(self):
+    #     self.kivy_instance.UnselectAll(excepted=self)
+    #     self.isChosen = False
+    #     if not self.accented:
+    #         self.AccentIt()
+    #     self.dialogGraphSettings.Open()
 
     def RemoveMe(self):
         self.gardenGraph.isDeleting = True
@@ -406,7 +407,13 @@ class GraphBox(MDBoxLayout):
                 self.avg_value = self.avgBuffer.getAverage()
 
     def UpdateGraph(self):
-        if self.s['NAME'] != 'None':
+        if self.doClear:
+            if self.var:
+                self.var.ClearHistory()
+            if self.avgBuffer:
+                self.avgBuffer.clear()
+            self.doClear = False
+        elif self.s['NAME'] != 'None':
             if not self.isBadExpression:
                 if self.s['MODE'] == 'NORMAL':
                     if self.s['SHOW_MAIN_VALUE']:
@@ -463,16 +470,8 @@ class GraphBox(MDBoxLayout):
         if _clear_graph:
             self.ClearGraph()
 
-    def ClearGraphLow(self):
-        if self.var:
-            self.var.ClearHistory()
-        if self.gardenGraph:
-            self.gardenGraph.ClearPlot()
-        if self.avgBuffer:
-            self.avgBuffer.clear()
-
     def ClearGraph(self):
-        threading.Thread(target=self.ClearGraphLow).start()
+        self.doClear = True
 
     def UnChooseIt(self):
         if self.isChosen:

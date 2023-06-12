@@ -1,29 +1,19 @@
-import math
-import threading
-from threading import main_thread
-
-from kivy.animation import Animation
 from kivy.clock import Clock
-from kivy.uix.behaviors import ButtonBehavior
 from kivymd.uix.button import MDFlatButton, MDRaisedButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.pickers import MDColorPicker
 
 from kivy.core.window import Window
-
-from typing import Union
 
 from kivy.properties import StringProperty, BooleanProperty, NumericProperty, ObjectProperty, OptionProperty
 from kivymd.uix.list.list import OneLineAvatarIconListItem, BaseListItem, OneLineIconListItem
 
 from kivy.utils import get_hex_from_color
-from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.textfield import MDTextField
 
 from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
-from libs.utils import keycodes
+from libs.utils import keycodes, truncate_string
 
 
 class MDDialogSizer(MDDialog):
@@ -36,12 +26,6 @@ class MDDialogSizer(MDDialog):
             on_maximize=self.update_size,
             on_restore=self.update_size,
             size=self.update_size)
-                    # on_maximize=self.update_height,
-                    # on_restore=self.update_height,
-                    # on_minimize=self.update_height
-        # Window.bind(on_maximize=self.update_width,
-        #             on_restore=self.update_width,
-        #             on_minimize=self.update_width)
 
         Window.bind(on_keyboard=self.on_keyboard_handler)
         self.fixed = fixed
@@ -114,6 +98,122 @@ class MDDialogSizer(MDDialog):
     def update_height(self, *args) -> None:
         self.update_number = 0
         Clock.schedule_once(self.update_height_low)
+
+
+class LDialogControlSettingsContent(MDBoxLayout):
+
+    app = ObjectProperty(None)
+
+    labvar_name = StringProperty("None")
+    display_name = StringProperty("None")
+    icon_on = StringProperty("None")
+    icon_off = StringProperty("None")
+
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+        self.app = app
+        self.instance = None
+        self.dialog = None
+
+    def Toggle(self, tag):
+        pass
+
+    def ChangeDisplayName(self, new_name):
+        self.display_name = new_name
+        self.app.dialogControlSettings.dialog.title = f'{truncate_string(self.display_name, 20)}\n{truncate_string(self.labvar_name, 20)}'
+        self.instance.s['DISPLAY_NAME'] = self.display_name
+        self.dialog.update_height()
+
+    def ChangeLabvarName(self, new_name):
+        self.labvar_name = new_name
+        self.app.dialogControlSettings.dialog.title = f'{truncate_string(self.display_name, 20)}\n{truncate_string(self.labvar_name, 20)}'
+        self.instance.s['NAME'] = self.labvar_name
+        self.dialog.update_height()
+
+    def SetIconOn(self, icon):
+        self.icon_on = icon
+        self.instance.s['ICON_ON'] = icon
+
+    def SetIconOff(self, icon):
+        self.icon_off = icon
+        self.instance.s['ICON_OFF'] = icon
+
+    def RemoveControl(self):
+        self.instance.RemoveMe()
+        self.app.dialogControlSettings.Close()
+
+    def Rebase(self, instance, dialog):
+        self.dialog = dialog
+        self.instance = instance
+        self.labvar_name = instance.s['NAME']
+        self.display_name = instance.s['DISPLAY_NAME']
+        self.icon_on = instance.s['ICON_ON']
+        self.icon_off = instance.s['ICON_OFF']
+
+
+class LDialogControlSettings:
+
+    def __init__(self, main_app):
+        self.dialog = None
+        self.app = main_app
+        self.instance = None
+
+        self._cancel_text = 'CANCEL'
+        self._confirm_action = None
+
+    def PreCache(self):
+        self.RealOpen()
+        self.dialog.dismiss(force=True)
+
+    def RealOpen(self):
+        if not self.dialog:
+            self.dialog = MDDialogSizer(
+                app=self.app,
+                fixed=True,
+                title='title',
+                content_cls=LDialogControlSettingsContent(self.app),
+                type="custom",
+                on_pre_dismiss=self.UnselectControl,
+                buttons=[
+                    MDFlatButton(
+                        text=self._cancel_text,
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.primary_color,
+                        on_release=self.Close,
+                    )
+                ],
+            )
+            self.dialog.MAXIMUM_WIDTH = dp(400)
+        self.dialog.open()
+        self.dialog.update_height()
+        self.dialog.update_width()
+
+    def SelectControl(self, *args):
+        if self.instance:
+            # self.instance.AccentIt()
+            pass
+
+    def UnselectControl(self, *args):
+        Clock.schedule_once(self.app.layoutManager.SaveLayout, 2)
+        if self.instance:
+            # self.instance.UnAccentIt()
+            pass
+
+    # instance is control class, calling this dialog
+    def Open(self, instance):
+        self.instance = instance
+        self.SelectControl()
+        self.Rebase(instance)
+        self.RealOpen()
+
+    def Close(self, *args):
+        self.instance.UnAccentIt()
+        self.dialog.dismiss(force=True)
+
+    def Rebase(self, instance):
+        self.dialog.title = f'{truncate_string(instance.s["DISPLAY_NAME"], 20)}\n{truncate_string(instance.s["NAME"], 20)}'
+        self.dialog.content_cls.Rebase(instance, self.dialog)
+
 
 class LDialogGraphSettingsContent(MDBoxLayout):
 
@@ -384,8 +484,8 @@ class LDialogMenuContent(MDBoxLayout):
         self.dialog_class.Close()
 
     def RefreshAll(self, *args):
-        self.app.kivy_instance.RefreshAll()
         self.dialog_class.Close()
+        Clock.schedule_once(self.app.kivy_instance.RefreshAll, 0)
 
     def ToggleLog(self, *args):
         self.app.toggle_log()
@@ -574,6 +674,76 @@ class LDialogEnterString:
         self.dialog.content_cls.hint_text = self._hint_text
 
 
+class LDialogListShort:
+
+    def __init__(self, main_app, **kwargs):
+        super().__init__(**kwargs)
+        self.dialog = None
+        self.app = main_app
+        self.select_action = None
+        self.items = []
+
+    def PreCache(self):
+        self.RealOpen()
+        self.dialog.dismiss(force=True)
+
+    def RealOpen(self):
+        if not self.dialog:
+
+            self.items = []
+
+            self.dialog = MDDialogSizer(
+                app=self.app,
+                type="confirmation",
+                items=self.items,
+                buttons=[
+                    MDFlatButton(
+                        text="CANCEL",
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.primary_color,
+                        on_release=self.Close,
+                    ),
+                    MDRaisedButton(
+                        text="SELECT",
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.secondary_text_color,
+                        on_release=self.Select,
+                    ),
+                ],
+            )
+        self.dialog.update_height()
+        self.dialog.update_width()
+        self.dialog.open()
+
+    def Open(self, select_action):
+        self.select_action = select_action
+        self.RealOpen()
+
+    def Select(self, *args):
+        active_n = -1
+        active_nn = -1
+        for item in self.dialog.items:
+            active_n += 1
+            if item.ids.check.active:
+                active_nn = active_n
+                item.ids.check.active = False
+                break
+        if active_nn > -1:
+            if self.select_action:
+                self.select_action(self.items[active_nn].text)
+            self.Close()
+
+    def Close(self, *args):
+        self.select_action = None
+        self.dialog.dismiss()
+
+    def Rebase(self, *args):
+        self.items = []
+        for name in client.names:
+            self.items.append(ItemConfirm(text=name))
+        self.dialog.update_items(self.items)
+
+
 class LDialogList:
 
     def __init__(self, main_app, **kwargs):
@@ -638,34 +808,14 @@ class LDialogList:
         self.select_action = None
         self.dialog.dismiss()
 
-    def Rebase(self):
+    def Rebase(self, *args):
         self.items = []
         self.items.append(ItemConfirm(text='Новое выражение'))
+
         for name in client.names:
             self.items.append(ItemConfirm(text=name))
 
-        # self.dialog.items = self.items
         self.dialog.update_items(self.items)
-
-        # self.dialog = MDDialogSizer(
-        #     app=self.app,
-        #     type="confirmation",
-        #     items=self.items,
-        #     buttons=[
-        #         MDFlatButton(
-        #             text="CANCEL",
-        #             theme_text_color="Custom",
-        #             text_color=self.app.theme_cls.primary_color,
-        #             on_release=self.Close,
-        #         ),
-        #         MDRaisedButton(
-        #             text="SELECT",
-        #             theme_text_color="Custom",
-        #             text_color=self.app.theme_cls.secondary_text_color,
-        #             on_release=self.Select,
-        #         ),
-        #     ],
-        # )
 
 
 class ItemConfirm(OneLineAvatarIconListItem):

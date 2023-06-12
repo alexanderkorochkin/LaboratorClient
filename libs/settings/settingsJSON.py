@@ -4,6 +4,7 @@ from kivy.metrics import sp, dp
 settings_defaults = {
             'LAST_IP': "opc.tcp://192.168.1.67:4840",
             'MAX_HISTORY_VALUES': 120,
+            'DO_RECONNECTION': True, #TODO
             'MAX_RECONNECTIONS_NUMBER': 20,
             'RECONNECTION_TIME': 5,
             'GRAPHS_LAYOUT_FILE': "graphs_layout.json",
@@ -32,10 +33,8 @@ settings_defaults = {
 
 
 controls_settings_defaults = {
-            'VARIABLE': 'None',
             'NAME': 'None',
-            'MODE': 'TOGGLE',           # SWITCH (on_release action True/False) or HOLD (on_press - True, on_release - False)
-            'DEFAULT_STATE': False,
+            'DISPLAY_NAME': 'None',
             'ICON_ON': 'electric-switch-closed',
             'ICON_OFF': 'electric-switch',
             'HASH': '0',
@@ -90,6 +89,12 @@ settings_json = json.dumps([
      'section': 'MainSettings',
      'key': 'LAST_IP',
      'disabled': True},
+
+    {'type': 'bool',
+     'title': 'Переподключаться при разрыве соединения',
+     'desc': 'DO_RECONNECTION',
+     'section': 'MainSettings',
+     'key': 'DO_RECONNECTION'},
 
     {'type': 'numeric',
      'title': 'Максимальное число переподключений',

@@ -14,16 +14,23 @@ class ControlButton(BaseButton):
     doSpacing = BooleanProperty(True)
     control_state = BooleanProperty(False)
     icon_states = ListProperty(['', ''])
-    mode = StringProperty('')
-    text = StringProperty('')
+    display_name = StringProperty('None')
+    labvar_name = StringProperty('None')
 
     def __init__(self, main_app=None, settings=None, **kwargs):
         super(ControlButton, self).__init__(**kwargs)
+        self.accented = False
         self.isHolden = False
-        self.always_release = True
+        self.always_release = False
         self.main_app = main_app
+        self.doUpdate = True
+        self.isPressed = False
 
-        self.bind(control_state=self.on_control_state)
+        self.line_color = [0, 0, 0, 0]
+        self.line_width = dp(1)
+
+        self._event = None
+        self.timeout = msettings.get('KIVY_HOLD_TIME')
 
         self.bg_states = [self.main_app.theme_cls.bg_light, self.main_app.theme_cls.primary_color]
         self.text_states = [self.main_app.theme_cls.text_color, self.main_app.theme_cls.opposite_text_color]
@@ -39,6 +46,7 @@ class ControlButton(BaseButton):
             self.s['HASH'] = uuid.uuid4().hex
 
         self.s.log = True
+        self.ids.control_icon.icon = self.icon_states[0]
 
     def apply_setting(self, tag, settings):
         try:
@@ -57,50 +65,81 @@ class ControlButton(BaseButton):
             self.apply_setting(tag, settings)
 
     def Update(self, *args):
-        if self.s['VARIABLE'] != 'None':
-            value = str_to_variable(client.GetValueFromName(self.s['VARIABLE']))
-            if value == 'True' or 'False' or 'true' or 'false':
-                self.control_state = value
-            else:
-                Logger.debug(f'ControlUpdate: Variable {self.s["VARIABLE"]} is not a boolean!')
-
-    def on_control_state(self, *args):
-        new_state = args[1]
-        self.ids.control_icon.icon = self.icon_states[int(new_state)]
-        self.md_bg_color = self.bg_states[int(new_state)]
-        self.ids.control_icon.color = self.text_states[int(new_state)]
-        self.ids.control_text.color = self.text_states[int(new_state)]
-        if client.isConnected():
-            client.SetValueOnServer(self.s['VARIABLE'], new_state)
-            self.main_app.kivy_instance.UpdateControls()
+        if self.doUpdate:
+            if self.s['NAME'] != 'None':
+                value = str_to_variable(client.GetValueFromName(self.s['NAME']))
+                if value == 'True' or 'False' or 'true' or 'false':
+                    self.control_state = value
+                    self.ids.control_icon.icon = self.icon_states[int(value)]
+                    self.md_bg_color = self.bg_states[int(value)]
+                    self.ids.control_icon.color = self.text_states[int(value)]
+                    self.ids.control_text.color = self.text_states[int(value)]
+                else:
+                    Logger.debug(f'ControlUpdate: Variable {self.s["NAME"]} is not a boolean!')
 
     def on_dict(self, tag, value):
+        if tag == 'DISPLAY_NAME':
+            self.display_name = value
         if tag == 'NAME':
-            self.text = value
-        if tag == 'MODE':
-            if value == 'TOGGLE':
-                self.mode = 'Toggle'
-            elif value == 'HOLD':
-                self.mode = 'Hold'
+            self.labvar_name = value
         if tag == 'ICON_ON':
             self.icon_states[1] = value
-            self.on_control_state(self, self.control_state)
+            self.ids.control_icon.icon = self.icon_states[self.control_state]
         if tag == 'ICON_OFF':
             self.icon_states[0] = value
-            self.on_control_state(self, self.control_state)
-        if tag == 'DEFAULT_STATE':
-            self.control_state = value
+            self.ids.control_icon.icon = self.icon_states[self.control_state]
 
-    def on_press(self, *args):
-        if self.s['MODE'] == 'HOLD':
-            self.isHolden = True
-            self.control_state = not self.control_state
+    def AccentIt(self):
+        self.accented = True
+        color = self.main_app.theme_cls.primary_color
+        color[3] = 0.1
+        anim = Animation(md_bg_color=color, duration=0.1)
+        anim.start(self)
+        anim = Animation(line_color=self.main_app.theme_cls.primary_color, duration=0.1)
+        anim.start(self)
+
+    def UnAccentIt(self):
+        self.accented = False
+        anim = Animation(md_bg_color=self.main_app.theme_cls.bg_light, duration=0.1)
+        anim.start(self)
+        anim = Animation(line_color=[0, 0, 0, 0], duration=0.1)
+        anim.start(self)
+
+    def RemoveMe(self):
+        self.main_app.kivy_instance.RemoveControl(self)
+
+    def CheckCollisionName(self, labvar_name):
+        pass
+
+    def BlockUpdate(self, *args):
+        self.main_app.kivy_instance.doUpdateControls = False
+
+    def UnblockUpdate(self, *args):
+        self.main_app.kivy_instance.doUpdateControls = True
+
+    def _cancel(self):
+        if self._event:
+            self._event.cancel()
+
+    def on_press(self):
+        self.BlockUpdate()
+        self._cancel()
+        self._event = Clock.schedule_once(self.on_hold, self.timeout)
+
+    def on_touch_up(self, touch):
+        self.UnblockUpdate()
+        super().on_touch_up(touch)
+
+    def on_hold(self, *args):
+        self.isHolden = True
+        self.AccentIt()
+        self.main_app.dialogControlSettings.Open(self)
 
     def on_release(self):
-        if self.isHolden:
-            self.isHolden = False
-            self.control_state = not self.control_state
+        self._cancel()
+        if not self.isHolden:
+            # self.control_state = not self.control_state
+            client.SetValueOnServer(self.s['NAME'], str(not self.control_state))
+            self.UnblockUpdate()
         else:
-            # client.SetValueOnServer('test::TEST0', 'True')
-            if self.s['MODE'] == 'TOGGLE':
-                self.control_state = not self.control_state
+            self.isHolden = False
