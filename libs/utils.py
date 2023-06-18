@@ -1,6 +1,8 @@
 import re
 from re import split
 
+from libs.constants import *
+
 import random   # Для поддержки рандомизации в выражениях
 import math     # Для поддержки математических функций в выражениях
 
@@ -89,10 +91,6 @@ class HoldBehavior(ButtonBehavior):
 
 Factory.register('HoldBehavior', cls=HoldBehavior)
 
-K = 273.15                # Kelvin = °С + K
-c = 299792458.0           # Скорость света, м/с
-G = 299792458.0           # Гравитационная постоянная, м^3/кг*с^2
-Patm = 101325.0           # Атмосферное давление при н.у., Па
 
 IAPWS97_PARAMS = ['T', 'P', 'g', 'a', 'v', 'rho', 'h', 'u', 's', 'cp', 'cv', 'Z', 'fi', 'f', 'gamma', 'alfav', 'xkappa',
          'kappas', 'alfap', 'betap', 'joule', 'deltat', 'v0', 'u0', 'h0', 's0', 'a0', 'g0', 'cp0', 'cv0', 'w0',
@@ -132,6 +130,7 @@ def GetValueExprRecursive(client, expression: str):
         params = expression.split(',')
         f = params[0]
         params = params[1:]
+        phase = None
 
         kwargs = {"T": 0.0,
                   "P": 0.0,
@@ -142,9 +141,14 @@ def GetValueExprRecursive(client, expression: str):
                   "l": 0.5893}
         for param in params:
             param_name, param_value = param.split('=')
-            param_value = float(eval(param_value))
-            if param_name in list(kwargs.keys()):
-                kwargs[param_name] = param_value
+            if param_name == 'phase':
+                param_value = param_value.replace('\"', '')
+                param_value = param_value.replace('\'', '')
+                phase = param_value
+            else:
+                param_value = float(eval(param_value.replace('+-', '-')))
+                if param_name in list(kwargs.keys()):
+                    kwargs[param_name] = param_value
 
         substance = IAPWS97()
         substance.kwargs = IAPWS97.kwargs.copy()
@@ -154,7 +158,12 @@ def GetValueExprRecursive(client, expression: str):
             try:
                 substance.calculo()
                 substance.msg = "Solved"
-                expression = str(getattr(substance, str(f)))
+                if phase == 'Liquid':
+                    expression = str(getattr(substance.Liquid, str(f)))
+                elif phase == 'Vapor':
+                    expression = str(getattr(substance.Vapor, str(f)))
+                else:
+                    expression = str(getattr(substance, str(f)))
             except Exception:
                 return f'ERROR: Unable to evaluate the expression: {expression} with IAPWS97!'
 

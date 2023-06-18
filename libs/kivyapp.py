@@ -34,7 +34,7 @@ from libs.settings.settingsJSON import *
 from libs.opcua.opcuaclient import client
 from libs.graph import GraphBox
 from libs.dialogs import LDialogEnterString, LDialogGraphSettings, LDialogList, LDialogMenu, LDialogControlSettings, \
-    LDialogListShort
+    LDialogListShort, LDialogHelp
 from libs.layoutManager import LayoutManager
 
 Logger.setLevel(LOG_LEVELS["debug"])
@@ -236,7 +236,7 @@ class LaboratorClient(MDScreen):
         Clock.schedule_once(partial(self.AddGraphsCallbackLow, int(count)), 0.2)
 
     def AddGraphs(self, *args):
-        self.main_app.dialogTextInput.Open('int', 'Создать графики', 'CREATE', 'CANCEL', self.AddGraphsCallback, '1', 'Одновременно можно создать не более 100 шт.')
+        self.main_app.dialogTextInput.Open('int', 'Создать графики', 'CREATE', 'CANCEL', self.AddGraphsCallback, '1', 'Одновременно можно создать не более 100 шт.', help_id='add_multiple_graphs')
 
     def RemoveControlLow(self, anim, control, do_remove_control=True):
         self.ids.controls_view_port.remove_widget(control)
@@ -424,6 +424,7 @@ class KivyApp(MDApp):
         self.dialogList = None
         self.dialogListShort = None
         self.dialogMenu = None
+        self.dialogHelp = None
 
         t = Clock.create_trigger(self.d_changed)
 
@@ -533,6 +534,7 @@ class KivyApp(MDApp):
         self.dialogList = LDialogList(self)
         self.dialogListShort = LDialogListShort(self)
         self.dialogMenu = LDialogMenu(self)
+        self.dialogHelp = LDialogHelp(self)
         self.layoutManager = LayoutManager(self.kivy_instance)
 
         if self._app_settings is None:
@@ -635,7 +637,7 @@ class KivyApp(MDApp):
         return False
 
     def menu_open(self, instance):
-        self.dialogMenu.Open()
+        self.dialogMenu.Open(help_id='menu')
 
     def setEndpoint(self, string):
         self.kivy_instance.endpoint = string
@@ -650,6 +652,7 @@ class KivyApp(MDApp):
         self.dialogList.PreCache()
         self.dialogListShort.PreCache()
         self.dialogMenu.PreCache()
+        self.dialogHelp.PreCache()
 
 
 KivyApp = KivyApp()

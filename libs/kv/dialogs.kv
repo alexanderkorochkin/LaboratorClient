@@ -21,6 +21,38 @@
         max_height: dp(200)
 
 
+<LDialogHelpContent>:
+    orientation: "vertical"
+    size_hint_y: 1
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        always_overscroll: False
+        effect_cls: Factory.OpacityScrollEffectSmooth
+        size_hint_y: 1
+        MDBoxLayout:
+            id: content_cls_box
+            adaptive_height: True
+            orientation: 'vertical'
+            spacing: dp(10)
+            padding: [dp(0), dp(5), dp(0), dp(5)]
+            MDBoxLayout:
+                id: help_box
+                adaptive_height: True
+                orientation: 'vertical'
+                MDLabel:
+                    markup: True
+                    multiline: True
+                    size_hint_y: None
+                    size: self.texture_size
+                    anchor_y: 'bottom'
+                    font_size: sp(14)
+                    text: root.help_text
+                    on_ref_press:
+                        import webbrowser
+                        webbrowser.open(args[1])
+
+
 <LDialogMenuContent>:
     orientation: "vertical"
     size_hint_y: 1
@@ -79,14 +111,14 @@
                             text_color: app.theme_cls.text_color
                             line_color: app.theme_cls.primary_color
                             font_size: sp(14)
-                            on_release: app.dialogList.Open(root.SelectVariable)
+                            on_release: app.dialogList.Open(root.SelectVariable, help_id='graph_variable_choosing')
                         MDIconButton:
                             size_hint: None, 1
                             size: "48dp", "48dp"
                             icon: 'pencil' if '*' in root.labvar_name else 'content-copy'
                             theme_icon_color: "Custom"
                             icon_color: app.theme_cls.primary_color
-                            on_release: app.dialogTextInput.Open('name', 'Переименовать', 'SAVE', 'CANCEL', root.Rename, root.labvar_name[1:], 'Имя должно быть уникальным', root.instance) if '*' in root.labvar_name else app.copy(root.labvar_name)
+                            on_release: app.dialogTextInput.Open('name', 'Переименовать', 'SAVE', 'CANCEL', root.Rename, root.labvar_name[1:], 'Имя должно быть уникальным', root.instance, help_id='graph_rename_variable') if '*' in root.labvar_name else app.copy(root.labvar_name)
                     MDBoxLayout:
                         id: expression_settings
                         orientation: "vertical"
@@ -109,7 +141,7 @@
                                 line_color: app.theme_cls.primary_color
                                 font_size: sp(14)
                                 disabled: False if '*' in root.labvar_name else True
-                                on_release: app.dialogTextInput.Open('string', 'Изменение выражения', 'SAVE', 'CANCEL', root.SetExpression, root.expression, '')
+                                on_release: app.dialogTextInput.Open('string', 'Изменение выражения', 'SAVE', 'CANCEL', root.SetExpression, root.expression, '', help_id='graph_expression')
                 MDBoxLayout:
                     id: mode_dependent_settings
                     orientation: 'vertical'
@@ -146,7 +178,7 @@
                                 text_color: app.theme_cls.text_color
                                 font_size: sp(14)
                                 disabled: False if root.mode == 'SPECTRAL' else True
-                                on_release: app.dialogTextInput.Open('sint', 'Размер спектрального буфера', 'SAVE', 'CANCEL', root.SetSpectralBufferSize, str(root.spectral_buffer_size), 'Желательно число кратное степени двойки')
+                                on_release: app.dialogTextInput.Open('sint', 'Размер спектрального буфера', 'SAVE', 'CANCEL', root.SetSpectralBufferSize, str(root.spectral_buffer_size), 'Желательно число кратное степени двойки', help_id='graph_spectral_buffer_size')
                     MDBoxLayout:
                         id: mode_normal
                         opacity: 1 if root.mode == 'NORMAL' else 0
@@ -265,7 +297,7 @@
                                     text_color: app.theme_cls.text_color
                                     disabled: False if root.show_target_value and root.mode == 'NORMAL' else True
                                     font_size: sp(14)
-                                    on_release: app.dialogTextInput.Open('sfloat', 'Целевое значение', 'SAVE', 'CANCEL', root.SetTargetValue, str(root.target_value), '')
+                                    on_release: app.dialogTextInput.Open('sfloat', 'Целевое значение', 'SAVE', 'CANCEL', root.SetTargetValue, str(root.target_value), '', help_id='graph_target_value')
                             MDBoxLayout:
                                 id: avg_number
                                 orientation: "horizontal"
@@ -279,7 +311,7 @@
                                     text_color: app.theme_cls.text_color
                                     font_size: sp(14)
                                     disabled: False if root.mode == 'NORMAL' else True
-                                    on_release: app.dialogTextInput.Open('sint', 'Размер буфера среднего', 'SAVE', 'CANCEL', root.SetAVGBufferSize, str(root.avg_buffer_size), '')
+                                    on_release: app.dialogTextInput.Open('sint', 'Размер буфера среднего', 'SAVE', 'CANCEL', root.SetAVGBufferSize, str(root.avg_buffer_size), '', help_id='graph_avg_buffer_size')
                 MDFlatButton:
                     text: "Знаков после запятой: " + str(root.graph_round_digits)
                     size_hint_x: 1
@@ -287,7 +319,7 @@
                     theme_text_color: "Custom"
                     text_color: app.theme_cls.text_color
                     font_size: sp(14)
-                    on_release: app.dialogTextInput.Open('sint', 'Число знаков после запятой', 'SAVE', 'CANCEL', root.SetPrecision, str(root.graph_round_digits), '')
+                    on_release: app.dialogTextInput.Open('sint', 'Число знаков после запятой', 'SAVE', 'CANCEL', root.SetPrecision, str(root.graph_round_digits), '', help_id='graph_precision')
                 MDBoxLayout:
                     id: axes_settings
                     orientation: "horizontal"
@@ -371,7 +403,7 @@
                             text_color: app.theme_cls.text_color
                             line_color: app.theme_cls.primary_color
                             font_size: sp(14)
-                            on_release: app.dialogListShort.Open(root.ChangeLabvarName)
+                            on_release: app.dialogListShort.Open(root.ChangeLabvarName, help_id='control_variable_choosing')
                     MDBoxLayout:
                         id: display_name_settings
                         orientation: "vertical"
@@ -392,7 +424,7 @@
                                 text_color: app.theme_cls.text_color
                                 line_color: app.theme_cls.primary_color
                                 font_size: sp(14)
-                                on_release: app.dialogTextInput.Open('string', 'Название кнопки', 'SAVE', 'CANCEL', root.ChangeDisplayName, str(root.display_name), '')
+                                on_release: app.dialogTextInput.Open('string', 'Название кнопки', 'SAVE', 'CANCEL', root.ChangeDisplayName, str(root.display_name), '', help_id='control_name')
                     MDBoxLayout:
                         id: icon_on_settings
                         orientation: "horizontal"
@@ -400,7 +432,7 @@
                         adaptive_height: True
                         padding: [0, dp(10), 0, 0]
                         MDIconButton:
-                            on_release: app.dialogTextInput.Open('string', 'Иконка [ON]', 'SAVE', 'CANCEL', root.SetIconOn, str(root.icon_on), 'More on https://pictogrammers.com/library/mdi/')
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [ON]', 'SAVE', 'CANCEL', root.SetIconOn, str(root.icon_on), 'More on https://pictogrammers.com/library/mdi/', help_id='control_icon_on')
                             size_hint: None, 1
                             size: "48dp", "48dp"
                             icon: root.icon_on
@@ -413,7 +445,7 @@
                             theme_text_color: "Custom"
                             text_color: app.theme_cls.text_color
                             font_size: sp(14)
-                            on_release: app.dialogTextInput.Open('string', 'Иконка [ON]', 'SAVE', 'CANCEL', root.SetIconOn, str(root.icon_on), 'More on https://pictogrammers.com/library/mdi/')
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [ON]', 'SAVE', 'CANCEL', root.SetIconOn, str(root.icon_on), 'More on https://pictogrammers.com/library/mdi/', help_id='control_icon_on')
                     MDBoxLayout:
                         id: icon_off_settings
                         orientation: "horizontal"
@@ -421,7 +453,7 @@
                         padding: [0, 0, 0, dp(10)]
                         adaptive_height: True
                         MDIconButton:
-                            on_release: app.dialogTextInput.Open('string', 'Иконка [OFF]', 'SAVE', 'CANCEL', root.SetIconOff, str(root.icon_off), 'More on https://pictogrammers.com/library/mdi/')
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [OFF]', 'SAVE', 'CANCEL', root.SetIconOff, str(root.icon_off), 'More on https://pictogrammers.com/library/mdi/', help_id='control_icon_off')
                             size_hint: None, 1
                             size: "48dp", "48dp"
                             icon: root.icon_off
@@ -434,7 +466,7 @@
                             theme_text_color: "Custom"
                             text_color: app.theme_cls.text_color
                             font_size: sp(14)
-                            on_release: app.dialogTextInput.Open('string', 'Иконка [OFF]', 'SAVE', 'CANCEL', root.SetIconOff, str(root.icon_off), 'More on https://pictogrammers.com/library/mdi/')
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [OFF]', 'SAVE', 'CANCEL', root.SetIconOff, str(root.icon_off), 'More on https://pictogrammers.com/library/mdi/', help_id='control_icon_off')
                     MDFlatButton:
                         id: delete_control
                         text: "Удалить кнопку"

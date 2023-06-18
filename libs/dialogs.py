@@ -1,11 +1,14 @@
 from kivy.clock import Clock
-from kivymd.uix.button import MDFlatButton, MDRaisedButton
+from kivymd.uix.anchorlayout import MDAnchorLayout
+from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDIconButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
 
 from kivy.core.window import Window
 
 from kivy.properties import StringProperty, BooleanProperty, NumericProperty, ObjectProperty, OptionProperty
+from kivymd.uix.floatlayout import MDFloatLayout
+from kivymd.uix.label import MDLabel
 from kivymd.uix.list.list import OneLineAvatarIconListItem, BaseListItem, OneLineIconListItem
 
 from kivy.utils import get_hex_from_color
@@ -14,14 +17,16 @@ from kivymd.uix.textfield import MDTextField
 from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
 from libs.utils import keycodes, truncate_string
+from libs.helping import helping
 
 
 class MDDialogSizer(MDDialog):
 
-    def __init__(self, app, key_handler=None, fixed=False, height_compensation=0., **kwargs):
+    def __init__(self, app, key_handler=None, fixed=False, height_compensation=0., no_help=False, **kwargs):
         super().__init__(**kwargs)
         self.key_handler = key_handler
         self.isOpen = False
+        self.help_id = None
         Window.bind(
             on_maximize=self.update_size,
             on_restore=self.update_size,
@@ -36,6 +41,24 @@ class MDDialogSizer(MDDialog):
         self.MAXIMUM_WIDTH = dp(500)
         self.DIALOG_MINIMUM_HEIGHT_VERTICAL = msettings.get('DIALOG_MINIMUM_HEIGHT_VERTICAL')
         self.DIALOG_MAXIMUM_HEIGHT_HORIZONTAL = msettings.get('DIALOG_MAXIMUM_HEIGHT_HORIZONTAL')
+
+
+        if not no_help:
+            self.add_widget(
+                MDAnchorLayout(
+                    MDIconButton(
+                        icon='help-circle-outline',
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.accent_color,
+                        on_release=self.Help,
+                    ),
+                    anchor_x = 'right',
+                    anchor_y = 'top',
+                )
+            )
+
+    def Help(self, *args):
+        self.app.dialogHelp.Open(self.help_id)
 
     def on_keyboard_handler(self, _window, key, *_args):
         if self.key_handler:
@@ -93,7 +116,6 @@ class MDDialogSizer(MDDialog):
         else:
             self.update_number = self.update_number + 1
             Clock.schedule_once(self.update_height_low)
-
 
     def update_height(self, *args) -> None:
         self.update_number = 0
@@ -200,7 +222,8 @@ class LDialogControlSettings:
             pass
 
     # instance is control class, calling this dialog
-    def Open(self, instance):
+    def Open(self, instance, help_id=None):
+        self.dialog.help_id = help_id
         self.instance = instance
         self.SelectControl()
         self.Rebase(instance)
@@ -279,7 +302,7 @@ class LDialogGraphSettingsContent(MDBoxLayout):
 
     def SelectVariable(self, name):
         if name == 'Новое выражение':
-            self.app.dialogTextInput.Open('name', 'Название переменной', 'SAVE', 'CANCEL', self.Rename, '', 'Имя должно быть уникальным', self.instance)
+            self.app.dialogTextInput.Open('name', 'Название переменной', 'SAVE', 'CANCEL', self.Rename, '', 'Имя должно быть уникальным', self.instance, help_id='graph_new_indirect_variable_naming')
         else:
             self.ChangeDirectName(name)
 
@@ -394,7 +417,8 @@ class LDialogGraphSettings:
             self.instance.UnAccentIt()
 
     # instance is graph class, calling this dialog
-    def Open(self, instance):
+    def Open(self, instance, help_id=None):
+        self.dialog.help_id = help_id
         self.instance = instance
         self.SelectGraph()
         self.Rebase(instance)
@@ -536,7 +560,8 @@ class LDialogMenu:
         self.dialog.update_height()
         self.dialog.update_width()
 
-    def Open(self):
+    def Open(self, help_id=None):
+        self.dialog.help_id = help_id
         self.RealOpen()
 
     def Close(self, *args):
@@ -586,7 +611,7 @@ class LDialogEnterString:
                     MDRaisedButton(
                         text=self._confirm_text,
                         on_release=self.Confirm,
-                    ),
+                    )
                 ]
             )
             self.dialog.MAXIMUM_WIDTH = dp(400)
@@ -594,7 +619,8 @@ class LDialogEnterString:
         self.dialog.isOpen = True
         self.dialog.open()
 
-    def Open(self, mytype, title, confirm_text, cancel_text, confirm_action, text, hint_text, instance=None):
+    def Open(self, mytype, title, confirm_text, cancel_text, confirm_action, text, hint_text, instance=None, help_id=None):
+        self.dialog.help_id = help_id
         changed = False
         if instance and mytype == 'name':
             self.instance = instance
@@ -715,7 +741,8 @@ class LDialogListShort:
         self.dialog.update_width()
         self.dialog.open()
 
-    def Open(self, select_action):
+    def Open(self, select_action, help_id=None):
+        self.dialog.help_id = help_id
         self.select_action = select_action
         self.RealOpen()
 
@@ -786,7 +813,8 @@ class LDialogList:
         self.dialog.update_width()
         self.dialog.open()
 
-    def Open(self, select_action):
+    def Open(self, select_action, help_id=None):
+        self.dialog.help_id = help_id
         self.select_action = select_action
         self.RealOpen()
 
@@ -816,6 +844,68 @@ class LDialogList:
             self.items.append(ItemConfirm(text=name))
 
         self.dialog.update_items(self.items)
+
+
+class LDialogHelpContent(MDBoxLayout):
+
+    app = ObjectProperty(None)
+    help_text = StringProperty('')
+
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+        self.app = app
+
+
+class LDialogHelp:
+
+    def __init__(self, main_app, **kwargs):
+        super().__init__(**kwargs)
+        self.dialog = None
+        self.app = main_app
+        self.help_id = None
+
+    def PreCache(self):
+        self.RealOpen()
+        self.dialog.dismiss(force=True)
+
+    def RealOpen(self):
+        if not self.dialog:
+            self.dialog = MDDialogSizer(
+                app=self.app,
+                fixed=True,
+                title='title',
+                content_cls=LDialogHelpContent(self.app),
+                type="custom",
+                no_help=True,
+                buttons=[
+                    MDFlatButton(
+                        text="CLOSE",
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.primary_color,
+                        on_release=self.Close,
+                    )
+                ]
+            )
+            self.dialog.DIALOG_MINIMUM_HEIGHT_VERTICAL = dp(800)
+        self.dialog.open()
+        self.dialog.update_height()
+        self.dialog.update_width()
+
+    def Open(self, help_id=None):
+        self.help_id = help_id
+        self.Rebase()
+        self.RealOpen()
+
+    def Close(self, *args):
+        self.dialog.dismiss()
+
+    def Rebase(self, *args):
+        if self.help_id in helping.keys():
+            self.dialog.title = helping[self.help_id]['title']
+            self.dialog.content_cls.help_text = helping[self.help_id]['text']
+        else:
+            self.dialog.title = self.help_id
+            self.dialog.content_cls.help_text = self.help_id
 
 
 class ItemConfirm(OneLineAvatarIconListItem):

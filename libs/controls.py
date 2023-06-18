@@ -68,7 +68,7 @@ class ControlButton(BaseButton):
         if self.doUpdate:
             if self.s['NAME'] != 'None':
                 value = str_to_variable(client.GetValueFromName(self.s['NAME']))
-                if value == 'True' or 'False' or 'true' or 'false':
+                if isinstance(value, bool):
                     self.control_state = value
                     self.ids.control_icon.icon = self.icon_states[int(value)]
                     self.md_bg_color = self.bg_states[int(value)]
@@ -76,6 +76,11 @@ class ControlButton(BaseButton):
                     self.ids.control_text.color = self.text_states[int(value)]
                 else:
                     Logger.debug(f'ControlUpdate: Variable {self.s["NAME"]} is not a boolean!')
+                    self.control_state = True
+                    self.ids.control_icon.icon = 'alert-circle-outline'
+                    self.md_bg_color = [0.8, 0, 0, 0.8]
+                    self.ids.control_icon.color = self.text_states[1]
+                    self.ids.control_text.color = self.text_states[1]
 
     def on_dict(self, tag, value):
         if tag == 'DISPLAY_NAME':
@@ -133,7 +138,7 @@ class ControlButton(BaseButton):
     def on_hold(self, *args):
         self.isHolden = True
         self.AccentIt()
-        self.main_app.dialogControlSettings.Open(self)
+        self.main_app.dialogControlSettings.Open(self, help_id='control_settings')
 
     def on_release(self):
         self._cancel()

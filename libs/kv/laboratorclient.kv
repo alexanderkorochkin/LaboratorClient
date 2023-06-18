@@ -140,7 +140,7 @@
                         theme_icon_color: "Custom"
                         icon_color: app.theme_cls.primary_color
                         pos_hint: {"center_x": .5, "center_y": .5} if root.show_menu else {"center_x": 0.5 - 0.5 * (app.d_ori == 'horizontal'), "center_y": 0.5 + 0.5 * (app.d_ori == 'vertical')}
-                        on_release: app.dialogTextInput.Open('string', 'Endpoint URL', 'SAVE', 'CANCEL', app.setEndpoint, app.kivy_instance.endpoint, 'opc.tcp://IP:PORT')
+                        on_release: app.dialogTextInput.Open('string', 'Endpoint URL', 'SAVE', 'CANCEL', app.setEndpoint, app.kivy_instance.endpoint, 'opc.tcp://IP:PORT', help_id='endpoint')
                     MDIconButton:
                         id: btn_connect
                         icon: "play"
