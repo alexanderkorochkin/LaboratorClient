@@ -115,6 +115,7 @@ class IndirectVariable:
 
 def FFTGraph(samplerate: int, values: list, top: int):
 
+
     SAMPLE_RATE = samplerate
     N = SAMPLE_RATE
     TIME_STEP = 1 / SAMPLE_RATE

@@ -137,11 +137,7 @@
 
 <-SettingsPanel>:
     spacing: 5
-    padding: [dp((Window.width - Window.height) / 2) + dp(5), dp(5), dp((Window.width - Window.height) / 2) + dp(5), dp(5)] if Window.width > Window.height else [dp(5), dp(5), dp(5), dp(5)]
-#    size_hint_x: None
-#    width: min(Window.width, dp(1080))
-#    pos_hint_x: None
-#    x: dp(100)
+    padding: [dp(5) + dp(Window.width - 1080) / 2, dp(5), dp(5) + dp(Window.width - 1080) / 2, dp(5)] if Window.width > 1080 else [dp(5), dp(5), dp(5), dp(5)]
     size_hint_y: None
     height: self.minimum_height
 
@@ -153,13 +149,6 @@
         height: max(50, self.texture_size[1] + 20)
         color: app.theme_cls.text_color
         font_size: '20sp'
-
-#        canvas.after:
-#            Color:
-#                rgb: app.theme_cls.bg_normal
-#            Rectangle:
-#                pos: self.x, self.y - 2
-#                size: self.width, 1
 
 <-Settings>:
     orientation: 'horizontal'

@@ -1,2 +1,3 @@
-{"NAME": "test::TEST0", "DISPLAY_NAME": "TESTING BUTTON", "ICON_ON": "electric-switch-closed", "ICON_OFF": "electric-switch", "HASH": "860649c980b14cc99e0ff9a0eda0d053"}
-{"NAME": "test::TEST1", "DISPLAY_NAME": "TTTTTEST", "ICON_ON": "electric-switch-closed", "ICON_OFF": "electric-switch", "HASH": "2acdfec0381c4dfeba8949a8e27f9a3f"}
+{"NAME": "None", "DISPLAY_NAME": "None", "ICON_ON": "electric-switch-closed", "ICON_OFF": "electric-switch", "HASH": "f0690d0b8e584f768b2608ca28cda4db"}
+{"NAME": "None", "DISPLAY_NAME": "None", "ICON_ON": "electric-switch-closed", "ICON_OFF": "electric-switch", "HASH": "19e49ed4ae2d4bcf8295a7428aa469c3"}
+{"NAME": "test::TEST0", "DISPLAY_NAME": "FFFFF", "ICON_ON": "electric-switch-closed", "ICON_OFF": "electric-switch", "HASH": "0fcc0f5bfceb4033a949fd5cc884b37b"}

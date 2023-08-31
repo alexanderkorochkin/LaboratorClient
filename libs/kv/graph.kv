@@ -6,22 +6,31 @@
 <HoldMDButton@HoldBehavior+MDFlatButton>:
 
 
-<MDIconButtonRectangleMy@ButtonBehavior+MDIcon>
-
-
-<RPoint>:
-    canvas:
+<MDIconButtonRectangleMy@ButtonBehavior+MDTooltip+MDIcon>
+    ttext: ''
+    tooltip_display_delay: app.tooltip_show_delay
+    tooltip_bg_color: app.theme_cls.primary_color
+    tooltip_text: self.ttext if not self.disabled else ''
+    hover_bg: 1, 1, 1, 0
+    hr: 999
+    disable_hover: False
+    canvas.after:
         Color:
-            rgba: root.color
+            rgba: self.hover_bg
         RoundedRectangle:
-            radius: [self.size[0] / 2, ]
             size: self.size
-            pos: [self.pos[0] - self.size[0] / 2, self.pos[1] + self.size[0] / 2 + dp(2)]
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, (0.08 * int(not self.disabled) * int(not self.disable_hover))
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
 
 
 <GraphBox>:
-    MDCard:
+    HoverMDCard:
         id: mdcard_id
+        hr: app.main_radius
         md_bg_color: app.theme_cls.bg_light
         line_color: [0, 0, 0, 0]
         line_width: dp(1)
@@ -31,7 +40,6 @@
                 MDAnchorLayout:
                     id: garden_graph_placer
                     padding: 0, dp(5) + dp(35), dp(5), dp(5) * 2
-
             MDRelativeLayout:
                 MDAnchorLayout:
                     anchor_x: "right"
@@ -74,17 +82,6 @@
                 MDAnchorLayout:
                     anchor_x: "left"
                     anchor_y: "top"
-                    padding: [dp(5) * 2, dp(5) * 2 + dp(2), dp(5) * 2, dp(5) * 2]
-                    MDIconButtonRectangleMy:
-                        id: graph_settings_button
-                        icon: "cog-outline"
-                        color: app.theme_cls.accent_color
-#                        pos_hint: {"center_x": .5, "center_y": .5}
-                        on_release:
-                            app.dialogGraphSettings.Open(root, help_id='graph_settings')
-                MDAnchorLayout:
-                    anchor_x: "left"
-                    anchor_y: "top"
                     padding: dp(5) * 2 + dp(30), dp(5) * 2 - dp(6), dp(5) * 2, dp(5) * 2
                     MDLabel:
                         id: graph_name
@@ -104,4 +101,17 @@
                         markup: True
                         size_hint_y: None
                         size: [self.size[0], self.texture_size[1]]
-
+                MDAnchorLayout:
+                    anchor_x: "left"
+                    anchor_y: "top"
+                    padding: [dp(5) * 2, dp(5) * 2 + dp(2), dp(5) * 2, dp(5) * 2]
+                    MDIconButtonRectangleMy:
+                        id: graph_settings_button
+                        disable_hover: True
+                        tooltip_bg_color: (1, 1, 1, 1)
+                        ttext: 'Настроить'
+                        icon: "cog-outline"
+                        color: app.theme_cls.accent_color
+#                        pos_hint: {"center_x": .5, "center_y": .5}
+                        on_release:
+                            app.dialogGraphSettings.Open(root, help_id='graph_settings')

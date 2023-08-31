@@ -1,6 +1,9 @@
 #:import truncate_string libs.utils.truncate_string
 
 <ControlButton>:
+    tooltip_text: 'Для настройки удерживайте'
+    tooltip_display_delay: app.tooltip_show_delay_slow
+    shift_y: dp(64)
     md_bg_color: app.theme_cls.bg_light
     ripple_canvas_after: True
     ripple_duration_in_fast: 0.5
@@ -10,8 +13,9 @@
     height: dp(40)
     width: control_text.texture_size[0] + control_icon.font_size + dp(27)
     padding: dp(0), dp(0), dp(0), dp(0)
-    MDBoxLayout:
+    HoverMDBoxLayout:
         id: control_box
+        hr: app.main_radius
         padding: dp(9), dp(5), dp(5), dp(5)
         spacing: dp(7)
         orientation: 'horizontal'

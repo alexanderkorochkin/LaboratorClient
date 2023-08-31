@@ -1,5 +1,6 @@
 from kivy.clock import Clock
 from kivymd.uix.anchorlayout import MDAnchorLayout
+from kivymd.uix.behaviors import HoverBehavior
 from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDIconButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -13,20 +14,32 @@ from kivymd.uix.list.list import OneLineAvatarIconListItem, BaseListItem, OneLin
 
 from kivy.utils import get_hex_from_color
 from kivymd.uix.textfield import MDTextField
+from kivymd.uix.tooltip import MDTooltip
 
+from libs.utils import HoverMDFlatButton, HoverMDRaisedButton
 from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
 from libs.utils import keycodes, truncate_string
 from libs.helping import helping
 
 
+class HelpTooltipMDIconButton(MDIconButton, MDTooltip):
+
+    def __init__(self, app, **kwargs):
+        super().__init__(**kwargs)
+        self.app = app
+        self.tooltip_display_delay = self.app.tooltip_show_delay
+
+
 class MDDialogSizer(MDDialog):
+
+    help_id = StringProperty(None)
 
     def __init__(self, app, key_handler=None, fixed=False, height_compensation=0., no_help=False, **kwargs):
         super().__init__(**kwargs)
         self.key_handler = key_handler
         self.isOpen = False
-        self.help_id = None
+        self.bind(help_id=self.on_help_id)
         Window.bind(
             on_maximize=self.update_size,
             on_restore=self.update_size,
@@ -42,20 +55,25 @@ class MDDialogSizer(MDDialog):
         self.DIALOG_MINIMUM_HEIGHT_VERTICAL = msettings.get('DIALOG_MINIMUM_HEIGHT_VERTICAL')
         self.DIALOG_MAXIMUM_HEIGHT_HORIZONTAL = msettings.get('DIALOG_MAXIMUM_HEIGHT_HORIZONTAL')
 
+        self.help_button = MDAnchorLayout(
+                                HelpTooltipMDIconButton(
+                                    self.app,
+                                    tooltip_text='Справка',
+                                    icon='help-circle-outline',
+                                    theme_text_color="Custom",
+                                    text_color=self.app.theme_cls.accent_color,
+                                    on_release=self.Help,
+                                ),
+                                anchor_x = 'right',
+                                anchor_y = 'top',
+                        )
 
         if not no_help:
-            self.add_widget(
-                MDAnchorLayout(
-                    MDIconButton(
-                        icon='help-circle-outline',
-                        theme_text_color="Custom",
-                        text_color=self.app.theme_cls.accent_color,
-                        on_release=self.Help,
-                    ),
-                    anchor_x = 'right',
-                    anchor_y = 'top',
-                )
-            )
+            self.add_widget(self.help_button)
+
+    def on_help_id(self, *args):
+        self.help_button.children[0].disabled = helping[self.help_id]['disabled']
+        self.help_button.children[0].opacity = int(not helping[self.help_id]['disabled'])
 
     def Help(self, *args):
         self.app.dialogHelp.Open(self.help_id)
@@ -197,7 +215,7 @@ class LDialogControlSettings:
                 type="custom",
                 on_pre_dismiss=self.UnselectControl,
                 buttons=[
-                    MDFlatButton(
+                    HoverMDFlatButton(
                         text=self._cancel_text,
                         theme_text_color="Custom",
                         text_color=self.app.theme_cls.primary_color,
@@ -394,7 +412,7 @@ class LDialogGraphSettings:
                 type="custom",
                 on_pre_dismiss=self.UnselectGraph,
                 buttons=[
-                    MDFlatButton(
+                    HoverMDFlatButton(
                         text=self._cancel_text,
                         theme_text_color="Custom",
                         text_color=self.app.theme_cls.primary_color,
@@ -432,7 +450,7 @@ class LDialogGraphSettings:
         self.dialog.content_cls.Rebase(instance, self.dialog)
 
 
-class Item(OneLineIconListItem):
+class Item(OneLineIconListItem, HoverBehavior):
     left_icon = StringProperty()
 
 
@@ -448,49 +466,64 @@ class LDialogMenuContent(MDBoxLayout):
                 height=dp(48),
                 left_icon='plus-box',
                 font_style='Body1',
-                on_release=self.AddGraph
+                on_release=self.AddGraph,
+                divider=None
             ),
             Item(
                 text='Добавить несколько графиков',
                 height=dp(48),
                 left_icon='plus-box-multiple',
                 font_style='Body1',
-                on_release=self.AddGraphs
+                on_release=self.AddGraphs,
+                divider = None
             ),
             Item(
                 text='Добавить кнопку',
                 height=dp(48),
                 left_icon='card-plus',
                 font_style='Body1',
-                on_release=self.AddControl
+                on_release=self.AddControl,
+                divider=None
             ),
             Item(
                 text='Обновить графики',
                 height=dp(48),
                 left_icon='refresh',
                 font_style='Body1',
-                on_release=self.RefreshAll
+                on_release=self.RefreshAll,
+                divider=None
             ),
             Item(
                 text='Показать лог',
                 height=dp(48),
                 left_icon='math-log',
                 font_style='Body1',
-                on_release=self.ToggleLog
+                on_release=self.ToggleLog,
+                divider=None
             ),
             Item(
                 text='Скрывать кнопки' if self.app.kivy_instance.show_controls_menu else 'Показывать кнопки',
                 height=dp(48),
                 left_icon='ticket',
                 font_style='Body1',
-                on_release=self.ToggleControls
+                on_release=self.ToggleControls,
+                divider=None
             ),
             Item(
                 text='Настройки',
                 height=dp(48),
                 left_icon='cog-outline',
                 font_style='Body1',
-                on_release=self.OpenSettings
+                on_release=self.OpenSettings,
+                divider=None
+            ),
+            Item(
+                text='Справка',
+                height=dp(48),
+                left_icon='help-circle-outline',
+                font_style='Body1',
+                on_release=self.OpenHelp,
+                divider=None
             )
         ]
 
@@ -525,6 +558,10 @@ class LDialogMenuContent(MDBoxLayout):
         self.app.open_settings()
         self.dialog_class.Close()
 
+    def OpenHelp(self, *args):
+        self.app.dialogHelp.Open('main_help')
+        self.dialog_class.Close()
+
     def Rebase(self):
         for item in self.items:
             self.ids.items_box.add_widget(item)
@@ -548,10 +585,10 @@ class LDialogMenu:
                 app=self.app,
                 type="custom",
                 content_cls=LDialogMenuContent(self.app, self),
-                fixed=True,
+                fixed=True
             )
             self.dialog.content_cls.Rebase()
-            self.dialog.ids.container.padding = ["24dp", "0dp", "8dp", "0dp"]
+            self.dialog.ids.container.padding = ["8dp", "-20dp", "-8dp", "-22dp"]
             self.dialog.remove_widget(self.dialog.ids.title)
             self.dialog.remove_widget(self.dialog.ids.text)
             self.dialog.remove_widget(self.dialog.ids.scroll)
@@ -602,13 +639,16 @@ class LDialogEnterString:
                 content_cls=MDTextField(text=self._text, hint_text=self._hint_text),
                 type="custom",
                 buttons=[
-                    MDFlatButton(
+                    HoverMDFlatButton(
                         text=self._cancel_text,
                         theme_text_color="Custom",
                         text_color=self.app.theme_cls.primary_color,
                         on_release=self.Close,
                     ),
-                    MDRaisedButton(
+                    HoverMDFlatButton(
+                        new_bg_color=self.app.theme_cls.primary_color,
+                        theme_text_color="Custom",
+                        text_color=self.app.theme_cls.bg_darkest,
                         text=self._confirm_text,
                         on_release=self.Confirm,
                     )
@@ -723,20 +763,23 @@ class LDialogListShort:
                 type="confirmation",
                 items=self.items,
                 buttons=[
-                    MDFlatButton(
+                    HoverMDFlatButton(
                         text="CANCEL",
                         theme_text_color="Custom",
                         text_color=self.app.theme_cls.primary_color,
                         on_release=self.Close,
                     ),
-                    MDRaisedButton(
+                    HoverMDFlatButton(
+                        new_bg_color=self.app.theme_cls.primary_color,
                         text="SELECT",
                         theme_text_color="Custom",
-                        text_color=self.app.theme_cls.secondary_text_color,
+                        text_color=self.app.theme_cls.bg_darkest,
                         on_release=self.Select,
                     ),
                 ],
             )
+            self.dialog.ids.spacer_top_box.remove_widget(self.dialog.ids.spacer_top_box.children[0])
+            self.dialog.ids.spacer_bottom_box.remove_widget(self.dialog.ids.spacer_bottom_box.children[0])
         self.dialog.update_height()
         self.dialog.update_width()
         self.dialog.open()
@@ -795,20 +838,23 @@ class LDialogList:
                 type="confirmation",
                 items=self.items,
                 buttons=[
-                    MDFlatButton(
+                    HoverMDFlatButton(
                         text="CANCEL",
                         theme_text_color="Custom",
                         text_color=self.app.theme_cls.primary_color,
                         on_release=self.Close,
                     ),
-                    MDRaisedButton(
+                    HoverMDFlatButton(
+                        new_bg_color=self.app.theme_cls.primary_color,
                         text="SELECT",
                         theme_text_color="Custom",
-                        text_color=self.app.theme_cls.secondary_text_color,
+                        text_color=self.app.theme_cls.bg_darkest,
                         on_release=self.Select,
                     ),
                 ],
             )
+            self.dialog.ids.spacer_top_box.remove_widget(self.dialog.ids.spacer_top_box.children[0])
+            self.dialog.ids.spacer_bottom_box.remove_widget(self.dialog.ids.spacer_bottom_box.children[0])
         self.dialog.update_height()
         self.dialog.update_width()
         self.dialog.open()
@@ -863,6 +909,7 @@ class LDialogHelp:
         self.dialog = None
         self.app = main_app
         self.help_id = None
+        self.isDisabled = False
 
     def PreCache(self):
         self.RealOpen()
@@ -878,7 +925,7 @@ class LDialogHelp:
                 type="custom",
                 no_help=True,
                 buttons=[
-                    MDFlatButton(
+                    HoverMDFlatButton(
                         text="CLOSE",
                         theme_text_color="Custom",
                         text_color=self.app.theme_cls.primary_color,
@@ -894,16 +941,23 @@ class LDialogHelp:
     def Open(self, help_id=None):
         self.help_id = help_id
         self.Rebase()
-        self.RealOpen()
+        if not self.isDisabled:
+            self.RealOpen()
+        else:
+            self.isDisabled = False
 
     def Close(self, *args):
         self.dialog.dismiss()
 
     def Rebase(self, *args):
         if self.help_id in helping.keys():
-            self.dialog.title = helping[self.help_id]['title']
-            self.dialog.content_cls.help_text = helping[self.help_id]['text']
+            if 'disabled' in helping[self.help_id].keys() and helping[self.help_id]['disabled']:
+                self.isDisabled = True
+            else:
+                self.dialog.title = helping[self.help_id]['title']
+                self.dialog.content_cls.help_text = helping[self.help_id]['text']
         else:
+            self.isDisabled = True
             self.dialog.title = self.help_id
             self.dialog.content_cls.help_text = self.help_id
 

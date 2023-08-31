@@ -111,12 +111,12 @@ settings_json = json.dumps([
     {'type': 'title',
      'title': 'Настройки интерфейса'},
 
-    {'type': 'options',
-     'title': 'Тема клиента',
-     'desc': 'Выберите между светлой или темной',
-     'section': 'MainSettings',
-     'key': 'THEME',
-     'options': ['Dark', 'Light']},
+    # {'type': 'options',
+    #  'title': 'Тема клиента',
+    #  'desc': 'Выберите между светлой или темной',
+    #  'section': 'MainSettings',
+    #  'key': 'THEME',
+    #  'options': ['Dark', 'Light']},
 
     {'type': 'numeric',
      'title': 'Количество точек по оси X (также число точек для подсчета среднего)',

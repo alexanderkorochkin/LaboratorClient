@@ -196,6 +196,7 @@ from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty, StringProperty, ListProperty, \
     BooleanProperty, NumericProperty, DictProperty
 from kivymd.app import MDApp
+from kivymd.uix.anchorlayout import MDAnchorLayout
 from kivymd.uix.behaviors.toggle_behavior import MDToggleButton
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDRoundFlatButton, MDRectangleFlatButton
@@ -204,6 +205,7 @@ from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.gridlayout import MDGridLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
+from libs.utils import HoverMDIconButton, HoverMDFlatButton, HoverMDRaisedButton, HoverMDBoxLayout
 
 
 class SettingSpacer(Widget):
@@ -420,12 +422,12 @@ class SettingString(SettingItem):
             type="custom",
             content_cls=content,
             buttons=[
-                MDFlatButton(
+                HoverMDFlatButton(
                     text="CANCEL",
                     on_release=self._dismiss,
                     theme_text_color="Custom",
                     ),
-                MDFlatButton(
+                HoverMDFlatButton(
                     text="OK",
                     on_release=self._validate,
                     theme_text_color="Custom",
@@ -619,7 +621,7 @@ class SettingNumeric(SettingString):
             return
 
 
-class MDToggleFlatButton(MDFlatButton, MDToggleButton):
+class MDToggleFlatButton(HoverMDFlatButton, MDToggleButton):
     def __init__(self, *args, **kwargs):
         super(MDFlatButton, self).__init__()
         super(MDToggleButton, self).__init__(**kwargs)
@@ -669,7 +671,7 @@ class SettingOptions(SettingItem):
         uid = str(self.uid)
         for option in self.options:
             state = 'down' if option == self.value else 'normal'
-            btn = MDFlatButton(text=option)
+            btn = HoverMDFlatButton(text=option)
             btn.bind(on_release=self._set_option)
             content.add_widget(btn)
             btn.size_hint_x = 1
@@ -680,7 +682,7 @@ class SettingOptions(SettingItem):
             type="custom",
             content_cls=content,
             title=self.title,
-            buttons=[MDFlatButton(text='CANCEL', on_release=self.dismiss)]
+            buttons=[HoverMDFlatButton(text='CANCEL', on_release=self.dismiss)]
         )
 
         # and open the popup !
@@ -966,7 +968,7 @@ class ContentPanel(ScrollView):
         self.container.remove_widget(*args, **kwargs)
 
 
-class Settings(BoxLayout):
+class Settings(MDAnchorLayout):
 
     '''Settings UI. Check module documentation for more information on how
     to use this class.
@@ -1012,6 +1014,7 @@ class Settings(BoxLayout):
 
     def __init__(self, *args, **kargs):
         self._types = {}
+        self.anchor_x = 'center'
         super(Settings, self).__init__(*args, **kargs)
         self.add_interface()
         self.register_type('string', SettingString)

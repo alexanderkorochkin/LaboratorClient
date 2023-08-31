@@ -1,6 +1,10 @@
 import re
 from re import split
 
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.button import MDIconButton, MDFlatButton, MDRaisedButton
+from kivymd.uix.card import MDCard
+
 from libs.constants import *
 
 import random   # Для поддержки рандомизации в выражениях
@@ -10,10 +14,10 @@ from kivy import Logger
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.factory import Factory
-from kivy.properties import NumericProperty, ObjectProperty, partial
+from kivy.properties import NumericProperty, ObjectProperty, partial, ListProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.utils import escape_markup
-from kivymd.uix.behaviors import RectangularRippleBehavior
+from kivymd.uix.behaviors import RectangularRippleBehavior, HoverBehavior
 from kivymd.uix.label import MDLabel, MDIcon
 
 from libs.iapws import IAPWS97
@@ -359,3 +363,23 @@ keycodes = {
         'ù': 249, 'à': 224,
         'é': 233, 'è': 232,
     }
+
+
+class HoverMDIconButton(MDIconButton, HoverBehavior):
+    pass
+
+
+class HoverMDFlatButton(MDFlatButton, HoverBehavior):
+    pass
+
+
+class HoverMDRaisedButton(MDRaisedButton, HoverBehavior):
+    pass
+
+
+class HoverMDBoxLayout(MDBoxLayout, HoverBehavior):
+    pass
+
+
+class HoverMDCard(MDCard, HoverBehavior):
+    pass

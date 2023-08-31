@@ -3,13 +3,14 @@ import uuid
 from kivy.properties import StringProperty, ColorProperty, BooleanProperty, OptionProperty, ReferenceListProperty, \
     ListProperty
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDRoundFlatIconButton, MDRectangleFlatIconButton, BaseButton
+from kivymd.uix.tooltip import MDTooltip
 
 from libs.opcua.opcuaclient import client
 from libs.settings.settingsJSON import *
 from libs.utils import *
 
 
-class ControlButton(BaseButton):
+class ControlButton(BaseButton, MDTooltip):
 
     doSpacing = BooleanProperty(True)
     control_state = BooleanProperty(False)

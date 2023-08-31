@@ -51,10 +51,6 @@ class AVGBuffer:
         self.avg_buffer.clear()
 
 
-class RPoint(MDWidget):
-    color = ColorProperty('green')
-
-
 class GardenGraph(Graph):
     def __init__(self, _graph_instance=None, **kwargs):
         super(GardenGraph, self).__init__(**kwargs)
@@ -436,16 +432,17 @@ class GraphBox(MDBoxLayout):
                     self.gardenGraph.UpdatePlot('AVG', self.avgBuffer.getBuffer())
                     self.gardenGraph.UpdatePlot('MAIN', self.var.GetHistory())
                 elif self.s['MODE'] == 'SPECTRAL':
-                    size, spectral, maxes, avg, sigma = self.var.GetSpectral(2)
-                    self.gardenGraph.UpdatePlot('SPECTRAL', spectral)
-                    self.ids.graph_current_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.primary_color) + "]N: " + str(size) + "[/color]"
-                    self.ids.graph_avg_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.accent_color) + "]"
-                    end = '\n'
-                    for i in range(len(maxes)):
-                        self.ids.graph_avg_value.text += f'max{i + 1} = ({str(round_to(maxes[i][0], self.s["GRAPH_ROUND_DIGITS"]))}, {str(round_to(maxes[i][1], self.s["GRAPH_ROUND_DIGITS"]))})' + end
-                    self.ids.graph_avg_value.text += f'μ (avg, мат. ожидание) = {round_to(avg, self.s["GRAPH_ROUND_DIGITS"])}' + end
-                    self.ids.graph_avg_value.text += f'σ (ср. кв. откл.) = {round_to(sigma, self.s["GRAPH_ROUND_DIGITS"])}'
-                    self.ids.graph_avg_value.text += "[/color]"
+                    if len(self.var.GetHistory()) > 1:
+                        size, spectral, maxes, avg, sigma = self.var.GetSpectral(top=2)
+                        self.gardenGraph.UpdatePlot('SPECTRAL', spectral)
+                        self.ids.graph_current_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.primary_color) + "]N: " + str(size) + "[/color]"
+                        self.ids.graph_avg_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.accent_color) + "]"
+                        end = '\n'
+                        for i in range(len(maxes)):
+                            self.ids.graph_avg_value.text += f'max{i + 1} = ({str(round_to(maxes[i][0], self.s["GRAPH_ROUND_DIGITS"]))}, {str(round_to(maxes[i][1], self.s["GRAPH_ROUND_DIGITS"]))})' + end
+                        self.ids.graph_avg_value.text += f'μ (avg, мат. ожидание) = {round_to(avg, self.s["GRAPH_ROUND_DIGITS"])}' + end
+                        self.ids.graph_avg_value.text += f'σ (ср. кв. откл.) = {round_to(sigma, self.s["GRAPH_ROUND_DIGITS"])}'
+                        self.ids.graph_avg_value.text += "[/color]"
             else:
                 self.ids.graph_current_value.text = "[color=" + color2hex(self.kivy_instance.main_app.theme_cls.error_color) + "]" + 'ERROR!' + "[/color]"
                 self.ids.graph_avg_value.text = ''

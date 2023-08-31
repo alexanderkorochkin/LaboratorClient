@@ -3,28 +3,21 @@ import os
 import threading
 import uuid
 
+from kivy import Config
 from kivy.core.clipboard import Clipboard
 
 from kivy.utils import platform
 from kivy.core.window import Window
-from kivy.uix.behaviors import ButtonBehavior
 from kivymd.app import MDApp
-from kivy.metrics import dp
-from kivymd.uix.button import MDFlatButton, MDFloatingActionButton, MDIconButton
-from kivymd.uix.dialog import MDDialog
-from kivymd.uix.label import MDLabel
-from kivymd.uix.menu import MDDropdownMenu
-from kivy.properties import NumericProperty, ObjectProperty, StringProperty, OptionProperty, BooleanProperty, \
-    ListProperty, partial
+from kivy.properties import StringProperty, OptionProperty, BooleanProperty
+from kivymd.uix.behaviors import HoverBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.list import OneLineIconListItem
 from kivy.clock import Clock
+from kivymd.uix.button import MDIconButton, MDFlatButton, MDRaisedButton
 from kivymd.uix.screen import MDScreen
-from kivy.logger import Logger, LOG_LEVELS, LoggerHistory
+from kivy.logger import LOG_LEVELS, LoggerHistory
 from kivy.lang import Builder
 from kivy.factory import Factory
-from kivymd.uix.spinner import MDSpinner
-from kivymd.uix.textfield import MDTextField
 
 from libs.android_permissions import AndroidPermissions
 from libs.controls import ControlButton
@@ -37,8 +30,10 @@ from libs.dialogs import LDialogEnterString, LDialogGraphSettings, LDialogList, 
     LDialogListShort, LDialogHelp
 from libs.layoutManager import LayoutManager
 
-Logger.setLevel(LOG_LEVELS["debug"])
+from libs.utils import HoverMDIconButton, HoverMDFlatButton, HoverMDRaisedButton, HoverMDBoxLayout
 
+Logger.setLevel(LOG_LEVELS["debug"])
+Config.set('input', 'mouse', 'mouse,disable_multitouch')
 
 class GContainer(MDBoxLayout):
     gcontainer = ObjectProperty(None)
@@ -407,6 +402,8 @@ class KivyApp(MDApp):
     main_radius = NumericProperty(dp(10))
     main_spacing = NumericProperty(dp(5))
     main_padding = NumericProperty(dp(5))
+    tooltip_show_delay = NumericProperty(0.6)
+    tooltip_show_delay_slow = NumericProperty(1)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -511,11 +508,12 @@ class KivyApp(MDApp):
 
         Factory.register('OpacityScrollEffectSmooth', module='libs.effects.opacityscrollsmooth')
 
-        self.theme_cls.theme_style = msettings.get("THEME")
-        if msettings.get("THEME") == 'Light':
-            self.theme_cls.set_colors("Purple", "300", "50", "800", "Gray", "600", "50", "800")
-        else:
-            self.theme_cls.set_colors("Orange", "300", "50", "800", "Gray", "600", "50", "800")
+        self.theme_cls.theme_style = 'Dark' # msettings.get("THEME")
+        # if msettings.get("THEME") == 'Light':
+        #     self.theme_cls.set_colors("Purple", "300", "50", "800", "Gray", "600", "50", "800")
+        # else:
+        #
+        self.theme_cls.set_colors("Orange", "300", "50", "800", "Gray", "600", "50", "800")
         self.LoadKV()
         self.kivy_instance = LaboratorClient(self)
         client.kivy_instance = self.kivy_instance

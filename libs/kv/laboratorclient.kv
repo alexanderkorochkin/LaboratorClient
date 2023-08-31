@@ -2,7 +2,113 @@
 #:import get_color_from_hex kivy.utils.get_color_from_hex
 #:import StiffScrollEffect kivymd.effects.stiffscroll.StiffScrollEffect
 #:import OpacityScrollEffectSmooth libs.effects.opacityscrollsmooth
-#:import ButtonedLabel libs.utils
+
+
+<HoverMDCard>:
+    hover_bg: 1, 1, 1, 0
+    hr: 8
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, 0.08
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<HoverMDBoxLayout>:
+    hover_bg: 1, 1, 1, 0
+    hr: 8
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, 0.08
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<HoverMDIconButton>:
+    hover_bg: 1, 1, 1, 0
+    hr: 8
+    ripple_alpha: 0.2
+    radius: [self.hr, self.hr]
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, (0.08 * int(not self.disabled))
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<HoverMDRaisedButton>:
+    hover_bg: 1, 1, 1, 0
+    hr: 8
+    ripple_alpha: 0.2
+    radius: [self.hr, self.hr]
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, (0.08 * int(not self.disabled))
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<HoverMDFlatButton>:
+    hover_bg: 1, 1, 1, 0
+    new_bg_color: 1, 1, 1, 0.02
+    hr: 8
+    ripple_alpha: 0.2
+    radius: [self.hr, self.hr]
+    canvas.before:
+        Color:
+            rgba: self.new_bg_color
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, (0.08 * int(not self.disabled))
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<TooltipMDFlatButton@HoverMDFlatButton+MDTooltip>:
+    ttext: ''
+    tooltip_display_delay: app.tooltip_show_delay
+    tooltip_text: self.ttext if not self.disabled else ''
+
+
+<TooltipMDIconButton@HoverMDIconButton+MDTooltip>:
+    ttext: ''
+    tooltip_bg_color: app.theme_cls.primary_color
+    tooltip_display_delay: app.tooltip_show_delay
+    tooltip_text: self.ttext if not self.disabled else ''
 
 
 <GContainer>:
@@ -102,8 +208,11 @@
                     orientation: "horizontal" if app.d_ori == 'vertical' else "vertical"
                     adaptive_size: True
                     padding: dp(10), 0, 0, 0
-                    MDFlatButton:
+                    TooltipMDFlatButton:
                         id: title
+                        new_bg_color: 0, 0, 0, 0
+                        ttext: 'Laborator Client\nMade by Alexander Korochkin'
+                        tooltip_display_delay: app.tooltip_show_delay_slow
                         text: 'Laborator'
                         opacity: 1 if app.d_ori == 'vertical' else 0
                         disabled: False if app.d_ori == 'vertical' else True
@@ -134,30 +243,34 @@
                         color: 'red'
                         size_hint: None, None
                         size: [dp(48), dp(48)]
-                    MDIconButton:
+                    TooltipMDIconButton:
                         id: endpoint_label
+                        ttext: 'Настройка URL'
                         icon: "ip-outline"
                         theme_icon_color: "Custom"
                         icon_color: app.theme_cls.primary_color
                         pos_hint: {"center_x": .5, "center_y": .5} if root.show_menu else {"center_x": 0.5 - 0.5 * (app.d_ori == 'horizontal'), "center_y": 0.5 + 0.5 * (app.d_ori == 'vertical')}
                         on_release: app.dialogTextInput.Open('string', 'Endpoint URL', 'SAVE', 'CANCEL', app.setEndpoint, app.kivy_instance.endpoint, 'opc.tcp://IP:PORT', help_id='endpoint')
-                    MDIconButton:
+                    TooltipMDIconButton:
                         id: btn_connect
+                        ttext: 'Подключиться'
                         icon: "play"
                         theme_icon_color: "Custom"
                         icon_color: app.theme_cls.primary_color
                         pos_hint: {"center_x": .5, "center_y": .5} if root.show_menu else {"center_x": 0.5 - 0.5 * (app.d_ori == 'horizontal'), "center_y": 0.5 + 0.5 * (app.d_ori == 'vertical')}
                         on_release: root.Connect()
-                    MDIconButton:
+                    TooltipMDIconButton:
                         id: btn_disconnect
+                        ttext: 'Отключиться'
                         icon: "stop"
                         theme_icon_color: "Custom"
                         icon_color: app.theme_cls.primary_color
                         pos_hint: {"center_x": .5, "center_y": .5} if root.show_menu else {"center_x": 0.5 - 0.5 * (app.d_ori == 'horizontal'), "center_y": 0.5 + 0.5 * (app.d_ori == 'vertical')}
                         disabled: True
                         on_release: root.Disconnect()
-                    MDIconButton:
+                    TooltipMDIconButton:
                         id: menu_button
+                        ttext: 'Меню'
                         icon: "dots-vertical" if app.d_ori == 'vertical' else 'dots-horizontal'
                         theme_icon_color: "Custom"
                         icon_color: app.theme_cls.primary_color
@@ -173,6 +286,7 @@
                     pos: self.pos
                     radius: [self.size[0] / 2, ]
             id: hide_menu
+            ttext: 'Скрыть панель' if (self.icon == 'menu-up' or self.icon == 'menu-left') else 'Показать панель'
             md_bg_color: 0, 0, 0, 0
             ripple_scale: 0
             icon: 'menu-up' if app.d_ori == 'vertical' and root.show_menu else 'menu-down' if app.d_ori == 'vertical' and not root.show_menu else 'menu-left' if app.d_ori == 'horizontal' and root.show_menu else 'menu-right'
@@ -192,15 +306,21 @@
                 adaptive_size: True
                 spacing: dp(10)
                 opacity: 0
-                MDIconButton:
+                TooltipMDIconButton:
                     id: unselect_all
-                    icon: "close"
+                    ttext: 'Отмена'
+                    hr: 999
+                    shift_y: dp(100)
+                    icon: "arrow-left"
                     icon_color: app.theme_cls.primary_color
                     theme_icon_color: "Custom"
                     md_bg_color: 'black'
                     on_release: root.UnselectAll()
-                MDIconButton:
+                TooltipMDIconButton:
                     id: delete_selected_button
+                    ttext: 'Удалить выбранные'
+                    hr: 999
+                    shift_y: dp(100)
                     icon: 'delete'
                     icon_color: colors['Red']['500']
                     theme_icon_color: "Custom"
