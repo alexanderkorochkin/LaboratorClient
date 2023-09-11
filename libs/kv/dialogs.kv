@@ -430,6 +430,7 @@
                     orientation: "vertical"
                     adaptive_height: True
                     size_hint_x: 1
+                    spacing: dp(10)
                     MDBoxLayout:
                         orientation: "horizontal"
                         adaptive_height: True
@@ -447,7 +448,6 @@
                         orientation: "vertical"
                         adaptive_height: True
                         height: display_name_settings_all.height
-                        padding: [0, dp(10), 0, 0]
                         MDBoxLayout:
                             id: display_name_settings_all
                             orientation: "vertical"
@@ -467,7 +467,6 @@
                         orientation: "horizontal"
                         size_hint_x: 1
                         adaptive_height: True
-                        padding: [0, dp(10), 0, 0]
                         MDIconButton:
                             on_release: app.dialogTextInput.Open('string', 'Иконка [ON]', 'SAVE', 'CANCEL', root.SetIconOn, str(root.icon_on), 'More on https://pictogrammers.com/library/mdi/', help_id='control_icon_on')
                             size_hint: None, 1
@@ -487,7 +486,6 @@
                         id: icon_off_settings
                         orientation: "horizontal"
                         size_hint_x: 1
-                        padding: [0, 0, 0, dp(10)]
                         adaptive_height: True
                         MDIconButton:
                             on_release: app.dialogTextInput.Open('string', 'Иконка [OFF]', 'SAVE', 'CANCEL', root.SetIconOff, str(root.icon_off), 'More on https://pictogrammers.com/library/mdi/', help_id='control_icon_off')
