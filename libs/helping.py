@@ -1,6 +1,9 @@
 # [ref=https://vk.com/im][color=548cb9]ВК[/color][/ref]
 
-main_help_text = 'Привет'
+main_help_text = """
+Справка не завершена(
+Но если нажать на значок с вопросиком в некоторых окнах, появится небольшое окно с разъяснениями.
+"""
 add_multiple_graphs_text = ''
 menu_text = ''
 endpoint_text = ''

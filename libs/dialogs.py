@@ -604,6 +604,7 @@ class LDialogMenu:
     def Close(self, *args):
         self.dialog.dismiss()
 
+
 class LDialogEnterString:
 
     def __init__(self, main_app):
