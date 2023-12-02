@@ -5,7 +5,7 @@ from kivy.properties import StringProperty, ColorProperty, BooleanProperty, Opti
 from kivymd.uix.button import MDFillRoundFlatIconButton, MDRoundFlatIconButton, MDRectangleFlatIconButton, BaseButton
 from kivymd.uix.tooltip import MDTooltip
 
-from libs.opcua.opcuaclient import client
+from libs.opcuaclient import client
 from libs.settings.settingsJSON import *
 from libs.utils import *
 

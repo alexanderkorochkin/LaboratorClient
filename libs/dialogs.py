@@ -17,7 +17,7 @@ from kivymd.uix.textfield import MDTextField
 from kivymd.uix.tooltip import MDTooltip
 
 from libs.utils import HoverMDFlatButton, HoverMDRaisedButton
-from libs.opcua.opcuaclient import client
+from libs.opcuaclient import client
 from libs.settings.settingsJSON import *
 from libs.utils import keycodes, truncate_string
 from libs.helping import helping

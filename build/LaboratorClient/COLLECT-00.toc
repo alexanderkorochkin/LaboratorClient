@@ -1,0 +1,1171 @@
+([('LaboratorClient.exe',
+   'D:\\PythonProjects\\Laborator\\LaboratorClient\\build\\LaboratorClient\\LaboratorClient.exe',
+   'EXECUTABLE'),
+  ('python311.dll', 'C:\\Program Files\\Python311\\python311.dll', 'BINARY'),
+  ('VCRUNTIME140.dll',
+   'C:\\Program Files\\Python311\\VCRUNTIME140.dll',
+   'BINARY'),
+  ('pywin32_system32\\pythoncom311.dll',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\pywin32_system32\\pythoncom311.dll',
+   'BINARY'),
+  ('pywin32_system32\\pywintypes311.dll',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\pywin32_system32\\pywintypes311.dll',
+   'BINARY'),
+  ('_ctypes.pyd',
+   'C:\\Program Files\\Python311\\DLLs\\_ctypes.pyd',
+   'EXTENSION'),
+  ('_decimal.pyd',
+   'C:\\Program Files\\Python311\\DLLs\\_decimal.pyd',
+   'EXTENSION'),
+  ('select.pyd', 'C:\\Program Files\\Python311\\DLLs\\select.pyd', 'EXTENSION'),
+  ('_socket.pyd',
+   'C:\\Program Files\\Python311\\DLLs\\_socket.pyd',
+   'EXTENSION'),
+  ('_lzma.pyd', 'C:\\Program Files\\Python311\\DLLs\\_lzma.pyd', 'EXTENSION'),
+  ('_bz2.pyd', 'C:\\Program Files\\Python311\\DLLs\\_bz2.pyd', 'EXTENSION'),
+  ('_hashlib.pyd',
+   'C:\\Program Files\\Python311\\DLLs\\_hashlib.pyd',
+   'EXTENSION'),
+  ('win32\\win32trace.pyd',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\win32\\win32trace.pyd',
+   'EXTENSION'),
+  ('Pythonwin\\win32ui.pyd',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\Pythonwin\\win32ui.pyd',
+   'EXTENSION'),
+  ('win32\\_win32sysloader.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\win32\\_win32sysloader.pyd',
+   'EXTENSION'),
+  ('win32\\win32api.pyd',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\win32\\win32api.pyd',
+   'EXTENSION'),
+  ('_ssl.pyd', 'C:\\Program Files\\Python311\\DLLs\\_ssl.pyd', 'EXTENSION'),
+  ('_queue.pyd', 'C:\\Program Files\\Python311\\DLLs\\_queue.pyd', 'EXTENSION'),
+  ('win32com\\shell\\shell.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\win32comext\\shell\\shell.pyd',
+   'EXTENSION'),
+  ('pyexpat.pyd',
+   'C:\\Program Files\\Python311\\DLLs\\pyexpat.pyd',
+   'EXTENSION'),
+  ('PIL\\_imagingft.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\PIL\\_imagingft.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_webp.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\PIL\\_webp.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_imagingtk.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\PIL\\_imagingtk.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_imagingcms.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\PIL\\_imagingcms.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('_cffi_backend.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\_cffi_backend.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('PIL\\_imaging.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\PIL\\_imaging.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('_elementtree.pyd',
+   'C:\\Program Files\\Python311\\DLLs\\_elementtree.pyd',
+   'EXTENSION'),
+  ('_overlapped.pyd',
+   'C:\\Program Files\\Python311\\DLLs\\_overlapped.pyd',
+   'EXTENSION'),
+  ('_multiprocessing.pyd',
+   'C:\\Program Files\\Python311\\DLLs\\_multiprocessing.pyd',
+   'EXTENSION'),
+  ('_asyncio.pyd',
+   'C:\\Program Files\\Python311\\DLLs\\_asyncio.pyd',
+   'EXTENSION'),
+  ('unicodedata.pyd',
+   'C:\\Program Files\\Python311\\DLLs\\unicodedata.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\texture.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\texture.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\weakproxy.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\weakproxy.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\transformation.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\transformation.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\scissor_instructions.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\scissor_instructions.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\boxshadow.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\boxshadow.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\fbo.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\fbo.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\gl_instructions.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\gl_instructions.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\stencil_instructions.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\stencil_instructions.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\vertex_instructions.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\vertex_instructions.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\context_instructions.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\context_instructions.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\instructions.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\instructions.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\_event.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\_event.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\core\\text\\text_layout.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\core\\text\\text_layout.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\context.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\context.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('win32\\win32file.pyd',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\win32\\win32file.pyd',
+   'EXTENSION'),
+  ('kivy\\_metrics.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\_metrics.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\_clock.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\_clock.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('_uuid.pyd', 'C:\\Program Files\\Python311\\DLLs\\_uuid.pyd', 'EXTENSION'),
+  ('kivy\\properties.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\properties.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\opengl.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\opengl.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\opengl_utils.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\opengl_utils.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\cgl.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\cgl.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\cgl_backend\\cgl_glew.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\cgl_backend\\cgl_glew.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\cgl_backend\\cgl_sdl2.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\cgl_backend\\cgl_sdl2.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\core\\window\\_window_sdl2.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\core\\window\\_window_sdl2.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\core\\text\\_text_sdl2.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\core\\text\\_text_sdl2.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\cgl_backend\\cgl_mock.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\cgl_backend\\cgl_mock.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\lib\\gstplayer\\_gstplayer.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\lib\\gstplayer\\_gstplayer.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\vbo.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\vbo.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\compiler.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\compiler.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\core\\clipboard\\_clipboard_sdl2.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\core\\clipboard\\_clipboard_sdl2.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\cgl_backend\\cgl_debug.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\cgl_backend\\cgl_debug.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\shader.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\shader.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('win32\\win32gui.pyd',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\win32\\win32gui.pyd',
+   'EXTENSION'),
+  ('kivy\\core\\window\\window_info.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\core\\window\\window_info.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\buffer.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\buffer.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\core\\audio\\audio_sdl2.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\core\\audio\\audio_sdl2.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\tesselator.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\tesselator.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\svg.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\svg.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\cgl_backend\\cgl_gl.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\cgl_backend\\cgl_gl.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\graphics\\vertex.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\graphics\\vertex.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('kivy\\core\\image\\_img_sdl2.cp311-win_amd64.pyd',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\core\\image\\_img_sdl2.cp311-win_amd64.pyd',
+   'EXTENSION'),
+  ('VCRUNTIME140_1.dll',
+   'C:\\Program Files\\Python311\\VCRUNTIME140_1.dll',
+   'BINARY'),
+  ('libffi-8.dll',
+   'C:\\Program Files\\Python311\\DLLs\\libffi-8.dll',
+   'BINARY'),
+  ('libcrypto-3.dll',
+   'C:\\Program Files\\Python311\\DLLs\\libcrypto-3.dll',
+   'BINARY'),
+  ('Pythonwin\\mfc140u.dll',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\Pythonwin\\mfc140u.dll',
+   'BINARY'),
+  ('libssl-3.dll',
+   'C:\\Program Files\\Python311\\DLLs\\libssl-3.dll',
+   'BINARY'),
+  ('glew32.dll',
+   'C:\\Program Files\\Python311\\share\\glew\\bin\\glew32.dll',
+   'BINARY'),
+  ('SDL2.dll',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\SDL2.dll',
+   'BINARY'),
+  ('SDL2_image.dll',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\SDL2_image.dll',
+   'BINARY'),
+  ('SDL2_ttf.dll',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\SDL2_ttf.dll',
+   'BINARY'),
+  ('SDL2_mixer.dll',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\SDL2_mixer.dll',
+   'BINARY'),
+  ('libs\\kv\\controls.kv',
+   'D:\\PythonProjects\\Laborator\\LaboratorClient\\libs\\kv\\controls.kv',
+   'DATA'),
+  ('libs\\kv\\dialogs.kv',
+   'D:\\PythonProjects\\Laborator\\LaboratorClient\\libs\\kv\\dialogs.kv',
+   'DATA'),
+  ('libs\\kv\\graph.kv',
+   'D:\\PythonProjects\\Laborator\\LaboratorClient\\libs\\kv\\graph.kv',
+   'DATA'),
+  ('libs\\kv\\laboratorclient.kv',
+   'D:\\PythonProjects\\Laborator\\LaboratorClient\\libs\\kv\\laboratorclient.kv',
+   'DATA'),
+  ('libs\\kv\\settings_mod.kv',
+   'D:\\PythonProjects\\Laborator\\LaboratorClient\\libs\\kv\\settings_mod.kv',
+   'DATA'),
+  ('base_library.zip',
+   'D:\\PythonProjects\\Laborator\\LaboratorClient\\build\\LaboratorClient\\base_library.zip',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-24.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\logo\\kivy-icon-24.png',
+   'DATA'),
+  ('kivy_install\\modules\\inspector.py',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\inspector.py',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\qwerty.json',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\keyboards\\qwerty.json',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\big-black\\framing.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\big-black\\framing.css',
+   'DATA'),
+  ('kivymd\\uix\\toolbar\\toolbar.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\toolbar\\toolbar.kv',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\README.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\README.txt',
+   'DATA'),
+  ('kivymd\\uix\\card\\card.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\card\\card.kv',
+   'DATA'),
+  ('docutils\\writers\\latex2e\\default.tex',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\latex2e\\default.tex',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isomscr.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isomscr.txt',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\Roboto-BoldItalic.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\fonts\\Roboto-BoldItalic.ttf',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\screen.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\screen.cpython-311.pyc',
+   'DATA'),
+  ('docutils\\writers\\html4css1\\html4css1.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\html4css1\\html4css1.css',
+   'DATA'),
+  ('kivy_install\\data\\glsl\\default.fs',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\glsl\\default.fs',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-48.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\logo\\kivy-icon-48.png',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isocyr1.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isocyr1.txt',
+   'DATA'),
+  ('kivymd\\images\\yellow.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\images\\yellow.png',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-256.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\logo\\kivy-icon-256.png',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\de.json',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\keyboards\\de.json',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\DejaVuSans.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\fonts\\DejaVuSans.ttf',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\default\\opera.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\default\\opera.css',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\de_CH.json',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\keyboards\\de_CH.json',
+   'DATA'),
+  ('docutils\\writers\\latex2e\\titlepage.tex',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\latex2e\\titlepage.tex',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\default\\print.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\default\\print.css',
+   'DATA'),
+  ('kivymd\\uix\\selectioncontrol\\selectioncontrol.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\selectioncontrol\\selectioncontrol.kv',
+   'DATA'),
+  ('kivymd\\uix\\spinner\\spinner.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\spinner\\spinner.kv',
+   'DATA'),
+  ('kivymd\\uix\\tooltip\\tooltip.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\tooltip\\tooltip.kv',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\README.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\README.txt',
+   'DATA'),
+  ('docutils\\writers\\pep_html\\pep.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\pep_html\\pep.css',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\xhtml1-lat1.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\xhtml1-lat1.txt',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-MediumItalic.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-MediumItalic.ttf',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isodia.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isodia.txt',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\default\\slides.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\default\\slides.css',
+   'DATA'),
+  ('kivy_install\\data\\glsl\\default.vs',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\glsl\\default.vs',
+   'DATA'),
+  ('kivy_install\\data\\images\\background.jpg',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\images\\background.jpg',
+   'DATA'),
+  ('kivy_install\\modules\\_webdebugger.py',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\_webdebugger.py',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-BlackItalic.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-BlackItalic.ttf',
+   'DATA'),
+  ('kivymd\\uix\\refreshlayout\\refreshlayout.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\refreshlayout\\refreshlayout.kv',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\xhtml1-symbol.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\xhtml1-symbol.txt',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\qwertz.json',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\keyboards\\qwertz.json',
+   'DATA'),
+  ('kivymd\\uix\\banner\\banner.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\banner\\banner.kv',
+   'DATA'),
+  ('kivy_install\\data\\images\\defaulttheme-0.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\images\\defaulttheme-0.png',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\big-black\\pretty.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\big-black\\pretty.css',
+   'DATA'),
+  ('kivy_install\\modules\\webdebugger.py',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\webdebugger.py',
+   'DATA'),
+  ('kivy_install\\modules\\touchring.py',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\touchring.py',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-Medium.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-Medium.ttf',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isopub.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isopub.txt',
+   'DATA'),
+  ('kivymd\\uix\\progressbar\\progressbar.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\progressbar\\progressbar.kv',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\Roboto-Italic.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\fonts\\Roboto-Italic.ttf',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isocyr2.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isocyr2.txt',
+   'DATA'),
+  ('kivy_install\\modules\\joycursor.py',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\joycursor.py',
+   'DATA'),
+  ('docutils\\writers\\html5_polyglot\\template.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\html5_polyglot\\template.txt',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\cursor.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\cursor.cpython-311.pyc',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\showborder.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\showborder.cpython-311.pyc',
+   'DATA'),
+  ('docutils\\writers\\html5_polyglot\\tuftig.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\html5_polyglot\\tuftig.css',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isonum.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isonum.txt',
+   'DATA'),
+  ('docutils\\writers\\odf_odt\\styles.odt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\odf_odt\\styles.odt',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\monitor.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\monitor.cpython-311.pyc',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\small-black\\pretty.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\small-black\\pretty.css',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\mmlalias.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\mmlalias.txt',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\small-black\\__base__',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\small-black\\__base__',
+   'DATA'),
+  ('certifi\\cacert.pem',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\certifi\\cacert.pem',
+   'DATA'),
+  ('kivymd\\images\\blue.png',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\kivymd\\images\\blue.png',
+   'DATA'),
+  ('kivy_install\\data\\glsl\\default.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\glsl\\default.png',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-16.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\logo\\kivy-icon-16.png',
+   'DATA'),
+  ('kivymd\\uix\\datatables\\datatables.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\datatables\\datatables.kv',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-Italic.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-Italic.ttf',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isoamsc.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isoamsc.txt',
+   'DATA'),
+  ('kivy_install\\data\\images\\defaultshape.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\images\\defaultshape.png',
+   'DATA'),
+  ('kivymd\\uix\\navigationrail\\navigationrail.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\navigationrail\\navigationrail.kv',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\console.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\console.cpython-311.pyc',
+   'DATA'),
+  ('kivy_install\\modules\\keybinding.py',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\keybinding.py',
+   'DATA'),
+  ('certifi\\py.typed',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\certifi\\py.typed',
+   'DATA'),
+  ('kivy_install\\data\\settings_kivy.json',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\settings_kivy.json',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\RobotoMono-Regular.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\fonts\\RobotoMono-Regular.ttf',
+   'DATA'),
+  ('kivymd\\uix\\slider\\slider.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\slider\\slider.kv',
+   'DATA'),
+  ('docutils\\writers\\html5_polyglot\\math.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\html5_polyglot\\math.css',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\big-white\\framing.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\big-white\\framing.css',
+   'DATA'),
+  ('kivymd\\uix\\pickers\\timepicker\\timepicker.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\pickers\\timepicker\\timepicker.kv',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isogrk2.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isogrk2.txt',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-Regular.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-Regular.ttf',
+   'DATA'),
+  ('kivymd\\data\\glsl\\elevation\\header.frag',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\data\\glsl\\elevation\\header.frag',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\__init__.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\__init__.cpython-311.pyc',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\_webdebugger.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\_webdebugger.cpython-311.pyc',
+   'DATA'),
+  ('docutils\\writers\\html5_polyglot\\minimal.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\html5_polyglot\\minimal.css',
+   'DATA'),
+  ('kivymd\\images\\black.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\images\\black.png',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isotech.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isotech.txt',
+   'DATA'),
+  ('kivy_install\\data\\images\\defaulttheme.atlas',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\images\\defaulttheme.atlas',
+   'DATA'),
+  ('kivymd\\images\\logo\\kivymd-icon-128.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\images\\logo\\kivymd-icon-128.png',
+   'DATA'),
+  ('kivymd\\uix\\dialog\\dialog.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\dialog\\dialog.kv',
+   'DATA'),
+  ('kivy_install\\modules\\showborder.py',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\showborder.py',
+   'DATA'),
+  ('kivymd\\uix\\pickers\\colorpicker\\colorpicker.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\pickers\\colorpicker\\colorpicker.kv',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isomopf.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isomopf.txt',
+   'DATA'),
+  ('kivymd\\uix\\backdrop\\backdrop.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\backdrop\\backdrop.kv',
+   'DATA'),
+  ('kivymd\\data\\glsl\\elevation\\elevation.frag',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\data\\glsl\\elevation\\elevation.frag',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isomfrk-wide.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isomfrk-wide.txt',
+   'DATA'),
+  ('kivymd\\images\\alpha_layer.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\images\\alpha_layer.png',
+   'DATA'),
+  ('kivy_install\\modules\\recorder.py',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\recorder.py',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\default\\s5-core.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\default\\s5-core.css',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\xhtml1-special.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\xhtml1-special.txt',
+   'DATA'),
+  ('kivy_install\\data\\images\\image-loading.gif',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\images\\image-loading.gif',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\mmlextra.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\mmlextra.txt',
+   'DATA'),
+  ('docutils\\writers\\pep_html\\template.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\pep_html\\template.txt',
+   'DATA'),
+  ('kivymd\\uix\\imagelist\\imagelist.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\imagelist\\imagelist.kv',
+   'DATA'),
+  ('docutils\\writers\\html4css1\\template.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\html4css1\\template.txt',
+   'DATA'),
+  ('kivy_install\\data\\style.kv',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\kivy\\data\\style.kv',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-512.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\logo\\kivy-icon-512.png',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\medium-white\\framing.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\medium-white\\framing.css',
+   'DATA'),
+  ('kivymd\\uix\\sliverappbar\\sliverappbar.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\sliverappbar\\sliverappbar.kv',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-64.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\logo\\kivy-icon-64.png',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isolat2.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isolat2.txt',
+   'DATA'),
+  ('kivymd\\uix\\tab\\tab.kv',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\tab\\tab.kv',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\default\\pretty.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\default\\pretty.css',
+   'DATA'),
+  ('kivy_install\\modules\\monitor.py',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\monitor.py',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isogrk3.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isogrk3.txt',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isoamso.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isoamso.txt',
+   'DATA'),
+  ('kivymd\\uix\\bottomsheet\\bottomsheet.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\bottomsheet\\bottomsheet.kv',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isoamsr.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isoamsr.txt',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\default\\framing.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\default\\framing.css',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-Black.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-Black.ttf',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\s5defs.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\s5defs.txt',
+   'DATA'),
+  ('kivy_install\\data\\images\\image-loading.zip',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\images\\image-loading.zip',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isomscr-wide.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isomscr-wide.txt',
+   'DATA'),
+  ('kivy_install\\modules\\cursor.py',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\kivy\\modules\\cursor.py',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\recorder.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\recorder.cpython-311.pyc',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-ThinItalic.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-ThinItalic.ttf',
+   'DATA'),
+  ('kivy_install\\data\\images\\cursor.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\images\\cursor.png',
+   'DATA'),
+  ('docutils\\writers\\latex2e\\xelatex.tex',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\latex2e\\xelatex.tex',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isogrk1.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isogrk1.txt',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-128.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\logo\\kivy-icon-128.png',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-64.ico',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\logo\\kivy-icon-64.ico',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-BoldItalic.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-BoldItalic.ttf',
+   'DATA'),
+  ('kivymd\\uix\\filemanager\\filemanager.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\filemanager\\filemanager.kv',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\en_US.json',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\keyboards\\en_US.json',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\mmlextra-wide.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\mmlextra-wide.txt',
+   'DATA'),
+  ('kivymd\\uix\\swiper\\swiper.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\swiper\\swiper.kv',
+   'DATA'),
+  ('kivymd\\uix\\chip\\chip.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\chip\\chip.kv',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\Roboto-Regular.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\fonts\\Roboto-Regular.ttf',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isoamsa.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isoamsa.txt',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-Thin.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-Thin.ttf',
+   'DATA'),
+  ('kivymd\\images\\folder.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\images\\folder.png',
+   'DATA'),
+  ('kivymd\\uix\\label\\label.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\label\\label.kv',
+   'DATA'),
+  ('kivymd\\uix\\expansionpanel\\expansionpanel.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\expansionpanel\\expansionpanel.kv',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\azerty.json',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\keyboards\\azerty.json',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-LightItalic.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-LightItalic.ttf',
+   'DATA'),
+  ('kivy_install\\modules\\console.py',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\console.py',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isobox.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isobox.txt',
+   'DATA'),
+  ('kivy_install\\data\\keyboards\\fr_CH.json',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\keyboards\\fr_CH.json',
+   'DATA'),
+  ('kivymd\\uix\\dropdownitem\\dropdownitem.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\dropdownitem\\dropdownitem.kv',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\big-black\\__base__',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\big-black\\__base__',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\default\\outline.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\default\\outline.css',
+   'DATA'),
+  ('kivymd\\uix\\textfield\\textfield.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\textfield\\textfield.kv',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isoamsb.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isoamsb.txt',
+   'DATA'),
+  ('kivy_install\\data\\glsl\\header.fs',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\glsl\\header.fs',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\small-white\\framing.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\small-white\\framing.css',
+   'DATA'),
+  ('kivymd\\uix\\snackbar\\snackbar.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\snackbar\\snackbar.kv',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\medium-white\\pretty.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\medium-white\\pretty.css',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\medium-black\\__base__',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\medium-black\\__base__',
+   'DATA'),
+  ('docutils\\writers\\html5_polyglot\\plain.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\html5_polyglot\\plain.css',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\keybinding.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\keybinding.cpython-311.pyc',
+   'DATA'),
+  ('kivymd\\fonts\\materialdesignicons-webfont.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\materialdesignicons-webfont.ttf',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\inspector.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\inspector.cpython-311.pyc',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\medium-black\\pretty.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\medium-black\\pretty.css',
+   'DATA'),
+  ('kivymd\\uix\\list\\list.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\list\\list.kv',
+   'DATA'),
+  ('kivymd\\uix\\pickers\\datepicker\\datepicker.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\pickers\\datepicker\\datepicker.kv',
+   'DATA'),
+  ('kivymd\\uix\\segmentedcontrol\\segmentedcontrol.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\segmentedcontrol\\segmentedcontrol.kv',
+   'DATA'),
+  ('kivy_install\\data\\glsl\\header.vs',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\glsl\\header.vs',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\big-white\\pretty.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\big-white\\pretty.css',
+   'DATA'),
+  ('kivymd\\data\\glsl\\elevation\\main.frag',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\data\\glsl\\elevation\\main.frag',
+   'DATA'),
+  ('kivymd\\images\\red.png',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\kivymd\\images\\red.png',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isogrk4.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isogrk4.txt',
+   'DATA'),
+  ('kivy_install\\data\\images\\testpattern.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\images\\testpattern.png',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-Light.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-Light.ttf',
+   'DATA'),
+  ('kivy_install\\data\\logo\\kivy-icon-32.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\logo\\kivy-icon-32.png',
+   'DATA'),
+  ('kivymd\\uix\\menu\\menu.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\menu\\menu.kv',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\small-white\\pretty.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\small-white\\pretty.css',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isogrk4-wide.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isogrk4-wide.txt',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isomfrk.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isomfrk.txt',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\webdebugger.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\webdebugger.cpython-311.pyc',
+   'DATA'),
+  ('kivy_install\\data\\fonts\\Roboto-Bold.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\data\\fonts\\Roboto-Bold.ttf',
+   'DATA'),
+  ('docutils\\writers\\html5_polyglot\\responsive.css',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\html5_polyglot\\responsive.css',
+   'DATA'),
+  ('docutils\\writers\\latex2e\\docutils.sty',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\latex2e\\docutils.sty',
+   'DATA'),
+  ('docutils\\writers\\latex2e\\titlingpage.tex',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\latex2e\\titlingpage.tex',
+   'DATA'),
+  ('kivy_install\\modules\\screen.py',
+   'C:\\Program Files\\Python311\\Lib\\site-packages\\kivy\\modules\\screen.py',
+   'DATA'),
+  ('docutils\\writers\\s5_html\\themes\\default\\slides.js',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\writers\\s5_html\\themes\\default\\slides.js',
+   'DATA'),
+  ('kivymd\\fonts\\Roboto-Bold.ttf',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\fonts\\Roboto-Bold.ttf',
+   'DATA'),
+  ('kivymd\\uix\\button\\button.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\button\\button.kv',
+   'DATA'),
+  ('kivymd\\uix\\navigationdrawer\\navigationdrawer.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\navigationdrawer\\navigationdrawer.kv',
+   'DATA'),
+  ('kivymd\\uix\\selection\\selection.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\selection\\selection.kv',
+   'DATA'),
+  ('kivymd\\images\\transparent.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\images\\transparent.png',
+   'DATA'),
+  ('kivy_install\\modules\\__init__.py',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__init__.py',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isoamsn.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isoamsn.txt',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isomopf-wide.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isomopf-wide.txt',
+   'DATA'),
+  ('docutils\\parsers\\rst\\include\\isolat1.txt',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\docutils\\parsers\\rst\\include\\isolat1.txt',
+   'DATA'),
+  ('kivymd\\images\\logo\\kivymd-icon-256.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\images\\logo\\kivymd-icon-256.png',
+   'DATA'),
+  ('kivymd\\images\\logo\\kivymd-icon-512.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\images\\logo\\kivymd-icon-512.png',
+   'DATA'),
+  ('kivymd\\uix\\bottomnavigation\\bottomnavigation.kv',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\uix\\bottomnavigation\\bottomnavigation.kv',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\joycursor.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\joycursor.cpython-311.pyc',
+   'DATA'),
+  ('kivymd\\images\\green.png',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivymd\\images\\green.png',
+   'DATA'),
+  ('kivy_install\\modules\\__pycache__\\touchring.cpython-311.pyc',
+   'C:\\Program '
+   'Files\\Python311\\Lib\\site-packages\\kivy\\modules\\__pycache__\\touchring.cpython-311.pyc',
+   'DATA'),
+  ('setuptools-65.5.0.dist-info\\METADATA',
+   'c:\\program '
+   'files\\python311\\lib\\site-packages\\setuptools-65.5.0.dist-info\\METADATA',
+   'DATA'),
+  ('setuptools-65.5.0.dist-info\\INSTALLER',
+   'c:\\program '
+   'files\\python311\\lib\\site-packages\\setuptools-65.5.0.dist-info\\INSTALLER',
+   'DATA'),
+  ('setuptools-65.5.0.dist-info\\LICENSE',
+   'c:\\program '
+   'files\\python311\\lib\\site-packages\\setuptools-65.5.0.dist-info\\LICENSE',
+   'DATA'),
+  ('setuptools-65.5.0.dist-info\\REQUESTED',
+   'c:\\program '
+   'files\\python311\\lib\\site-packages\\setuptools-65.5.0.dist-info\\REQUESTED',
+   'DATA'),
+  ('setuptools-65.5.0.dist-info\\RECORD',
+   'c:\\program '
+   'files\\python311\\lib\\site-packages\\setuptools-65.5.0.dist-info\\RECORD',
+   'DATA'),
+  ('setuptools-65.5.0.dist-info\\top_level.txt',
+   'c:\\program '
+   'files\\python311\\lib\\site-packages\\setuptools-65.5.0.dist-info\\top_level.txt',
+   'DATA'),
+  ('setuptools-65.5.0.dist-info\\WHEEL',
+   'c:\\program '
+   'files\\python311\\lib\\site-packages\\setuptools-65.5.0.dist-info\\WHEEL',
+   'DATA'),
+  ('setuptools-65.5.0.dist-info\\entry_points.txt',
+   'c:\\program '
+   'files\\python311\\lib\\site-packages\\setuptools-65.5.0.dist-info\\entry_points.txt',
+   'DATA'),
+  ('LICENSE.freetype.txt',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\LICENSE.freetype.txt',
+   'DATA'),
+  ('LICENSE.harfbuzz.txt',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\LICENSE.harfbuzz.txt',
+   'DATA'),
+  ('LICENSE.zlib.txt',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\LICENSE.zlib.txt',
+   'DATA'),
+  ('optional\\libmodplug-1.dll',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\optional\\libmodplug-1.dll',
+   'DATA'),
+  ('optional\\libogg-0.dll',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\optional\\libogg-0.dll',
+   'DATA'),
+  ('optional\\libopus-0.dll',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\optional\\libopus-0.dll',
+   'DATA'),
+  ('optional\\libopusfile-0.dll',
+   'C:\\Program '
+   'Files\\Python311\\share\\sdl2\\bin\\optional\\libopusfile-0.dll',
+   'DATA'),
+  ('optional\\libtiff-5.dll',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\optional\\libtiff-5.dll',
+   'DATA'),
+  ('optional\\libwebp-7.dll',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\optional\\libwebp-7.dll',
+   'DATA'),
+  ('optional\\LICENSE.modplug.txt',
+   'C:\\Program '
+   'Files\\Python311\\share\\sdl2\\bin\\optional\\LICENSE.modplug.txt',
+   'DATA'),
+  ('optional\\LICENSE.ogg-vorbis.txt',
+   'C:\\Program '
+   'Files\\Python311\\share\\sdl2\\bin\\optional\\LICENSE.ogg-vorbis.txt',
+   'DATA'),
+  ('optional\\LICENSE.opus.txt',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\optional\\LICENSE.opus.txt',
+   'DATA'),
+  ('optional\\LICENSE.opusfile.txt',
+   'C:\\Program '
+   'Files\\Python311\\share\\sdl2\\bin\\optional\\LICENSE.opusfile.txt',
+   'DATA'),
+  ('optional\\LICENSE.tiff.txt',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\optional\\LICENSE.tiff.txt',
+   'DATA'),
+  ('optional\\LICENSE.webp.txt',
+   'C:\\Program Files\\Python311\\share\\sdl2\\bin\\optional\\LICENSE.webp.txt',
+   'DATA')],)

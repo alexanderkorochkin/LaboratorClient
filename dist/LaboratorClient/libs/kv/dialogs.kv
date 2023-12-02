@@ -1,0 +1,512 @@
+#:import msettings libs.settings.settingsJSON.msettings
+#:import truncate_string libs.utils.truncate_string
+
+
+<HelpTooltipMDIconButton>:
+    hover_bg: 1, 1, 1, 0
+    hr: 8
+    ripple_alpha: 0.2
+    radius: [self.hr, self.hr]
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, 0.1
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<Item>:
+    hover_bg: 1, 1, 1, 0
+    hr: 8
+    ripple_alpha: 0.2
+    radius: [self.hr, self.hr]
+    canvas.after:
+        Color:
+            rgba: self.hover_bg
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [self.hr, self.hr, self.hr, self.hr]
+    on_enter:
+        self.hover_bg = 0.4, 0.4, 0.4, 0.1
+    on_leave:
+        self.hover_bg = 1, 1, 1, 0
+
+
+<ItemConfirm>
+    on_release: root.set_icon(check)
+    CheckboxLeftWidget:
+        id: check
+        group: "check"
+
+
+<ChipsContent>:
+    id: content_holder
+    orientation: "vertical"
+    adaptive_height: True
+    MDTextField:
+        id: my_text_field
+        text: root.init_text
+        hint_text: root.hint_text
+        multiline: True
+        max_height: dp(200)
+
+
+<LDialogHelpContent>:
+    orientation: "vertical"
+    size_hint_y: 1
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        always_overscroll: False
+        effect_cls: Factory.OpacityScrollEffectSmooth
+        size_hint_y: 1
+        MDBoxLayout:
+            id: content_cls_box
+            adaptive_height: True
+            orientation: 'vertical'
+            spacing: dp(10)
+            padding: [dp(0), dp(5), dp(0), dp(5)]
+            MDBoxLayout:
+                id: help_box
+                adaptive_height: True
+                orientation: 'vertical'
+                MDLabel:
+                    markup: True
+                    multiline: True
+                    size_hint_y: None
+                    size: self.texture_size
+                    anchor_y: 'bottom'
+                    font_size: sp(14)
+                    text: root.help_text
+                    on_ref_press:
+                        import webbrowser
+                        webbrowser.open(args[1])
+
+
+<LDialogMenuContent>:
+    orientation: "vertical"
+    size_hint_y: 1
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        always_overscroll: False
+        effect_cls: Factory.OpacityScrollEffectSmooth
+        size_hint_y: 1
+        MDBoxLayout:
+            id: content_cls_box
+            adaptive_height: True
+            orientation: 'vertical'
+            spacing: dp(10)
+            padding: [dp(0), dp(5), dp(0), dp(5)]
+            MDBoxLayout:
+                id: items_box
+                adaptive_height: True
+                orientation: 'vertical'
+
+<LDialogGraphSettingsContent>:
+    orientation: "vertical"
+    size_hint_y: 1
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        always_overscroll: False
+        effect_cls: Factory.OpacityScrollEffectSmooth
+        size_hint_y: 1
+        MDBoxLayout:
+            id: content_cls_box
+            adaptive_height: True
+            orientation: 'vertical'
+            spacing: dp(10)
+            padding: [dp(0), dp(5), dp(0), dp(5)]
+            MDBoxLayout:
+                id: first_cell
+                orientation: 'vertical'
+                adaptive_height: True
+                size_hint_x: 1
+                pos_hint: {'top': 1}
+                spacing: dp(10)
+                MDBoxLayout:
+                    orientation: "vertical"
+                    adaptive_height: True
+                    size_hint_x: 1
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        adaptive_height: True
+                        size_hint_x: 1
+                        spacing: dp(5)
+                        HoverMDFlatButton:
+                            id: variable_list
+                            text: "Переменная: " + truncate_string(root.labvar_name, 20, screen_brackets=True)
+                            size_hint_x: 1
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.text_color
+                            font_size: sp(14)
+                            on_release: app.dialogList.Open(root.SelectVariable, help_id='graph_variable_choosing')
+                            hr: 8
+                        HoverMDIconButton:
+                            ttext: 'Переименовать' if self.icon == 'pencil' else 'Скопировать имя'
+                            hr: 8
+                            size_hint: None, 1
+                            icon: 'pencil' if '*' in root.labvar_name else 'content-copy'
+                            theme_icon_color: "Custom"
+                            icon_color: app.theme_cls.primary_color
+                            on_release: app.dialogTextInput.Open('name', 'Переименовать', 'SAVE', 'CANCEL', root.Rename, root.labvar_name[1:], 'Имя должно быть уникальным', root.instance, help_id='graph_rename_variable') if '*' in root.labvar_name else app.copy(root.labvar_name)
+                    MDBoxLayout:
+                        id: expression_settings
+                        orientation: "vertical"
+                        opacity: 1 if '*' in root.labvar_name else 0
+                        adaptive_height: True if '*' in root.labvar_name else False
+                        height: expression_settings_all.height
+                        padding: [0, dp(10), 0, 0] if '*' in root.labvar_name else [0, 0, 0, 0]
+                        MDBoxLayout:
+                            id: expression_settings_all
+                            orientation: "vertical"
+                            adaptive_height: True if '*' in root.labvar_name else False
+                            height: expression_button.height if '*' in root.labvar_name else '0dp'
+                            HoverMDFlatButton:
+                                id: expression_button
+                                hr: 8
+                                text: "Выражение: " + truncate_string(root.expression if root.expression else 'Empty', 35, screen_brackets=True) if '*' in root.labvar_name else 'Встроенная переменная'
+                                size_hint_x: 1
+                                markup: True
+                                theme_text_color: "Custom"
+                                text_color: app.theme_cls.text_color
+                                font_size: sp(14)
+                                disabled: False if '*' in root.labvar_name else True
+                                on_release: app.dialogTextInput.Open('string', 'Изменение выражения', 'SAVE', 'CANCEL', root.SetExpression, root.expression, '', help_id='graph_expression')
+                MDBoxLayout:
+                    id: mode_dependent_settings
+                    orientation: 'vertical'
+                    size_hint_x: 1
+                    size_hint_y: None
+                    height: change_mode_button.height + mode_spectral.height + mode_normal.height
+                    HoverMDFlatButton:
+                        id: change_mode_button
+                        hr: 8
+                        text: "Текущий режим: " + root.mode
+                        size_hint_x: 1
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.text_color
+                        font_size: sp(14)
+                        on_release: root.Toggle('NEXT_MODE')
+                    MDBoxLayout:
+                        id: mode_spectral
+                        orientation: "horizontal"
+                        opacity: 1 if root.mode == 'SPECTRAL' else 0
+                        adaptive_height: True if root.mode == 'SPECTRAL' else False
+                        height: mode_spectral_all.height if root.mode == 'SPECTRAL' else '0dp'
+                        padding: [0, dp(10), 0, 0] if root.mode == 'SPECTRAL' else [0, 0, 0, 0]
+                        MDBoxLayout:
+                            id: mode_spectral_all
+                            orientation: "vertical"
+                            adaptive_height: True if root.mode == 'NORMAL' else False
+                            height: spectral_buffer_size.height if root.mode == 'SPECTRAL' else '0dp'
+                            HoverMDFlatButton:
+                                id: spectral_buffer_size
+                                hr: 8
+                                text: "Размер спектрального буфера: " + str(root.spectral_buffer_size)
+                                size_hint_x: 1
+                                halign: 'center'
+                                theme_text_color: "Custom"
+                                text_color: app.theme_cls.text_color
+                                font_size: sp(14)
+                                disabled: False if root.mode == 'SPECTRAL' else True
+                                on_release: app.dialogTextInput.Open('sint', 'Размер спектрального буфера', 'SAVE', 'CANCEL', root.SetSpectralBufferSize, str(root.spectral_buffer_size), 'Желательно число кратное степени двойки', help_id='graph_spectral_buffer_size')
+                    MDBoxLayout:
+                        id: mode_normal
+                        opacity: 1 if root.mode == 'NORMAL' else 0
+                        adaptive_height: True if root.mode == 'NORMAL' else False
+                        height: mode_normal_all.height if root.mode == 'NORMAL' else '0dp'
+                        padding: [0, dp(10), 0, 0] if root.mode == 'NORMAL' else [0, 0, 0, 0]
+                        MDBoxLayout:
+                            id: mode_normal_all
+                            orientation: "vertical"
+                            adaptive_height: True if root.mode == 'NORMAL' else False
+                            height: avg_number.height + avg_graph.height + avg_value.height + main_graph.height + intime_graph.height + target_value.height if root.mode == 'NORMAL' else '0dp'
+                            HoverMDBoxLayout:
+                                id: avg_value
+                                orientation: "horizontal"
+                                size_hint_x: 1
+                                adaptive_height: True
+                                MDCheckbox:
+                                    on_release: root.Toggle('SHOW_AVG_VALUE')
+                                    size_hint: None, 1
+                                    size: "48dp", "48dp"
+                                    disabled: True if root.mode == 'SPECTRAL' else False
+                                    active: root.show_avg_value
+                                MDFlatButton:
+                                    hr: 8
+                                    text: "Показывать значение среднего"
+                                    ripple_scale: 0
+                                    ripple_opacity: 0
+                                    size_hint_x: 1
+                                    halign: 'left'
+                                    theme_text_color: "Custom"
+                                    text_color: app.theme_cls.text_color
+                                    font_size: sp(14)
+                                    disabled: True if root.mode == 'SPECTRAL' else False
+                                    on_release: root.Toggle('SHOW_AVG_VALUE')
+                            HoverMDBoxLayout:
+                                id: avg_graph
+                                orientation: "horizontal"
+                                size_hint_x: 1
+                                adaptive_height: True
+                                MDCheckbox:
+                                    on_release: root.Toggle('SHOW_AVG_GRAPH')
+                                    size_hint: None, 1
+                                    size: "48dp", "48dp"
+                                    disabled: True if root.mode == 'SPECTRAL' else False
+                                    active: root.show_avg_graph
+                                MDFlatButton:
+                                    hr: 8
+                                    text: "График среднего значения"
+                                    ripple_scale: 0
+                                    ripple_opacity: 0
+                                    size_hint_x: 1
+                                    halign: 'left'
+                                    theme_text_color: "Custom"
+                                    text_color: app.theme_cls.text_color
+                                    font_size: sp(14)
+                                    disabled: True if root.mode == 'SPECTRAL' else False
+                                    on_release: root.Toggle('SHOW_AVG_GRAPH')
+                            HoverMDBoxLayout:
+                                id: main_graph
+                                orientation: "horizontal"
+                                size_hint_x: 1
+                                adaptive_height: True
+                                MDCheckbox:
+                                    on_release: root.Toggle('SHOW_MAIN_GRAPH')
+                                    size_hint: None, 1
+                                    size: "48dp", "48dp"
+                                    disabled: True if root.mode == 'SPECTRAL' else False
+                                    active: root.show_main_graph
+                                MDFlatButton:
+                                    text: "Основной график"
+                                    ripple_scale: 0
+                                    ripple_opacity: 0
+                                    size_hint_x: 1
+                                    theme_text_color: "Custom"
+                                    halign: 'left'
+                                    text_color: app.theme_cls.text_color
+                                    font_size: sp(14)
+                                    disabled: True if root.mode == 'SPECTRAL' else False
+                                    on_release: root.Toggle('SHOW_MAIN_GRAPH')
+                            HoverMDBoxLayout:
+                                id: intime_graph
+                                orientation: "horizontal"
+                                size_hint_x: 1
+                                adaptive_height: True
+                                MDCheckbox:
+                                    on_release: root.Toggle('SHOW_INTIME_GRAPH')
+                                    size_hint: None, 1
+                                    size: "48dp", "48dp"
+                                    disabled: True if root.mode == 'SPECTRAL' else False
+                                    active: root.show_intime_graph
+                                MDFlatButton:
+                                    text: "Линия текущего значения"
+                                    ripple_scale: 0
+                                    ripple_opacity: 0
+                                    size_hint_x: 1
+                                    halign: 'left'
+                                    theme_text_color: "Custom"
+                                    text_color: app.theme_cls.text_color
+                                    font_size: sp(14)
+                                    disabled: True if root.mode == 'SPECTRAL' else False
+                                    on_release: root.Toggle('SHOW_INTIME_GRAPH')
+                            HoverMDBoxLayout:
+                                id: target_value
+                                orientation: "horizontal"
+                                size_hint_x: 1
+                                adaptive_height: True
+                                MDCheckbox:
+                                    on_release: root.Toggle('SHOW_TARGET_VALUE')
+                                    size_hint: None, 1
+                                    size: "48dp", "48dp"
+                                    active: root.show_target_value
+                                    disabled: False if root.mode == 'NORMAL' else True
+                                MDFlatButton:
+                                    text: "Целевое значение: " + str(root.target_value)
+                                    size_hint_x: 1
+                                    halign: 'left'
+                                    theme_text_color: "Custom"
+                                    text_color: app.theme_cls.text_color
+                                    disabled: False if root.show_target_value and root.mode == 'NORMAL' else True
+                                    font_size: sp(14)
+                                    on_release: app.dialogTextInput.Open('sfloat', 'Целевое значение', 'SAVE', 'CANCEL', root.SetTargetValue, str(root.target_value), '', help_id='graph_target_value')
+                            MDBoxLayout:
+                                id: avg_number
+                                orientation: "horizontal"
+                                adaptive_height: True
+                                padding: [0, dp(5), 0, 0]
+                                HoverMDFlatButton:
+                                    hr: 8
+                                    text: "Отсчетов для среднего: " + str(root.avg_buffer_size)
+                                    size_hint_x: 1
+                                    halign: 'center'
+                                    theme_text_color: "Custom"
+                                    text_color: app.theme_cls.text_color
+                                    font_size: sp(14)
+                                    disabled: False if root.mode == 'NORMAL' else True
+                                    on_release: app.dialogTextInput.Open('sint', 'Размер буфера среднего', 'SAVE', 'CANCEL', root.SetAVGBufferSize, str(root.avg_buffer_size), '', help_id='graph_avg_buffer_size')
+                HoverMDFlatButton:
+                    hr: 8
+                    text: "Знаков после запятой: " + str(root.graph_round_digits)
+                    size_hint_x: 1
+                    halign: 'center'
+                    theme_text_color: "Custom"
+                    text_color: app.theme_cls.text_color
+                    font_size: sp(14)
+                    on_release: app.dialogTextInput.Open('sint', 'Число знаков после запятой', 'SAVE', 'CANCEL', root.SetPrecision, str(root.graph_round_digits), '', help_id='graph_precision')
+                MDBoxLayout:
+                    id: axes_settings
+                    orientation: "horizontal"
+                    size_hint_x: 1
+                    adaptive_height: True
+                    spacing: dp(10)
+                    # padding: dp(10), dp(10), dp(10), dp(10)
+                    HoverMDFlatButton:
+                        id: toggle_x_button
+                        text: "Откл. ось X" if root.label_x else "Вкл. ось X"
+                        size_hint_x: 1
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color if root.label_x else app.theme_cls.text_color
+                        font_size: sp(14)
+                        on_release: root.Toggle('GRAPH_LABEL_X')
+                    HoverMDFlatButton:
+                        id: toggle_y_button
+                        text: "Откл. ось Y" if root.label_y else "Вкл. ось Y"
+                        size_hint_x: 1
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color if root.label_y else app.theme_cls.text_color
+                        font_size: sp(14)
+                        on_release: root.Toggle('GRAPH_LABEL_Y')
+                HoverMDFlatButton:
+                    id: clear_graph
+                    text: "Очистить график"
+                    size_hint_x: 1
+                    theme_text_color: "Custom"
+                    text_color: app.theme_cls.text_color
+                    font_size: sp(14)
+                    on_release: root.ClearGraph()
+                HoverMDFlatButton:
+                    id: delete_graph
+                    text: "Удалить плитку"
+                    size_hint_x: 1
+                    theme_text_color: "Custom"
+                    text_color: [0.9, 0.2, 0.2, 1]
+                    font_size: sp(14)
+                    on_release: root.RemoveGraph()
+
+
+<LDialogControlSettingsContent>:
+    orientation: "vertical"
+    size_hint_y: 1
+    MDScrollView:
+        do_scroll_x: False
+        do_scroll_y: True
+        always_overscroll: False
+        effect_cls: Factory.OpacityScrollEffectSmooth
+        size_hint_y: 1
+        MDBoxLayout:
+            id: content_cls_box
+            adaptive_height: True
+            orientation: 'vertical'
+            spacing: dp(10)
+            padding: [dp(0), dp(5), dp(0), dp(5)]
+            MDBoxLayout:
+                id: main_cell
+                orientation: 'vertical'
+                adaptive_height: True
+                size_hint_x: 1
+                pos_hint: {'top': 1}
+                spacing: dp(10)
+                MDBoxLayout:
+                    orientation: "vertical"
+                    adaptive_height: True
+                    size_hint_x: 1
+                    spacing: dp(10)
+                    MDBoxLayout:
+                        orientation: "horizontal"
+                        adaptive_height: True
+                        size_hint_x: 1
+                        HoverMDFlatButton:
+                            id: variable_list
+                            text: truncate_string("Переменная: " + root.labvar_name, 25, screen_brackets=True)
+                            size_hint_x: 1
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.text_color
+                            font_size: sp(14)
+                            on_release: app.dialogListShort.Open(root.ChangeLabvarName, help_id='control_variable_choosing')
+                    MDBoxLayout:
+                        id: display_name_settings
+                        orientation: "vertical"
+                        adaptive_height: True
+                        height: display_name_settings_all.height
+                        MDBoxLayout:
+                            id: display_name_settings_all
+                            orientation: "vertical"
+                            adaptive_height: True
+                            height: display_name_button.height
+                            HoverMDFlatButton:
+                                id: display_name_button
+                                text: truncate_string("Название: " + root.display_name, 25)
+                                size_hint_x: 1
+                                markup: True
+                                theme_text_color: "Custom"
+                                text_color: app.theme_cls.text_color
+                                font_size: sp(14)
+                                on_release: app.dialogTextInput.Open('string', 'Название кнопки', 'SAVE', 'CANCEL', root.ChangeDisplayName, str(root.display_name), '', help_id='control_name')
+                    HoverMDBoxLayout:
+                        id: icon_on_settings
+                        orientation: "horizontal"
+                        size_hint_x: 1
+                        adaptive_height: True
+                        MDIconButton:
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [ON]', 'SAVE', 'CANCEL', root.SetIconOn, str(root.icon_on), 'More on https://pictogrammers.com/library/mdi/', help_id='control_icon_on')
+                            size_hint: None, 1
+                            size: "48dp", "48dp"
+                            icon: root.icon_on
+                        MDFlatButton:
+                            text: "Иконка ON: " + root.icon_on
+                            ripple_scale: 0
+                            ripple_opacity: 0
+                            size_hint_x: 1
+                            halign: 'left'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.text_color
+                            font_size: sp(14)
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [ON]', 'SAVE', 'CANCEL', root.SetIconOn, str(root.icon_on), 'More on https://pictogrammers.com/library/mdi/', help_id='control_icon_on')
+                    HoverMDBoxLayout:
+                        id: icon_off_settings
+                        orientation: "horizontal"
+                        size_hint_x: 1
+                        adaptive_height: True
+                        MDIconButton:
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [OFF]', 'SAVE', 'CANCEL', root.SetIconOff, str(root.icon_off), 'More on https://pictogrammers.com/library/mdi/', help_id='control_icon_off')
+                            size_hint: None, 1
+                            size: "48dp", "48dp"
+                            icon: root.icon_off
+                        MDFlatButton:
+                            text: "Иконка OFF: " + root.icon_off
+                            ripple_scale: 0
+                            ripple_opacity: 0
+                            size_hint_x: 1
+                            halign: 'left'
+                            theme_text_color: "Custom"
+                            text_color: app.theme_cls.text_color
+                            font_size: sp(14)
+                            on_release: app.dialogTextInput.Open('string', 'Иконка [OFF]', 'SAVE', 'CANCEL', root.SetIconOff, str(root.icon_off), 'More on https://pictogrammers.com/library/mdi/', help_id='control_icon_off')
+                    HoverMDFlatButton:
+                        id: delete_control
+                        text: "Удалить кнопку"
+                        size_hint_x: 1
+                        theme_text_color: "Custom"
+                        text_color: [0.9, 0.2, 0.2, 1]
+                        font_size: sp(14)
+                        on_release: root.RemoveControl()

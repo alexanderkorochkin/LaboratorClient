@@ -18,7 +18,7 @@ from libs.controls import ControlButton
 from libs.settings.settings_mod import SettingsWithNoMenu
 from libs.utils import *
 from libs.settings.settingsJSON import *
-from libs.opcua.opcuaclient import client
+from libs.opcuaclient import client
 from libs.graph import GraphBox
 from libs.dialogs import LDialogEnterString, LDialogGraphSettings, LDialogList, LDialogMenu, LDialogControlSettings, \
     LDialogListShort, LDialogHelp

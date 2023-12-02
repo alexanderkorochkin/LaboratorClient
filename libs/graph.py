@@ -12,7 +12,7 @@ from kivymd.uix.widget import MDWidget
 
 from libs.utils import *
 from libs.gardengraph.init import Graph, LinePlot, SmoothLinePlot, PointPlot, ScatterPlot
-from libs.opcua.opcuaclient import client
+from libs.opcuaclient import client
 from libs.settings.settingsJSON import *
 from libs.variables import DirectVariable, IndirectVariable
 
