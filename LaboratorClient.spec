@@ -4,16 +4,25 @@
 from kivy_deps import sdl2, glew
 from kivymd import hooks_path as kivymd_hooks_path
 
+site_packages_dir = 'D:/PythonProjects/Laborator/LaboratorClient/venv/Lib/site-packages/'
 
 block_cipher = None
+
+(site_packages_dir+'scipy', './scipy')
+
+datass=[('./libs/kv/*.kv', 'libs/kv')]
+datas_names = ['opcua', 'scipy', 'numpy']
+
+for name in datas_names:
+	datass.append((site_packages_dir+name, f'./{name}'))
 
 
 a = Analysis(
     ['main.py'],
-    pathex=[],
+    pathex=['D//PythonProjects//Laborator//LaboratorClient//venv//Lib//site-packages'],
     binaries=[],
-    datas=[('./libs/kv/*.kv', 'libs/kv')],
-    hiddenimports=['opcua'],
+    datas=datass,
+    hiddenimports=['cryptography','scipy'],
     hookspath=[kivymd_hooks_path],
     hooksconfig={},
     runtime_hooks=[],

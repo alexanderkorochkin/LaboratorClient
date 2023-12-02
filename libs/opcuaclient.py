@@ -2,7 +2,7 @@ import threading
 
 from kivy import Logger
 from kivy.clock import Clock
-from libs.myopcua import Client, ua
+from opcua import Client, ua
 from urllib.parse import urlparse
 
 from libs.settings.settingsJSON import msettings
