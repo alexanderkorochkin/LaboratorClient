@@ -591,7 +591,7 @@ class LDialogMenu:
             self.dialog.ids.container.padding = ["8dp", "-20dp", "-8dp", "-22dp"]
             self.dialog.remove_widget(self.dialog.ids.title)
             self.dialog.remove_widget(self.dialog.ids.text)
-            self.dialog.remove_widget(self.dialog.ids.scroll)
+            # self.dialog.remove_widget(self.dialog.ids.scroll)
             self.dialog.height_compensation = dp(100)
         self.dialog.open()
         self.dialog.update_height()
