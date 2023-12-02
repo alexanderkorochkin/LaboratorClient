@@ -1,7 +1,6 @@
 import logging
 import os
 import threading
-import uuid
 
 from kivy import Config
 from kivy.core.clipboard import Clipboard
@@ -10,14 +9,9 @@ from kivy.utils import platform
 from kivy.core.window import Window
 from kivymd.app import MDApp
 from kivy.properties import StringProperty, OptionProperty, BooleanProperty
-from kivymd.uix.behaviors import HoverBehavior
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivy.clock import Clock
-from kivymd.uix.button import MDIconButton, MDFlatButton, MDRaisedButton
 from kivymd.uix.screen import MDScreen
 from kivy.logger import LOG_LEVELS, LoggerHistory
 from kivy.lang import Builder
-from kivy.factory import Factory
 
 from libs.android_permissions import AndroidPermissions
 from libs.controls import ControlButton
@@ -34,6 +28,7 @@ from libs.utils import HoverMDIconButton, HoverMDFlatButton, HoverMDRaisedButton
 
 Logger.setLevel(LOG_LEVELS["debug"])
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
+
 
 class GContainer(MDBoxLayout):
     gcontainer = ObjectProperty(None)
@@ -442,9 +437,10 @@ class KivyApp(MDApp):
 
     def on_start(self):
         self.kivy_instance.Prepare()
-        self.dont_gc = AndroidPermissions(self.start_app)
 
         if platform == "android":
+            Logger.debug('TRYING TO GET PERMISSIONS!')
+            self.dont_gc = AndroidPermissions(self.start_app)
             from jnius import autoclass
 
             PythonActivity = autoclass("org.kivy.android.PythonActivity")
@@ -452,6 +448,7 @@ class KivyApp(MDApp):
             activity = PythonActivity.mActivity
             # set orientation according to user's preference
             activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER)
+            Logger.debug('GETTING PERMISSIONS ENDED!')
 
         if msettings.get('USE_LAYOUT'):
             self.layoutManager.LoadLayout()
@@ -508,11 +505,7 @@ class KivyApp(MDApp):
 
         Factory.register('OpacityScrollEffectSmooth', module='libs.effects.opacityscrollsmooth')
 
-        self.theme_cls.theme_style = 'Dark' # msettings.get("THEME")
-        # if msettings.get("THEME") == 'Light':
-        #     self.theme_cls.set_colors("Purple", "300", "50", "800", "Gray", "600", "50", "800")
-        # else:
-        #
+        self.theme_cls.theme_style = 'Dark'
         self.theme_cls.set_colors("Orange", "300", "50", "800", "Gray", "600", "50", "800")
         self.LoadKV()
         self.kivy_instance = LaboratorClient(self)
@@ -654,8 +647,3 @@ class KivyApp(MDApp):
 
 
 KivyApp = KivyApp()
-
-# TODO Вывести статистику в каждом графике
-# TODO Реализовать кнопки для управления стендом
-# TODO Написать справку по программе
-# TODO Реализовать экранирование скобок для вывода в виджетах (kivy.label documentation )

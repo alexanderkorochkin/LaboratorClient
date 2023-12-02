@@ -1,7 +1,9 @@
-from libs.kivyapp import KivyApp
-import os, sys
-from kivy.resources import resource_add_path, resource_find
+import os
+import sys
 
+from kivy.resources import resource_add_path
+
+from libs.kivyapp import KivyApp
 
 if __name__ == "__main__":
     if hasattr(sys, '_MEIPASS'):
