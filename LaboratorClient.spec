@@ -8,10 +8,8 @@ site_packages_dir = 'D:/PythonProjects/Laborator/LaboratorClient/venv/Lib/site-p
 
 block_cipher = None
 
-(site_packages_dir+'scipy', './scipy')
-
-datass=[('./libs/kv/*.kv', 'libs/kv')]
-datas_names = ['opcua', 'scipy', 'numpy']
+datass=[('./libs/effects/*.*', 'libs/effects'), ('./libs/iapws/VERSION', 'libs/iapws'), ('./libs/kivy.ini', 'libs'), ('./libs/kv/*.*', 'libs/kv'), ('./help.json', '.')]
+datas_names = ['opcua', 'numpy', 'scipy']
 
 for name in datas_names:
 	datass.append((site_packages_dir+name, f'./{name}'))
@@ -19,10 +17,10 @@ for name in datas_names:
 
 a = Analysis(
     ['main.py'],
-    pathex=['D//PythonProjects//Laborator//LaboratorClient//venv//Lib//site-packages'],
+    pathex=[],
     binaries=[],
     datas=datass,
-    hiddenimports=['cryptography','scipy'],
+    hiddenimports=datas_names,
     hookspath=[kivymd_hooks_path],
     hooksconfig={},
     runtime_hooks=[],

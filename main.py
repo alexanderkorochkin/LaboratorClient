@@ -4,6 +4,8 @@ import sys
 from kivy.resources import resource_add_path
 from kivy.utils import platform
 
+import kivymd.effects.stiffscroll
+
 from libs.kivyapp import KivyApp
 
 if __name__ == "__main__":

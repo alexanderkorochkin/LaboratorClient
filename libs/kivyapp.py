@@ -461,8 +461,7 @@ class KivyApp(MDApp):
     def start_app(self):
         self.dont_gc = None
 
-    @staticmethod
-    def LoadKV():
+    def LoadKV(self):
         for filename in os.listdir(os.path.join("libs", "kv")):
             Builder.load_file(os.path.join("libs", "kv", filename))
 
