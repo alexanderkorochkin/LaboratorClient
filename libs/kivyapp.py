@@ -443,12 +443,12 @@ class KivyApp(MDApp):
             self.dont_gc = AndroidPermissions(self.start_app)
             from jnius import autoclass
 
-            PythonActivity = autoclass("org.kivy.android.PythonActivity")
-            ActivityInfo = autoclass("android.content.pm.ActivityInfo")
-            activity = PythonActivity.mActivity
-            # set orientation according to user's preference
-            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER)
-            Logger.debug('GETTING PERMISSIONS ENDED!')
+            # PythonActivity = autoclass("org.kivy.android.PythonActivity")
+            # ActivityInfo = autoclass("android.content.pm.ActivityInfo")
+            # activity = PythonActivity.mActivity
+            # # set orientation according to user's preference
+            # activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER)
+            # Logger.debug('GETTING PERMISSIONS ENDED!')
 
         if msettings.get('USE_LAYOUT'):
             self.layoutManager.LoadLayout()
